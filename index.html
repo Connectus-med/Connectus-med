@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-10' APP_BUILD = '2026-10-11' APP_BUILD = '2026-10-12' APP_BUILD = '2026-10-13' APP_BUILD = '2026-10-14' APP_BUILD = '2026-10-15' APP_BUILD = '2026-10-16' APP_BUILD = '2026-10-17' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-10' APP_BUILD = '2026-10-11' APP_BUILD = '2026-10-12' APP_BUILD = '2026-10-13' APP_BUILD = '2026-10-14' APP_BUILD = '2026-10-15' APP_BUILD = '2026-10-16' APP_BUILD = '2026-10-17' APP_BUILD = '2026-10-18' APP_BUILD = '2026-10-19' APP_BUILD = '2026-10-20' APP_BUILD = '2026-10-21' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -124,6 +124,17 @@
 
   /* dashboard */
   .brand{cursor:pointer}
+  .buildtag{flex:none; font-size:.62rem; font-weight:800; color:var(--accent-2); background:var(--accent-soft); border:1px solid var(--line); border-radius:var(--cap); padding:3px 8px; letter-spacing:.02em; white-space:nowrap}
+  .buildinfo{margin-top:12px; padding-top:10px; border-top:1px solid var(--line); color:var(--muted); font-size:.72rem; font-weight:600; line-height:1.55}
+  .buildinfo b{color:var(--accent-2)}
+  .updtoast{position:fixed; left:50%; transform:translateX(-50%); bottom:calc(20px + env(safe-area-inset-bottom,0px)); z-index:80; background:var(--accent-2); color:#fff; border-radius:var(--cap); padding:11px 16px; font-size:.82rem; font-weight:750; box-shadow:0 12px 28px -10px rgba(120,60,10,.55); opacity:0; transition:opacity .3s; pointer-events:none; max-width:90vw; text-align:center}
+  .updtoast.on{opacity:1}
+  @media (max-width:400px){ .buildtag{font-size:.56rem; padding:2px 6px} }
+  .pbuild{margin:10px 4px 2px; padding-top:10px; border-top:1px solid var(--line); color:var(--muted); font-size:.72rem; font-weight:600; line-height:1.5; text-align:center}
+  .pbuild b{color:var(--accent-2)}
+  .wnTitle{font-size:.95rem; font-weight:800; margin:2px 0 8px}
+  .wnList{margin:0; padding-left:18px}
+  .wnList li{margin:4px 0; font-size:.86rem; line-height:1.45}
   .hero2{background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:#fff; border-radius:22px; padding:20px; box-shadow:var(--shadow)}
   .hero2 .lbl{font-size:.74rem; font-weight:800; text-transform:uppercase; letter-spacing:.1em; opacity:.9}
   .hero2 .big{font-size:2.7rem; font-weight:850; line-height:1.05; margin:6px 0 2px}
@@ -147,6 +158,14 @@
   .duerow .yr{color:var(--muted); font-size:.72rem}
   .duerow .cnt{font-size:.72rem; font-weight:800; color:#fff; background:var(--accent-2); border-radius:var(--cap); padding:2px 9px}
   .duerow.zero .cnt{background:var(--line); color:var(--muted)}
+  .prow{display:block; width:100%; text-align:left; border:0; background:none; color:inherit; font:inherit; padding:9px 4px; border-radius:12px; cursor:pointer}
+  .prow:hover{background:var(--accent-soft)}
+  .ptop{display:flex; align-items:center; gap:8px}
+  .ptop .nm{flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.9rem; font-weight:650}
+  .ptop .pv{font-size:.78rem; font-weight:850; color:var(--accent-2)}
+  .pbar{display:block; height:8px; border-radius:var(--cap); background:var(--line); overflow:hidden; margin:7px 0 4px}
+  .pbar i{display:block; height:100%; background:linear-gradient(90deg,var(--accent),var(--accent-2))}
+  .psub{color:var(--muted); font-size:.72rem; font-weight:600}
   .viewhead{display:flex; align-items:center; gap:10px; margin:4px 0 6px}
   .viewhead .nm{flex:1; font-size:1.2rem; font-weight:850; letter-spacing:-.02em}
   .viewhead .btn{flex:none}
@@ -203,6 +222,7 @@
 <header class="appbar">
   <button id="menuBtn" class="iconbtn" aria-label="Menu">☰</button>
   <div class="brand" id="appTitle">Connectus</div>
+  <span id="buildTag" class="buildtag"></span>
   <button id="lastSync" class="lastsync" aria-label="Sync now">—</button>
   <span id="syncDot" class="dot on"></span>
   <button id="profileBtn" class="avatar" aria-label="Profile">L</button>
@@ -231,7 +251,9 @@
     <button id="signOut" class="btn wide">Sign out</button>
     <div style="height:10px"></div>
   </div>
+  <button id="whatsNewBtn" class="btn wide hidden">What&#39;s New</button>
   <button id="legalBtn" class="btn wide">Terms, refund &amp; privacy</button>
+  <div id="pmenuBuild" class="pbuild"></div>
   <div style="height:10px"></div>
 </div>
 
@@ -247,6 +269,7 @@
     <button id="addSubjBtn" class="btn wide">+ Add subject</button>
     <button id="addFilesBtn" class="btn wide">+ Add deck files</button>
     <input id="fileInput" type="file" accept=".html,.htm" multiple="" class="hidden">
+    <div id="buildInfo" class="buildinfo"></div>
   </div>
 </aside>
 
@@ -323,7 +346,31 @@
   var YEARS = ['1st Year MBBS','2nd Year MBBS','3rd Year MBBS','4th Year MBBS - Major','4th Year MBBS - Minor'];
   var TAGS = ['Basics&Fundamentals', 'MainConcepts', 'Integrated&Complex'];
   var deckLoc = {}, tagAgg = { global:{}, subject:{} };
-  var APP_BUILD = '2026-10-18';
+  var APP_BUILD = '2026-10-22';
+  var BUILD_NOTE = 'Build number in profile + What\'s New';
+  var CHANGELOG = [
+    { build:'2026-10-22', title:'Build number in profile + What\'s New', items:[
+      'Build number now shows in the profile menu (tap the avatar).',
+      'New \u201cWhat\u2019s New\u201d page \u2014 see exactly what changed, build by build.'
+    ]},
+    { build:'2026-10-21', title:'On-screen build number', items:[
+      'A build chip in the header and a line in the menu.',
+      'A \u201c\u2713 Updated to build \u2026\u201d toast appears whenever an update lands.'
+    ]},
+    { build:'2026-10-20', title:'Multi-level progress', items:[
+      'Home dashboard: progress by subject (seen / left / due).',
+      'Subject dashboard: progress by system \u2014 tap a system to practise its due cards.',
+      'Insights: Seen / Remaining / Coverage / Due now, recall breakdown and progress by subject.'
+    ]},
+    { build:'2026-10-19', title:'Safeguards', items:[
+      'Self-update swaps in a build only when its version matches \u2014 a wrong or partial build is rejected.',
+      'The free tier only ever treats a filed deck in free_decks as free; a stray key can never expose content.'
+    ]},
+    { build:'2026-10-18', title:'Free-tier dashboard + auto-update', items:[
+      'The guest / free dashboard counts only the decks you can actually practise, with a \u201cFree plan \u2014 X of Y\u201d note.',
+      'The app now self-updates from the cloud for every viewer, not just the owner.'
+    ]}
+  ];
 
   var $ = function(id){ return document.getElementById(id); };
   function ls(k,d){ try{ var v=localStorage.getItem(k); return v? JSON.parse(v): d; }catch(e){ return d; } }
@@ -342,6 +389,35 @@
 
   function applyTheme(){ document.body.classList.toggle('dark', theme==='dark'); $('themeBtn').textContent = 'Theme: ' + (theme==='dark'?'Dark':'Light'); }
   function applyTitle(){ $('appTitle').textContent = appTitle; document.title = appTitle + ' - Flashcards'; }
+  function applyBuild(){
+    var t = $('buildTag');
+    if(t){ t.textContent = 'v' + APP_BUILD; t.title = 'Build ' + APP_BUILD + ' \u2014 ' + BUILD_NOTE; }
+    var bi = $('buildInfo');
+    if(bi){
+      bi.textContent = '';
+      var b = document.createElement('b'); b.textContent = 'Build ' + APP_BUILD; bi.appendChild(b);
+      bi.appendChild(document.createTextNode(' \u2014 ' + BUILD_NOTE));
+      var l = document.createElement('div'); l.className = 'muted small';
+      l.textContent = 'Loaded ' + new Date().toLocaleString(); bi.appendChild(l);
+    }
+    var pb = $('pmenuBuild');
+    if(pb){
+      pb.textContent = '';
+      var b2 = document.createElement('b'); b2.textContent = 'Build ' + APP_BUILD; pb.appendChild(b2);
+      pb.appendChild(document.createTextNode(' \u2014 ' + BUILD_NOTE));
+    }
+  }
+  function buildToast(){
+    var seen = null; try{ seen = localStorage.getItem('fd:seenbuild'); }catch(e){}
+    try{ localStorage.setItem('fd:seenbuild', APP_BUILD); }catch(e){}
+    if(seen && seen !== APP_BUILD){
+      var el = document.createElement('div'); el.className = 'updtoast';
+      el.textContent = '\u2713 Updated to build ' + APP_BUILD;
+      document.body.appendChild(el);
+      setTimeout(function(){ el.classList.add('on'); }, 30);
+      setTimeout(function(){ el.classList.remove('on'); setTimeout(function(){ if(el.parentNode) el.parentNode.removeChild(el); }, 500); }, 6500);
+    }
+  }
   function setDot(state){ var d = $('syncDot'); d.className = 'dot' + (state==='on' ? ' on' : (state==='off' ? ' off' : '')); }
   var lastSyncAt = 0;
   function renderLastSync(){
@@ -419,6 +495,7 @@
         $('renBtn').classList.toggle('hidden', !owner);
         $('passBtn').classList.toggle('hidden', owner);
         $('insightBtn').classList.toggle('hidden', !owner);
+        $('whatsNewBtn').classList.toggle('hidden', !owner);
         selfUpdate();
         if(owner){ load(); publishSelf(); }
         else { loadPublic(); }
@@ -431,6 +508,7 @@
       $('renBtn').classList.add('hidden');
       $('passBtn').classList.add('hidden');
       $('insightBtn').classList.add('hidden');
+      $('whatsNewBtn').classList.add('hidden');
       loadPublic();
       selfUpdate();
     }
@@ -610,6 +688,7 @@
     else if(view.t === 'all') renderTree(treeData, aggData);
     else if(view.t === 'passes') renderPasses();
     else if(view.t === 'insights') renderInsights();
+    else if(view.t === 'whatsnew') renderWhatsNew();
     else renderHome();
     updateFab();
   }
@@ -899,12 +978,66 @@
     dc.appendChild(start);
     return dc;
   }
+  function pctOf(a, b){ return b ? Math.round(a / b * 100) : 0; }
+  function progressCard(title, rows, onTap){
+    var dc = document.createElement('div'); dc.className = 'card3';
+    var h = document.createElement('div'); h.className = 'chead'; h.textContent = title; dc.appendChild(h);
+    if(!rows.length){ var e = document.createElement('div'); e.className = 'muted small'; e.textContent = 'Nothing here yet.'; dc.appendChild(e); return dc; }
+    rows.forEach(function(x){
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'prow';
+      var top = document.createElement('div'); top.className = 'ptop';
+      var nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = x.name; top.appendChild(nm);
+      var pv = document.createElement('span'); pv.className = 'pv'; pv.textContent = pctOf(x.rated, x.total) + '%'; top.appendChild(pv);
+      b.appendChild(top);
+      var bar = document.createElement('span'); bar.className = 'pbar';
+      var i = document.createElement('i'); i.style.width = pctOf(x.rated, x.total) + '%'; bar.appendChild(i); b.appendChild(bar);
+      var sub = document.createElement('div'); sub.className = 'psub';
+      sub.textContent = x.rated + ' seen \u00b7 ' + Math.max(0, x.total - x.rated) + ' left' + (x.due ? ' \u00b7 ' + x.due + ' due now' : '');
+      b.appendChild(sub);
+      if(onTap) b.onclick = function(){ onTap(x); };
+      dc.appendChild(b);
+    });
+    return dc;
+  }
+  function subjectProgressRows(){
+    var rows = [];
+    Object.keys(treeData).forEach(function(y){
+      Object.keys(treeData[y]).forEach(function(s){
+        var t = subjectTotals(y, s); if(!t.decks) return;
+        rows.push({ name: s, sub: y, rated: t.rated, total: t.total, due: t.due, y: y, s: s });
+      });
+    });
+    rows.sort(function(a, b){ return b.total - a.total; });
+    return rows;
+  }
+  function unitProgressRows(y, s){
+    var tmap = (treeData[y] && treeData[y][s]) || {}, rows = [];
+    Object.keys(tmap).forEach(function(u){
+      var rated = 0, total = 0, due = 0, decks = 0;
+      Object.keys(tmap[u]).forEach(function(cg){
+        tmap[u][cg].forEach(function(d){
+          if(!IS_OWNER && !UNLOCKED && lockedKeys[d.deck_key]) return;
+          var a = aggData[d.deck_key] || { total:0, rated:0, due:0 };
+          rated += a.rated; total += a.total; due += a.due; decks++;
+        });
+      });
+      if(!decks) return;
+      rows.push({ name: u || 'Misc Topics', rated: rated, total: total, due: due, u: u });
+    });
+    rows.sort(function(a, b){ return b.total - a.total; });
+    return rows;
+  }
+  function practiceUnit(y, s, u){
+    var cards = collectCards({ subjects:[s], units:[u], dueOnly:true });
+    if(!cards.length) cards = collectCards({ subjects:[s], units:[u] });
+    openPractice((u || 'Misc Topics') + ' \u2014 ' + s, cards);
+  }
   function renderHome(){
     var c = $('content'); c.textContent = '';
     var t = statTotals();
     if(!IS_OWNER) c.appendChild(publicNote());
     c.appendChild(heroCard(t, 'cards · ' + t.decksDue + ' decks · ' + t.subsDue + ' subjects', reviewDue));
-    c.appendChild(tilesCard([[t.decks,'Decks'],[t.cards,'Cards'],[t.rated,'Seen'],[(t.cards ? Math.round(t.rated/t.cards*100) : 0) + '%','Coverage']]));
+    c.appendChild(tilesCard([[t.cards,'Cards'],[t.rated,'Seen'],[Math.max(0,t.cards-t.rated),'Remaining'],[pctOf(t.rated,t.cards) + '%','Coverage']]));
     if(!IS_OWNER){
       var fb = document.createElement('button'); fb.className = 'btn primary wide'; fb.style.marginTop = '12px';
       fb.textContent = 'Free practice — all three tags';
@@ -912,6 +1045,7 @@
       c.appendChild(fb);
     }
     c.appendChild(recallCard(t));
+    c.appendChild(progressCard('Progress by subject', subjectProgressRows(), function(x){ view = { t:'subject', y:x.y, s:x.s }; render(); window.scrollTo(0,0); }));
     var pdBtn = document.createElement('button'); pdBtn.className = 'btn primary wide'; pdBtn.style.marginTop = '12px';
     pdBtn.textContent = 'Practice all due now'; pdBtn.onclick = function(){ practiceDueAll(null, null); };
     c.appendChild(pdBtn);
@@ -949,8 +1083,9 @@
 
     var t = subjectStatTotals(y, s);
     c.appendChild(heroCard(t, 'cards · ' + t.decksDue + ' decks · ' + t.topics + ' systems', function(){ reviewDueIn(y, s); }));
-    c.appendChild(tilesCard([[t.topics,'Systems'],[t.decks,'Decks'],[t.cards,'Cards'],[(t.cards ? Math.round(t.rated/t.cards*100) : 0) + '%','Coverage']]));
+    c.appendChild(tilesCard([[t.topics,'Systems'],[t.cards,'Cards'],[t.rated,'Seen'],[pctOf(t.rated,t.cards) + '%','Coverage']]));
     c.appendChild(recallCard(t));
+    c.appendChild(progressCard('Progress by system', unitProgressRows(y, s), function(x){ practiceUnit(y, s, x.u); }));
     var pdBtn = document.createElement('button'); pdBtn.className = 'btn primary wide'; pdBtn.style.marginTop = '12px';
     pdBtn.textContent = 'Practice all due now'; pdBtn.onclick = function(){ practiceDueAll(y, s); };
     c.appendChild(pdBtn);
@@ -1181,6 +1316,8 @@
           .then(function(r){ return r.text(); })
           .then(function(html){
             if(html.indexOf('id="content"') < 0 || html.indexOf('collapseFab') < 0 || html.indexOf('</html>') < 0) return;
+            /* safeguard: the fetched build must match the advertised version, else reject (never swap a wrong/partial build) */
+            if(html.indexOf("APP_BUILD = '" + v.ui_version + "'") < 0) return;
             try{ sessionStorage.setItem('fd:selfupdate', APP_BUILD); sessionStorage.setItem('fd:selfupdate_n', String(swaps + 1)); }catch(e){}
             document.open(); document.write(html); document.close();
           });
@@ -1452,6 +1589,28 @@
       track('paid');
     }).catch(function(){ setPassMsg('The payment could not be verified.'); });
   }
+  function renderWhatsNew(){
+    var c = $('content'); c.textContent = '';
+    var head = document.createElement('div'); head.className = 'viewhead';
+    var back = document.createElement('button'); back.className = 'btn sm'; back.textContent = '\u2190 Home';
+    back.onclick = function(){ view = { t:'home' }; render(); window.scrollTo(0,0); };
+    head.appendChild(back);
+    var nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = "What's New";
+    head.appendChild(nm); c.appendChild(head);
+    var intro = document.createElement('div'); intro.className = 'muted small'; intro.style.margin = '0 2px 12px';
+    intro.textContent = 'Everything that changed, newest first. Current build: ' + APP_BUILD + '.';
+    c.appendChild(intro);
+    CHANGELOG.forEach(function(e, i){
+      var card = document.createElement('div'); card.className = 'card3';
+      var h = document.createElement('div'); h.className = 'chead'; h.textContent = 'Build ' + e.build + (i === 0 ? ' \u00b7 current' : '');
+      card.appendChild(h);
+      var t = document.createElement('div'); t.className = 'wnTitle'; t.textContent = e.title; card.appendChild(t);
+      var ul = document.createElement('ul'); ul.className = 'wnList';
+      e.items.forEach(function(it){ var li = document.createElement('li'); li.textContent = it; ul.appendChild(li); });
+      card.appendChild(ul);
+      c.appendChild(card);
+    });
+  }
   function renderInsights(){
     var c = $('content'); c.textContent = '';
     var head = document.createElement('div'); head.className = 'viewhead';
@@ -1466,6 +1625,11 @@
       var stats = Array.isArray(res[0]) ? res[0] : [];
       var tops = Array.isArray(res[1]) ? res[1] : [];
       c.textContent = ''; c.appendChild(head);
+      var tot = statTotals();
+      c.appendChild(tilesCard([[tot.cards,'Cards'],[tot.rated,'Seen'],[Math.max(0,tot.cards-tot.rated),'Remaining'],[tot.due,'Due now']]));
+      c.appendChild(recallCard(tot));
+      c.appendChild(progressCard('Progress by subject', subjectProgressRows(), function(x){ closeProfile(); view = { t:'subject', y:x.y, s:x.s }; render(); window.scrollTo(0,0); }));
+      var plbl = document.createElement('div'); plbl.className = 'chead'; plbl.style.margin = '18px 2px 0'; plbl.textContent = 'Activity'; c.appendChild(plbl);
       var labels = { visit: 'Visits', signup: 'Sign-ups', paid: 'Payments', deck: 'Deck opens', mix: 'Mixed practice' };
       if(stats.length){
         var tiles = document.createElement('div'); tiles.className = 'tiles';
@@ -1648,6 +1812,7 @@
   $('signOut').onclick = function(){ saveSession(null); closeProfile(); closeDrawer(); show(); };
   $('passBtn').onclick = function(){ closeProfile(); closeDrawer(); openPasses(); };
   $('insightBtn').onclick = function(){ closeProfile(); closeDrawer(); view = { t:'insights' }; render(); window.scrollTo(0,0); };
+  $('whatsNewBtn').onclick = function(){ closeProfile(); closeDrawer(); view = { t:'whatsnew' }; render(); window.scrollTo(0,0); };
   $('legalBtn').onclick = function(){ window.open('terms.html', '_blank'); };
   $('doSignUp').onclick = function(){
     var em = $('email').value.trim(), pw = $('pass').value;
@@ -1686,6 +1851,7 @@
   setInterval(function(){ if(session && !document.hidden) load(); }, 60000);
   document.addEventListener('visibilitychange', function(){ if(!document.hidden && session) load(); });
 
+  applyBuild(); buildToast();
   wireSearch();
   show();
   recoverFromLink();
