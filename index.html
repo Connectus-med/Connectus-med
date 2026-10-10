@@ -388,8 +388,8 @@
 
 <nav id="tabbar" class="tabbar" aria-label="Main sections">
   <button class="tab" data-tab="home" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg><span class="tlabel">Home</span></button>
-  <button class="tab" data-tab="practice" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg><span class="tlabel">Practice</span></button>
-  <button class="tab" data-tab="insights" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M22 20H2"/></svg><span class="tlabel">Progress</span></button>
+  <button class="tab" data-tab="revise" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg><span class="tlabel">Revise</span></button>
+  <button class="tab" data-tab="learn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20"/></svg><span class="tlabel">Learn</span></button>
   <button class="tab hidden" id="ownerTab" data-tab="owner" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v5H4z"/><path d="M4 14h16v5H4z"/><path d="M8 7.5h.01"/><path d="M8 16.5h.01"/></svg><span class="tlabel">Owner</span></button>
 </nav>
 
@@ -1243,23 +1243,25 @@
 
   function setTab(t){
     if(t === 'home') view = { t:'home' };
-    else if(t === 'practice') view = { t:'practice' };
-    else if(t === 'insights') view = { t:'insights' };
+    else if(t === 'revise') view = { t:'revise' };
+    else if(t === 'learn') view = { t:'learn' };
+
     else if(t === 'owner') view = { t:'owner' };
     render(); window.scrollTo(0,0);
   }
   function paintTabs(){
-    var cur = (view.t === 'home') ? 'home' : (view.t === 'practice') ? 'practice' : (view.t === 'insights') ? 'insights' : (view.t === 'owner') ? 'owner' : null;
+    var cur = (view.t === 'home') ? 'home' : (view.t === 'revise') ? 'revise' : (view.t === 'learn') ? 'learn' : (view.t === 'owner') ? 'owner' : null;
     Array.prototype.forEach.call(document.querySelectorAll('#tabbar .tab'), function(b){
       b.classList.toggle('on', b.dataset.tab === cur);
     });
   }
   function render(){
     if(view.t === 'subject') renderSubject(view.y, view.s);
-    else if(view.t === 'practice') renderPractice();
+    else if(view.t === 'revise') renderRevise();
+    else if(view.t === 'learn') renderLearn();
     else if(view.t === 'owner') renderOwner();
     else if(view.t === 'passes') renderPasses();
-    else if(view.t === 'insights') renderInsights();
+
     else if(view.t === 'whatsnew') renderWhatsNew();
     else if(view.t === 'search') renderSearch();
     else if(view.t === 'account') renderAccount();
@@ -1887,19 +1889,29 @@
     wireSearchInto(inp, res);
     return wrap;
   }
-  function renderPractice(){
+  function renderRevise(){
     var c = $('content'); c.textContent = '';
     var t = statTotals();
-    c.appendChild(searchCapsule());
     if(!IS_OWNER) c.appendChild(publicNote());
+    var head = document.createElement('div'); head.className = 'chead'; head.style.margin = '2px 2px 10px';
+    head.textContent = 'Revise \u2014 make what you know stick'; c.appendChild(head);
     c.appendChild(heroCard(t, 'cards \u00b7 ' + t.decksDue + ' decks \u00b7 ' + t.subsDue + ' subjects', reviewDue));
     var pdBtn = document.createElement('button'); pdBtn.className = 'btn primary wide'; pdBtn.style.marginTop = '14px';
     pdBtn.textContent = 'Practice all due now'; pdBtn.onclick = function(){ practiceDueAll(null, null); };
     c.appendChild(pdBtn);
-    c.appendChild(practicePanel({ heading:'Filter & practice', tree: filterTreeAll(), title:'Practice' }));
+    c.appendChild(reviseForecast());
+    c.appendChild(practicePanel({ heading:'Filter & practise', tree: filterTreeAll(), title:'Revise' }));
     var trows = tagRows('global');
     if(trows.length) c.appendChild(dueListCard('Due by tag', trows, function(x){ openTag(x.scope, x.tg); }));
   }
+  function renderLearn(){
+    var c = $('content'); c.textContent = '';
+    var head = document.createElement('div'); head.className = 'chead'; head.style.margin = '2px 2px 10px';
+    head.textContent = 'Learn \u2014 what is still untouched'; c.appendChild(head);
+    c.appendChild(searchCapsule());
+    c.appendChild(backlogCard());
+  }
+
   function renderHome(){
     var c = $('content'); c.textContent = '';
     var t = statTotals();
@@ -2521,28 +2533,70 @@
     });
     return b;
   }
-  function dueForecastCard(){
+  function reviseForecast(){
     var b = forecastBuckets();
     var dc = document.createElement('div'); dc.className = 'card3';
-    var h = document.createElement('div'); h.className = 'chead'; h.textContent = 'What\u2019s coming up'; dc.appendChild(h);
+    var h = document.createElement('div'); h.className = 'chead'; h.textContent = 'Coming back round'; dc.appendChild(h);
     var tiles = document.createElement('div'); tiles.className = 'tiles';
-    [[b.tomorrow,'Tomorrow','Due tomorrow'],[b.week,'In 2\u20137 days','Due in 2\u20137 days'],
-     [b.later,'Later','Due later'],[b.unstarted,'Not started','Not started yet']].forEach(function(x){
+    [[b.tomorrow,'Tomorrow','Due tomorrow'],[b.week,'In 2\u20137 days','Due in 2\u20137 days'],[b.later,'Later','Due later']].forEach(function(x){
       var t = document.createElement('button'); t.type = 'button'; t.className = 'tile tappable';
       var v = document.createElement('b'); v.textContent = String(x[0].length); t.appendChild(v);
       var l = document.createElement('span'); l.textContent = x[1]; t.appendChild(l);
-      t.onclick = function(){
-        if(!x[0].length){ toast('Nothing in this group.'); return; }
-        openPractice(x[2] + ' (' + x[0].length + ')', x[0]);
-      };
+      t.onclick = function(){ if(!x[0].length){ toast('Nothing in this group.'); return; } openPractice(x[2] + ' (' + x[0].length + ')', x[0]); };
       tiles.appendChild(t);
     });
     dc.appendChild(tiles);
     var sub = document.createElement('div'); sub.className = 'muted small'; sub.style.margin = '8px 2px 0';
-    sub.textContent = 'Tap a group to practise those cards. Cards due now are counted on Home.';
+    sub.textContent = 'Cards due right now are on Home. Cards you have not started are under Learn.';
     dc.appendChild(sub);
     return dc;
   }
+  function backlogSubjects(){
+    var out = [];
+    (tax || []).forEach(function(row){
+      var tmap = (treeData[row.year] && treeData[row.year][row.name]) || {}, cards = [], total = 0;
+      Object.keys(tmap).forEach(function(u){ Object.keys(tmap[u]).forEach(function(cg){
+        (tmap[u][cg] || []).forEach(function(d){
+          var rows = deckStates[d.deck_key] || [], byId = {};
+          rows.forEach(function(r){ byId[r.card_id] = r; });
+          (Array.isArray(d.cards) ? d.cards : []).forEach(function(cc){
+            var st = byId[cc.id];
+            if(st && st.deleted) return;
+            total++;
+            if(!st || st.rating == null){
+              var z = JSON.parse(JSON.stringify(cc)); z.id = d.deck_key + '::' + cc.id; z.dk = d.deck_key; z.rid = cc.id;
+              cards.push(z);
+            }
+          });
+        });
+      }); });
+      if(cards.length) out.push({ y:row.year, s:row.name, n:cards.length, total:total, cards:cards });
+    });
+    out.sort(function(a, b){ return b.n - a.n; });
+    return out;
+  }
+  function backlogCard(){
+    var subs = backlogSubjects();
+    var dc = document.createElement('div'); dc.className = 'card3';
+    var h = document.createElement('div'); h.className = 'chead'; h.textContent = 'Not started yet'; dc.appendChild(h);
+    if(!subs.length){
+      var e = document.createElement('div'); e.className = 'muted small'; e.textContent = 'Every card has been started. Nothing left here.'; dc.appendChild(e); return dc;
+    }
+    var totN = 0; subs.forEach(function(x){ totN += x.n; });
+    var line = document.createElement('div'); line.className = 'muted small'; line.style.margin = '2px 2px 6px';
+    line.textContent = totN + ' cards across ' + subs.length + (subs.length === 1 ? ' subject' : ' subjects') + ' have never been opened.';
+    dc.appendChild(line);
+    subs.slice(0, 40).forEach(function(x){
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'navitem navsub';
+      var dot = document.createElement('span'); dot.className = 'navchev'; dot.textContent = '\u00b7'; b.appendChild(dot);
+      var n = document.createElement('span'); n.className = 'n'; n.textContent = x.s; b.appendChild(n);
+      var c2 = document.createElement('span'); c2.className = 'c'; c2.textContent = x.n + ' new'; b.appendChild(c2);
+      b.onclick = function(){ openPractice(x.s + ' \u2014 new cards (' + x.n + ')', x.cards); };
+      dc.appendChild(b);
+    });
+    return dc;
+  }
+
   function pendingCard(items){
     var dc = document.createElement('div'); dc.className = 'card3';
     var h = document.createElement('div'); h.className = 'chead'; h.textContent = 'App \u2014 still to build'; dc.appendChild(h);
@@ -2641,22 +2695,7 @@
       c.appendChild(note);
     }).catch(function(){ box.textContent = 'Could not load the numbers.'; });
   }
-  function renderInsights(){
-    var c = $('content'); c.textContent = '';
-    var head = document.createElement('div'); head.className = 'chead'; head.style.margin = '2px 2px 10px';
-    head.textContent = 'Progress'; c.appendChild(head);
-    var box = document.createElement('div'); box.className = 'muted small'; box.style.margin = '0 2px 12px';
-    box.textContent = 'Loading...'; c.appendChild(box);
-    Promise.all([ rpc('event_stats', null), rpc('deck_opens', { days: 30 }) ]).then(function(res){
-      var stats = Array.isArray(res[0]) ? res[0] : [];
-      var tops = Array.isArray(res[1]) ? res[1] : [];
-      c.textContent = ''; c.appendChild(head);
-      c.appendChild(dueForecastCard());
-      var none = document.createElement('div'); none.className = 'legalline';
-      none.textContent = 'Practice more and this forecast fills up.';
-      c.appendChild(none);
-    }).catch(function(){ box.textContent = 'Could not load the numbers.'; });
-  }
+
   function renderPasses(){
     var c = $('content'); c.textContent = '';
     var head = document.createElement('div'); head.className = 'viewhead';
