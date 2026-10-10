@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-10' APP_BUILD = '2026-10-11' APP_BUILD = '2026-10-12' APP_BUILD = '2026-10-13' APP_BUILD = '2026-10-14' APP_BUILD = '2026-10-15' APP_BUILD = '2026-10-16' APP_BUILD = '2026-10-17' APP_BUILD = '2026-10-18' APP_BUILD = '2026-10-19' APP_BUILD = '2026-10-20' APP_BUILD = '2026-10-21' APP_BUILD = '2026-10-22' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-10' APP_BUILD = '2026-10-11' APP_BUILD = '2026-10-12' APP_BUILD = '2026-10-13' APP_BUILD = '2026-10-14' APP_BUILD = '2026-10-15' APP_BUILD = '2026-10-16' APP_BUILD = '2026-10-17' APP_BUILD = '2026-10-18' APP_BUILD = '2026-10-19' APP_BUILD = '2026-10-20' APP_BUILD = '2026-10-21' APP_BUILD = '2026-10-22' APP_BUILD = '2026-10-09 10:55' APP_BUILD = '2026-10-09 11:30' APP_BUILD = '2026-10-09 11:50' APP_BUILD = '2026-10-09 12:10' APP_BUILD = '2026-10-09 13:00' APP_BUILD = '2026-10-09 13:30' APP_BUILD = '2026-10-09 14:00' APP_BUILD = '2026-10-09 14:30' APP_BUILD = '2026-10-09 15:00' APP_BUILD = '2026-10-09 15:30' APP_BUILD = '2026-10-09 16:00' APP_BUILD = '2026-10-09 16:30' APP_BUILD = '2026-10-09 17:00' APP_BUILD = '2026-10-09 17:30' APP_BUILD = '2026-10-09 18:00' APP_BUILD = '2026-10-09 18:30' APP_BUILD = '2026-10-09 19:00' APP_BUILD = '2026-10-09 19:30' APP_BUILD = '2026-10-09 20:00' APP_BUILD = '2026-10-09 20:30' APP_BUILD = '2026-10-09 21:00' APP_BUILD = '2026-10-09 21:30' APP_BUILD = '2026-10-09 22:00' APP_BUILD = '2026-10-09 22:30' APP_BUILD = '2026-10-09 23:00' APP_BUILD = '2026-10-09 23:30' APP_BUILD = '2026-10-10 00:00' APP_BUILD = '2026-10-10 00:30' APP_BUILD = '2026-10-10 01:00' APP_BUILD = '2026-10-10 01:30' APP_BUILD = '2026-10-10 02:00' APP_BUILD = '2026-10-10 02:30' APP_BUILD = '2026-10-10 03:00' APP_BUILD = '2026-10-10 03:30' APP_BUILD = '2026-10-10 04:00' APP_BUILD = '2026-10-10 04:30' APP_BUILD = '2026-10-10 05:00' APP_BUILD = '2026-10-10 05:30' APP_BUILD = '2026-10-10 06:00' APP_BUILD = '2026-10-10 06:30' APP_BUILD = '2026-10-10 07:00' APP_BUILD = '2026-10-10 07:30' APP_BUILD = '2026-10-10 08:00' APP_BUILD = '2026-10-10 08:30' APP_BUILD = '2026-10-10 09:00' APP_BUILD = '2026-10-10 09:30' APP_BUILD = '2026-10-10 10:00' APP_BUILD = '2026-10-10 10:30' APP_BUILD = '2026-10-10 11:00' APP_BUILD = '2026-10-10 11:30' APP_BUILD = '2026-10-10 12:00' APP_BUILD = '2026-10-10 12:30' APP_BUILD = '2026-10-10 13:00' APP_BUILD = '2026-10-10 13:30' APP_BUILD = '2026-10-10 14:00' APP_BUILD = '2026-10-10 15:00' APP_BUILD = '2026-10-10 15:30' APP_BUILD = '2026-10-10 16:00' APP_BUILD = '2026-10-10 16:30' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -25,7 +25,6 @@
   .hidden{display:none!important}
   .muted{color:var(--muted); font-size:.86rem; line-height:1.5}
   .small{font-size:.78rem}
-  .pad{padding:0 16px}
 
   /* app bar */
   .appbar{position:fixed; left:0; right:0; top:0; z-index:30; display:flex; align-items:center; gap:12px;
@@ -49,14 +48,22 @@
   .avatar.lg{width:52px; height:52px; font-size:1.2rem}
   .pmenu{position:fixed; top:calc(60px + env(safe-area-inset-top,0px)); right:12px; z-index:45;
     width:min(300px,88vw); background:var(--panel); border:1px solid var(--line); border-radius:18px;
-    box-shadow:0 24px 60px -24px rgba(0,0,0,.55); overflow:hidden}
+    box-shadow:0 24px 60px -24px rgba(0,0,0,.55); overflow-y:auto; overflow-x:hidden; max-height:calc(100vh - 84px)}
   .phead{display:flex; align-items:center; gap:12px; padding:16px; border-bottom:1px solid var(--line)}
   .pinfo{min-width:0}
+  .pinfo.tappable{cursor:pointer; border-radius:12px; padding:4px 6px; margin:-4px -6px}
+  .pinfo.tappable:hover{background:var(--accent-soft)}
+  .pinfo.tappable #pSub{color:var(--accent-2); font-weight:700}
   .pinfo b{display:block; font-size:.95rem; font-weight:750; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
   .pmenu .field{margin:8px 12px}
   .pmenu .btn.wide{width:calc(100% - 24px); margin:8px 12px}
 
   /* drawer */
+  html,body{overscroll-behavior:none}
+  body.locked{position:fixed; left:0; right:0; width:100%; overflow:hidden}
+  .dbody{overscroll-behavior:contain}
+  .pmenu{overscroll-behavior:contain}
+  .modal .box{overscroll-behavior:contain; max-height:84vh; overflow:auto}
   .scrim{position:fixed; inset:0; background:rgba(0,0,0,.5); opacity:0; pointer-events:none; transition:opacity .22s; z-index:40}
   .scrim.open{opacity:1; pointer-events:auto}
   .drawer{position:fixed; top:0; left:0; height:100%; width:min(320px,86vw); background:var(--panel);
@@ -77,6 +84,7 @@
     padding:10px 16px; font:inherit; font-size:.88rem; font-weight:650; cursor:pointer}
   .btn:active{transform:translateY(1px)}
   .btn.primary{background:var(--accent-2); border-color:var(--accent-2); color:#fff}
+  .btn.danger{color:#dc2626; border-color:#f0b4b4}
   .btn.sm{padding:7px 13px; font-size:.8rem}
   .btn.wide{display:block; width:calc(100% - 32px); margin:8px 16px; text-align:center}
   .navwrap{padding:0 8px}
@@ -108,11 +116,9 @@
   .subjhead .nm{flex:1; font-size:1rem; font-weight:750}
   .subjhead .ct{font-size:.72rem; font-weight:700; color:var(--muted)}
   .subbody{border-top:1px solid var(--line); padding:4px 12px 12px}
-  .sethead{display:flex; align-items:center; gap:8px; width:100%; text-align:left; cursor:pointer; background:none;
-    border:0; color:var(--accent-2); font:inherit; font-size:.73rem; font-weight:800; text-transform:uppercase;
-    letter-spacing:.09em; padding:12px 3px 2px}
-  .sethead .ct{color:var(--muted); font-weight:800}
   .deck{border:1px solid var(--line); border-radius:15px; padding:13px 14px; margin-top:9px; background:var(--bg)}
+  .deck{content-visibility:auto; contain-intrinsic-size:auto 150px}
+  .subjcard{content-visibility:auto; contain-intrinsic-size:auto 220px}
   .deck h3{margin:0 0 3px; font-size:.97rem; font-weight:750}
   .deck .sub{color:var(--muted); font-size:.75rem; margin-bottom:8px}
   .bar{height:6px; background:var(--line); border-radius:var(--cap); overflow:hidden; margin:9px 0 6px}
@@ -120,16 +126,16 @@
   .deck .meta2{display:flex; justify-content:space-between; gap:10px; color:var(--muted); font-size:.73rem}
   .acts{display:flex; gap:8px; margin-top:11px}
   .acts .btn{flex:1; text-align:center}
+  .deck .acts{justify-content:flex-end}
+  .deck .acts .btn{flex:none; text-align:center}
   .emptybox{border:1px dashed var(--line); border-radius:18px; padding:22px; text-align:center; color:var(--muted); margin-top:14px}
 
   /* dashboard */
   .brand{cursor:pointer}
-  .buildtag{flex:none; font-size:.62rem; font-weight:800; color:var(--accent-2); background:var(--accent-soft); border:1px solid var(--line); border-radius:var(--cap); padding:3px 8px; letter-spacing:.02em; white-space:nowrap}
   .buildinfo{margin-top:12px; padding-top:10px; border-top:1px solid var(--line); color:var(--muted); font-size:.72rem; font-weight:600; line-height:1.55}
   .buildinfo b{color:var(--accent-2)}
   .updtoast{position:fixed; left:50%; transform:translateX(-50%); bottom:calc(20px + env(safe-area-inset-bottom,0px)); z-index:80; background:var(--accent-2); color:#fff; border-radius:var(--cap); padding:11px 16px; font-size:.82rem; font-weight:750; box-shadow:0 12px 28px -10px rgba(120,60,10,.55); opacity:0; transition:opacity .3s; pointer-events:none; max-width:90vw; text-align:center}
   .updtoast.on{opacity:1}
-  @media (max-width:400px){ .buildtag{font-size:.56rem; padding:2px 6px} }
   .pbuild{margin:10px 4px 2px; padding-top:10px; border-top:1px solid var(--line); color:var(--muted); font-size:.72rem; font-weight:600; line-height:1.5; text-align:center}
   .pbuild b{color:var(--accent-2)}
   .wnTitle{font-size:.95rem; font-weight:800; margin:2px 0 8px}
@@ -165,6 +171,18 @@
   .ptop .pv{font-size:.78rem; font-weight:850; color:var(--accent-2)}
   .pbar{display:block; height:8px; border-radius:var(--cap); background:var(--line); overflow:hidden; margin:7px 0 4px}
   .pbar i{display:block; height:100%; background:linear-gradient(90deg,var(--accent),var(--accent-2))}
+  .pbar.lo i{background:linear-gradient(90deg,#dc2626,#f87171)}
+  .pbar.mid i{background:linear-gradient(90deg,#d97706,#fbbf24)}
+  .pbar.hi i{background:linear-gradient(90deg,#0f766e,#34d399)}
+  .bar.lo>i{background:linear-gradient(90deg,#dc2626,#f87171)}
+  .bar.mid>i{background:linear-gradient(90deg,#d97706,#fbbf24)}
+  .bar.hi>i{background:linear-gradient(90deg,#0f766e,#34d399)}
+  .noderow{display:flex; align-items:center; gap:8px}
+  .noderow .topichead,.noderow .subjhead{flex:1; min-width:0}
+  .playbtn{flex:none; width:34px; height:34px; border-radius:50%; border:1px solid var(--accent-2); background:var(--accent-soft); color:var(--accent-2); display:flex; align-items:center; justify-content:center; cursor:pointer; padding:0}
+  .playbtn:hover{background:var(--accent-2); color:#fff}
+  .playbtn.locked{opacity:.38; cursor:not-allowed; filter:grayscale(.6)}
+  .playbtn.locked:hover{background:var(--accent-soft); color:var(--accent-2)}
   .psub{color:var(--muted); font-size:.72rem; font-weight:600}
   .viewhead{display:flex; align-items:center; gap:10px; margin:4px 0 6px}
   .viewhead .nm{flex:1; font-size:1.2rem; font-weight:850; letter-spacing:-.02em}
@@ -179,16 +197,24 @@
   .unithead .nm{font-weight:800}
   .catblock{margin-left:12px; border-left:2px solid var(--line); padding-left:8px}
   .cathead .nm{font-size:.86rem; font-weight:700}
+  .yearhead,.subjhead,.topichead{flex-wrap:wrap}
+  .yearhead .pbar,.subjhead .pbar,.topichead .pbar{flex:0 0 100%; margin:5px 0 1px}
+  .yearhead .psub,.subjhead .psub,.topichead .psub{flex:0 0 100%; font-weight:600}
   .fab{position:fixed; right:16px; bottom:calc(18px + env(safe-area-inset-bottom,0px)); z-index:25; display:flex; align-items:center; gap:7px; border:0; background:var(--accent-2); color:#fff; border-radius:var(--cap); padding:12px 18px; font-size:.85rem; font-weight:750; box-shadow:0 12px 28px -10px rgba(120,60,10,.55)}
-  .setrow{margin-top:4px}
-  .setlabel{font-size:.7rem; font-weight:800; text-transform:uppercase; letter-spacing:.09em; color:var(--accent-2); padding:8px 5px 0}
 
   /* viewer + modals */
+  body.deckopen{overflow:hidden; overscroll-behavior:none}
   #viewer{position:fixed; inset:0; background:var(--bg); z-index:60; display:flex; flex-direction:column}
   #viewer .vbar{display:flex; align-items:center; gap:10px; padding:calc(12px + env(safe-area-inset-top,0px)) 14px 10px;
     border-bottom:1px solid var(--line); background:var(--panel)}
   #viewer .vbar span{flex:1; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
   #viewer iframe{flex:1; width:100%; border:0; background:var(--bg)}
+  .reauth{position:fixed; inset:0; z-index:80; background:rgba(0,0,0,.55); display:flex; align-items:center; justify-content:center; padding:20px}
+  .reauth-box{background:var(--panel); color:var(--ink); border:1px solid var(--line); border-radius:18px; padding:16px; width:min(340px,92vw); display:flex; flex-direction:column; gap:10px}
+  .reauth-h{font-weight:800}
+  .reauth-box input{border:1px solid var(--line); background:var(--bg); color:var(--ink); border-radius:10px; padding:11px 13px; font-size:.95rem; width:100%}
+  .reauth-msg{color:#c81e1e; font-size:.82rem; min-height:1em}
+  .reauth-row{display:flex; gap:10px; justify-content:flex-end}
   .modal{position:fixed; inset:0; z-index:70; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,.55); padding:18px}
   .modal .box{background:var(--panel); border:1px solid var(--line); border-radius:20px; padding:20px; max-width:400px; width:100%}
   .modal h3{margin:0 0 6px; font-size:1.05rem}
@@ -197,8 +223,11 @@
   .modal .row .btn{flex:1; text-align:center}
 
   /* ---- free tier (signed out) ---- */
-  .deck.locked{opacity:.86}
+  .deck.locked{opacity:.72}
   .deck.locked h3{color:var(--muted)}
+  .yearhead.locked,.subjhead.locked,.topichead.locked{opacity:.58}
+  .yearhead.locked .nm,.subjhead.locked .nm,.topichead.locked .nm{color:var(--muted)}
+  .lockmini{display:inline-flex; align-items:center; color:var(--muted); margin-left:7px; vertical-align:middle}
   .deck .badges{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px}
   .lockbadge,.freetag{display:inline-flex; align-items:center; gap:5px; font-size:.64rem; font-weight:800;
     letter-spacing:.04em; text-transform:uppercase; border-radius:var(--cap); padding:3px 9px; border:1px solid}
@@ -222,7 +251,6 @@
 <header class="appbar">
   <button id="menuBtn" class="iconbtn" aria-label="Menu">☰</button>
   <div class="brand" id="appTitle">Connectus</div>
-  <span id="buildTag" class="buildtag"></span>
   <button id="lastSync" class="lastsync" aria-label="Sync now">—</button>
   <span id="syncDot" class="dot on"></span>
   <button id="profileBtn" class="avatar" aria-label="Profile">L</button>
@@ -231,7 +259,7 @@
 <div id="pmenu" class="pmenu hidden">
   <div class="phead">
     <div class="avatar lg" id="pAvatar">L</div>
-    <div class="pinfo"><b id="pEmail">life.rknain@gmail.com</b><span class="muted small" id="pSub">Tap for account settings</span></div>
+    <div class="pinfo tappable" id="pinfo" role="button" tabindex="0"><b id="pEmail">life.rknain@gmail.com</b><span class="muted small" id="pSub">Tap for account settings ›</span></div>
   </div>
   <div id="acctOut" class="hidden">
     <div class="field"><label>Email</label><input id="email" type="email" autocomplete="username" placeholder="you@example.com"></div>
@@ -245,12 +273,10 @@
     <button id="passBtn" class="btn wide hidden">Passes / Unlock</button>
     <button id="insightBtn" class="btn wide">Insights</button>
     <button id="syncNow" class="btn wide">Sync now</button>
-    <button id="renBtn" class="btn wide">Rename page</button>
-    <button id="changePw" class="btn wide">Change password</button>
     <button id="themeBtn" class="btn wide">Theme: Light</button>
-    <button id="signOut" class="btn wide">Sign out</button>
     <div style="height:10px"></div>
   </div>
+  <button id="checkUpdateBtn" class="btn wide">Check for update</button>
   <button id="whatsNewBtn" class="btn wide hidden">What&#39;s New</button>
   <button id="legalBtn" class="btn wide">Terms, refund &amp; privacy</button>
   <div id="pmenuBuild" class="pbuild"></div>
@@ -283,7 +309,7 @@
 </main>
 
 <div id="viewer" class="hidden">
-  <div class="vbar"><button id="back" class="btn">← Back</button><span id="vtitle"></span></div>
+  <div class="vbar"><button id="back" class="btn">← Back</button><span id="vtitle" style="display:none"></span><div style="margin-left:auto; display:flex; gap:8px; align-items:center"><button id="catBtn" class="btn hidden">Category</button><button id="deckMenuBtn" class="btn" aria-label="Menu">&#9776;</button></div></div>
   <iframe id="frame" title="deck"></iframe>
 </div>
 
@@ -346,9 +372,228 @@
   var YEARS = ['1st Year MBBS','2nd Year MBBS','3rd Year MBBS','4th Year MBBS - Major','4th Year MBBS - Minor'];
   var TAGS = ['Basics&Fundamentals', 'MainConcepts', 'Integrated&Complex'];
   var deckLoc = {}, tagAgg = { global:{}, subject:{} };
-  var APP_BUILD = '2026-10-09 10:55';
-  var BUILD_NOTE = 'Build number now shows date + time';
+  var APP_BUILD = '2026-10-10 17:00';
+  var BUILD_NOTE = 'Faster render with a big library';
   var CHANGELOG = [
+    { build:'2026-10-10 17:00', title:'Smoother with a big library', items:[
+      'Off-screen subject rows and deck cards are no longer rendered until you scroll to them, so a large library opens and scrolls faster.',
+      'Rapid background refreshes are now merged into a single render, avoiding needless redraws.'
+    ]},
+
+    { build:'2026-10-10 16:30', title:'Esc closes panels; Tab stays inside', items:[
+      'Pressing Esc now closes the open panel (side menu, dialog or a deck sheet) \u2014 and Tab keeps the focus inside that panel instead of jumping to the page behind.',
+    ]},
+
+    { build:'2026-10-10 16:00', title:'Writes are never lost', items:[
+      'Every rating, edit, image and round is now retried automatically until it reaches the server \u2014 if the network drops mid-practice, the write is queued and sent the moment you are back online.',
+      'The sync label shows \u201csynced\u201d only once the queue is empty.'
+    ]},
+    { build:'2026-10-10 15:30', title:'No scroll behind an open panel', items:[
+      'When a menu, sheet, modal or a deck is open, scrolling it no longer moves the screen behind it \u2014 the page underneath is frozen until you close it, then returns to where it was.',
+      'Applies everywhere: the side menu, the profile menu, dialogs, and the deck viewer.'
+    ]},
+    { build:'2026-10-10 15:00', title:'Dead code removed (cleaner, smaller build)', items:[
+      'Removed unused code: a dead \u201cAll subjects\u201d view, a duplicate lock helper, unused styles \u2014 and three unused helpers in the deck.',
+      'No feature changes \u2014 the app behaves exactly the same, just leaner.'
+    ]},
+    { build:'2026-10-10 14:00', title:'Updates always reach the device', items:[
+      'The app no longer reads a cached copy when checking for a new build, so a device can never stay stuck on an older build (which is why the home sections sometimes vanished).',
+      'It also re-checks for a new build whenever you return to the tab.'
+    ]},
+    { build:'2026-10-10 13:30', title:'Home sections no longer vanish', items:[
+      '\u201cRecently practised\u201d and \u201cProgress by subject\u201d no longer disappear when a data load is slow or fails \u2014 the app now retries automatically and re-renders, so a reload is not needed.',
+      'The home also refreshes itself when you return to the tab, and whenever a deck is closed.'
+    ]},
+    { build:'2026-10-10 13:00', title:'Category button moved into the deck viewer', items:[
+      'When a deck is open, the owner now sees a small \u201cCategory\u201d button in the top bar, next to the menu \u2014 so a deck can be re-filed without cluttering the deck cards.',
+      'The top bar stays a single compact row, so the card area is not reduced.'
+    ]},
+    { build:'2026-10-10 12:30', title:'Removed the Category button', items:[
+      'The \u201cCategory\u201d button no longer appears on deck cards, so every card is now just the title, its line and the play button.',
+      'Deck filing (moving a deck to a unit / broad category) can be done from the chat on request.'
+    ]},
+    { build:'2026-10-10 12:00', title:'No repeated info on deck cards', items:[
+      'On a locked deck, \u201cLocked\u201d now appears only once (the badge) and the deck name only once (the title) \u2014 the repeated line under the progress bar is gone.',
+      'The internal deck key is no longer shown; unlocked decks show only the coverage percentage. Cards are shorter and less crowded.'
+    ]},
+    { build:'2026-10-10 11:30', title:'Locked groups: play button disabled', items:[
+      'On a locked category, unit or subject, the round play button is now faded and does nothing \u2014 so a free user cannot start a practice there.',
+      'Groups that contain a free deck keep a normal, working play button.'
+    ]},
+    { build:'2026-10-10 11:00', title:'Cleaner deck actions', items:[
+      'Removed the redundant \u201cOpen\u201d button \u2014 an unlocked deck now shows just the round play button (both free and paid users).',
+      'A locked deck shows only the \u201cUnlock\u201d button. The action button now sits at the right edge of the strip, so the card is no longer stretched wide.'
+    ]},
+    { build:'2026-10-10 10:30', title:'Locks on locked groups', items:[
+      'Signed-out / free users now see a \ud83d\udd12 on every locked deck \u2014 and on any category, unit, subject or year that is entirely locked.',
+      'Locked groups are faded, so the free decks and free categories stand out and can be opened straight away.'
+    ]},
+    { build:'2026-10-10 10:00', title:'Locked review until due', items:[
+      'While practising cards that are not yet due, the rating row and time chooser are faded and locked (\ud83d\udd12) \u2014 they show the review time you already chose.',
+      'They unlock automatically only when that chosen review time arrives \u2014 so re-practising never disturbs your schedule.'
+    ]},
+    { build:'2026-10-10 09:30', title:'Practice-only + clean nothing-due card', items:[
+      'The \u201cNothing due\u201d card no longer flips or shows Question/Unverified labels \u2014 it is just a notice.',
+      'Practise anyway is now practice-only: it runs the cards but does NOT change your review schedule \u2014 a solved card stays due at its usual time.'
+    ]},
+    { build:'2026-10-10 09:00', title:'Strict spaced repetition', items:[
+      'Spaced repetition is now strict: a card you schedule for tomorrow stays out of practice until it is actually due \u2014 verified end to end.',
+      'When nothing is due, the deck shows a friendly notice with the next due time (plus a Practise anyway button).'
+    ]},
+    { build:'2026-10-10 08:30', title:'Cards-over: Exit only', items:[
+      'The \u201cCards over\u201d prompt now has just the Exit button.'
+    ]},
+    { build:'2026-10-10 08:00', title:'Cards over', items:[
+      'When you finish a whole cycle (every card\u2019s review time chosen) a \u201cCards over\u201d prompt now appears, with an Exit button that takes you back to the screen you came from.',
+      'You can also tap Keep going to carry on.'
+    ]},
+    { build:'2026-10-10 07:30', title:'Review time before Next', items:[
+      'After you rate a card, the Next button now waits until you pick a review time \\u2014 tap it and you get a little \\u201cFirst choose the review time for this card\\u201d toast.',
+      'An unrated card counts as undone, and every rating/edit/verify syncs instantly.'
+    ]},
+    { build:'2026-10-10 07:00', title:'Tidy deck info line', items:[
+      'The deck info line is now tidy and in a fixed order: \u201c4 due out of 15 \u00b7 0 cycle completed \u00b7 last practised \u2026 \u00b7 synced\u201d.'
+    ]},
+    { build:'2026-10-10 06:30', title:'Safer reset + roomier card', items:[
+      'Reset all progress now needs your email and password first \\u2014 so a stray tap cannot wipe your progress.',
+      'The deck banner is more compact: the tag filter chips sit on one scrollable row, so the card gets more vertical room.'
+    ]},
+    { build:'2026-10-10 06:00', title:'Stable build', items:[
+      'Stable build \u2014 a full pass over everything: card images (up to 3 on the answer, 1 on the question, plus paste-from-clipboard), the verify prompt and tap-to-verify in the card list, rounds completed, the recently-practised card, and continuous background sync.',
+      'Background syncing is now much lighter \u2014 only what actually changed is uploaded, and updates stay silent (no page blink).'
+    ]},
+    { build:'2026-10-10 05:30', title:'Verify straight from the card list', items:[
+      'In the card list (\u2630 Cards) each card now has a tap-to-verify button on the right \u2014 tap it to mark a card Verified straight away, without opening it.'
+    ]},
+    { build:'2026-10-10 05:00', title:'Verify prompt after finishing a card', items:[
+      'Finish an unverified card and it now asks whether you have cross-checked it with the source, before moving on.'
+    ]},
+    { build:'2026-10-10 04:30', title:'Silent background updates', items:[
+      'Background progress/updates no longer blink or refresh the page \\u2014 they now happen quietly. The screen only redraws when something actually changed, and never while a deck is open.',
+      'A new version now waits until you have finished the deck before it applies.'
+    ]},
+    { build:'2026-10-10 04:00', title:'Multiple images per card', items:[
+      'You can now attach up to 3 images to a card\\u2019s answer side, and 1 image to the question side \\u2014 each with its own Remove button, plus the Paste-from-clipboard option.'
+    ]},
+    { build:'2026-10-10 03:30', title:'Rounds completed on every deck', items:[
+      'Every deck\\u2019s progress line now shows how many full rounds you have completed \\u2014 e.g. \\u201c3 rounds completed\\u201d, or \\u201c0 rounds completed\\u201d if you have not finished one yet. Shown on the home screen, in every subject, and on the recently-practised card.'
+    ]},
+    { build:'2026-10-10 03:00', title:'Recently practised card shows progress', items:[
+      'The \\u201cRecently practised\\u201d card now shows that deck\\u2019s progress too \\u2014 e.g. \\u201c50% covered \\u00b7 1 of 2 seen \\u00b7 2 due now\\u201d with a progress bar.'
+    ]},
+    { build:'2026-10-10 02:30', title:'Recently practised shows from your synced progress', items:[
+      'The home screen now works out your most recently practised deck from your synced progress, so it appears straight away (no need to open a deck first).'
+    ]},
+    { build:'2026-10-10 02:00', title:'Recently practised now syncs', items:[
+      'The \\u201cRecently practised\\u201d deck on your home screen is now saved to your account, so the same deck shows on every device you sign in on.'
+    ]},
+    { build:'2026-10-10 01:30', title:'Recently practised deck on the home screen', items:[
+      'The home dashboard now shows the deck you practised most recently, right under the \\u201cDue now\\u201d banner \\u2014 tap it to jump straight back in.'
+    ]},
+    { build:'2026-10-10 01:00', title:'Paste an image from the clipboard', items:[
+      'Next to \\u201cAdd image\\u201d there is now a \\u201cPaste from clipboard\\u201d button \\u2014 tap it and any image you have copied shows up; tap the one you want to attach it to the card.'
+    ]},
+    { build:'2026-10-10 00:30', title:'Attach an image to a card', items:[
+      'In the card editor you can now add an image to the front (question) or the back (answer) \\u2014 tap \\u201cAdd image\\u201d, pick a photo, and it shows on the card.',
+      'Images are shrunk automatically, saved on the device and synced to your account like your other progress.'
+    ]},
+    { build:'2026-10-10 00:00', title:'Cloud sync now runs continuously', items:[
+      'While a deck is open, your progress now syncs in the background every ~25 seconds \\u2014 and again whenever you return to the app or come back online \\u2014 so every rating, edit, note, tag or delete reaches your other devices without waiting.',
+      'The dashboard also refreshes its progress every ~30 seconds.'
+    ]},
+    { build:'2026-10-09 23:30', title:'Tidier deck menu', items:[
+      'Removed the extra menu icon next to the 3-card button (the menu now lives only in the top strip).',
+      'Removed Cards and Cloud sync from the deck menu \\u2014 Cards is the 3-card button, and Cloud sync / sign-in stays in the dashboard\'s profile menu.'
+    ]},
+    { build:'2026-10-09 23:00', title:'Menu in the top strip; deck name removed', items:[
+      'When a deck is open, its menu (Stats, Theme, Review due, Submit, Practice Again, Cloud sync) now lives behind a \\u2630 button in the very top strip, next to \\u2190 Back.',
+      'The deck name was removed from that strip (it already shows below on the deck banner).'
+    ]},
+    { build:'2026-10-09 22:30', title:'New cards button opens the card list directly', items:[
+      'The top-right button is now a little 3-card icon (orange / blue / teal) and opens the card navigator in one tap.',
+      'Stats, Theme, Review due, Submit, Practice Again and Cloud sync now sit behind the \\u22ee button inside the card list.'
+    ]},
+    { build:'2026-10-09 22:00', title:'Card navigator: legend strip at the top', items:[
+      'Instead of a label on every card, the \\u201c\\u2630 Cards\\u201d list now has one legend strip above the first card showing all labels \\u2014 AGAIN / HARD / GOOD / EASY / UNATTEMPTED \\u2014 neatly aligned. Each card keeps its colour fill and green \\u2713 tick.'
+    ]},
+    { build:'2026-10-09 21:30', title:'Card navigator: a colour label on every card', items:[
+      'Every card in the \\u201c\\u2630 Cards\\u201d list now carries a small colour label on top \\u2014 AGAIN / HARD / GOOD / EASY / UNATTEMPTED \\u2014 so the rating is obvious at a glance.'
+    ]},
+    { build:'2026-10-09 21:00', title:'Card navigator: colour fill (not a thin line)', items:[
+      'In the \\u201c\\u2630 Cards\\u201d list each card is now FILLED with its rating colour (red = Again, amber = Hard, blue = Good, teal = Easy) instead of a thin border, so it is easy to see.'
+    ]},
+    { build:'2026-10-09 20:30', title:'Card navigator: coloured borders + verified tick', items:[
+      'In the \\u201c\\u2630 Cards\\u201d list, the colour dot is gone: each card\\u2019s border is now colour-coded by your rating (red = Again, amber = Hard, blue = Good, teal = Easy).',
+      'Cards you have marked Verified now show a green \\u2713 tick in the list.'
+    ]},
+    { build:'2026-10-09 20:00', title:'Background no longer scrolls while a deck is open', items:[
+      'When a deck is open, the page behind it (the Connectus tree, categories, menu) is now scroll-locked \\u2014 scrolling the card no longer moves the page behind.'
+    ]},
+    { build:'2026-10-09 19:30', title:'Card scroll no longer moves the page', items:[
+      'Scrolling a long card (or dragging a finger on it) now scrolls only the card itself \\u2014 the menu, progress bar and rest of the page behind it stay put.'
+    ]},
+    { build:'2026-10-09 19:00', title:'Card labels aligned, no overlap', items:[
+      'On every card the Question/Answer label, the Verified badge and the hashtag chip now sit on one tidy row, same height and evenly spaced, never overlapping.'
+    ]},
+    { build:'2026-10-09 18:30', title:'Tag next to the Verified badge, and changeable', items:[
+      'Each card now shows its hashtag (#Basics&Fundamentals / #MainConcepts / #Integrated&Complex) right next to the Verified badge.',
+      'Tap that tag to pick a different one \u2014 the Tag button in the top bar works too.'
+    ]},
+    { build:'2026-10-09 18:00', title:'Clearer recall score', items:[
+      'The \u201cRecall\u201d card on the dashboard now explains itself: it shows the share of cards you rated Good or Easy, with a plain line like \u201c1 of the 5 cards you have rated were Good or Easy\u201d.'
+    ]},
+    { build:'2026-10-09 17:30', title:'Cleaner deck info', items:[
+      'The deck\u2019s info line no longer repeats the same number \u2014 it shows the card count once, the cycle progress, and due as \u201call due\u201d when everything is due.',
+      'The old \u201cConnectus \u00b7 email \u00b7 date\u201d watermark is gone; in its place is just the date and time you last practised.'
+    ]},
+    { build:'2026-10-09 17:00', title:'Check for update button', items:[
+      'A \u201cCheck for update\u201d button now sits in the profile menu, just above What\u2019s New \u2014 tap it and the latest build installs by itself (no need to close and reopen the tab).'
+    ]},
+    { build:'2026-10-09 16:30', title:'Cycle counter + Again repeats straight away', items:[
+      'The deck now shows a cycle counter (e.g. \u201cCycle: 12/50 done\u201d) so you can see how far the first pass has come.',
+      'Rating a card Again now brings the same card straight back instead of sending it to the end of the deck.'
+    ]},
+    { build:'2026-10-09 16:00', title:'Deck cycle \u2014 finish the deck before reviews', items:[
+      'After you rate a card and pick its interval, the next card opens by itself.',
+      'A card you have rated stays out of the deck until you have been through every card once \u2014 then past cards return by their review time.',
+      'Close and reopen a deck and it resumes at the card you left off on.'
+    ]},
+    { build:'2026-10-09 15:30', title:'Edit button moved next to Shuffle', items:[
+      'The Edit button now sits in the top bar right beside Shuffle (it used to be in the bottom-left corner).'
+    ]},
+    { build:'2026-10-09 15:00', title:'Accurate streak + verified sync', items:[
+      'The streak line now counts only the cards you actually rated today (it was over-counting every card you opened).',
+      'The Verified / Unverified badge now syncs across your devices.'
+    ]},
+    { build:'2026-10-09 14:30', title:'Verified / Unverified badge on every card', items:[
+      'Each card now shows a badge \u2014 tap it and confirm you cross-checked the card with the source, and it turns to \u201c\u2713 Verified\u201d.',
+      'Cards you have not checked show \u201cUnverified\u201d.'
+    ]},
+    { build:'2026-10-09 14:00', title:'Steady, no more flicker', items:[
+      'The app no longer blanks and rebuilds the whole screen on every switch back or auto-refresh \u2014 it now refreshes quietly in the background only when the data is stale.'
+    ]},
+    { build:'2026-10-09 13:30', title:'Account settings under the profile header', items:[
+      'Rename page, Change password, Reset all progress and Sign out moved out of the menu \u2014 tap \u201cTap for account settings\u201d (under your email) to open them.'
+    ]},
+    { build:'2026-10-09 13:00', title:'Play buttons, coloured progress, search, streak, reset', items:[
+      'A round \u25b6 button on every subject / system / category / deck row practises that row\u2019s due cards.',
+      'Progress bars are colour-coded (red below 30%, amber below 60%, green 60%+).',
+      'Tree rows now show decks + cards, with an Expand all / Collapse all button.',
+      'New: Search all cards, and a streak + practised-today line.',
+      'Reset all progress \u2014 asks 3 times, at the bottom of the profile menu.',
+      'Deck Edit: Delete card now also asks 3 times (like Reset).'
+    ]},
+    { build:'2026-10-09 12:10', title:'Self-update fix', items:[
+      'The page no longer stops checking for updates after a few swaps \u2014 it now always pulls the newest cloud build on load.',
+      'The profile menu scrolls, so the build number at its bottom is always reachable.'
+    ]},
+    { build:'2026-10-09 11:50', title:'One expandable tree with progress everywhere', items:[
+      'Subjects, systems, categories and decks now sit in a single expandable tree \u2014 each level shows its own progress (%, seen, left, due).',
+      'The separate \u201cProgress by subject\u201d / \u201cProgress by system\u201d cards were removed (they are now inside the tree).'
+    ]},
+    { build:'2026-10-09 11:30', title:'Build number moved to the profile', items:[
+      'The build number no longer shows on the top bar \u2014 it lives in the profile menu (tap the avatar).'
+    ]},
     { build:'2026-10-09 10:55', title:'Build number now shows date + time', items:[
       'The build number is now year-month-day and time, e.g. 2026-10-09 10:55 \u2014 so you can see exactly how fresh it is.'
     ]},
@@ -388,13 +633,19 @@
   var allYears = YEARS.slice();
   var moveKey = null;
   var view = { t: 'home' };
-  var treeData = {}, aggData = {}, decksData = [], deckStates = {}, lockedKeys = {};
+  var treeData = {}, aggData = {}, decksData = [], deckStates = {}, lockedKeys = {}, roundsMap = {};
+  var lastSig = null, deferRender = false, pendingSelfUpdate = null;
+  function viewerOpen(){ try{ return !!$('viewer') && !$('viewer').classList.contains('hidden'); }catch(e){ return false; } }
+  var _qrTimer = null;
+  function quietRender(){
+    if(viewerOpen()){ deferRender = true; return; }
+    if(_qrTimer) return;                       /* coalesce rapid refreshes into one render */
+    _qrTimer = setTimeout(function(){ _qrTimer = null; var y = window.scrollY || 0; render(); try{ window.scrollTo(0, y); }catch(e){} }, 60);
+  }
 
   function applyTheme(){ document.body.classList.toggle('dark', theme==='dark'); $('themeBtn').textContent = 'Theme: ' + (theme==='dark'?'Dark':'Light'); }
   function applyTitle(){ $('appTitle').textContent = appTitle; document.title = appTitle + ' - Flashcards'; }
   function applyBuild(){
-    var t = $('buildTag');
-    if(t){ t.textContent = 'v' + APP_BUILD; t.title = 'Build ' + APP_BUILD + ' \u2014 ' + BUILD_NOTE; }
     var bi = $('buildInfo');
     if(bi){
       bi.textContent = '';
@@ -409,6 +660,29 @@
       var b2 = document.createElement('b'); b2.textContent = 'Build ' + APP_BUILD; pb.appendChild(b2);
       pb.appendChild(document.createTextNode(' \u2014 ' + BUILD_NOTE));
     }
+  }
+  function toast(msg){
+    var el = document.createElement('div'); el.className = 'updtoast'; el.textContent = msg;
+    document.body.appendChild(el);
+    setTimeout(function(){ el.classList.add('on'); }, 30);
+    setTimeout(function(){ el.classList.remove('on'); setTimeout(function(){ if(el.parentNode) el.parentNode.removeChild(el); }, 500); }, 3500);
+  }
+  function checkUpdate(){
+    toast('Checking for update\u2026');
+    fetch(SB_URL + '/functions/v1/medcircuit?api=version', { headers: { 'apikey': SB_KEY } })
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(v){
+        if(!v || !v.ui_version){ toast('Could not check for updates.'); return; }
+        if(vnum(v.ui_version) <= vnum(APP_BUILD)){ toast('\u2713 You are on the latest build (' + APP_BUILD + ')'); return; }
+        return fetch(SB_URL + '/functions/v1/medcircuit', { headers: { 'apikey': SB_KEY } })
+          .then(function(r){ return r.text(); })
+          .then(function(html){
+            if(html.indexOf('id="content"') < 0 || html.indexOf('collapseFab') < 0 || html.indexOf('</html>') < 0){ toast('Update file was incomplete \u2014 try again.'); return; }
+            if(html.indexOf("APP_BUILD = '" + v.ui_version + "'") < 0){ toast('Update file did not match \u2014 try again.'); return; }
+            try{ sessionStorage.setItem('fd:selfupdate', APP_BUILD); }catch(e){}
+            document.open(); document.write(html); document.close();
+          });
+      }).catch(function(){ toast('Could not check for updates.'); });
   }
   function buildToast(){
     var seen = null; try{ seen = localStorage.getItem('fd:seenbuild'); }catch(e){}
@@ -440,13 +714,30 @@
     return h;
   }
   function get(path){ return fetch(SB_URL + path, { headers: headers() }).then(function(r){ if(!r.ok) return r.text().then(function(t){ throw new Error(t); }); return r.json(); }); }
-  function post(path, body){
-    return fetch(SB_URL + path, { method:'POST', headers: Object.assign({}, headers(), { 'Prefer':'resolution=merge-duplicates,return=minimal' }), body: JSON.stringify(body) })
-      .then(function(r){ if(!r.ok) return r.text().then(function(t){ throw new Error(t); }); return true; });
+  /* ---------- durable write queue: a write is retried until it lands ---------- */
+  var QK = 'fd:q:lib';
+  function qLoad(){ try{ var q=JSON.parse(localStorage.getItem(QK)||'[]'); return Array.isArray(q)?q:[]; }catch(e){ return []; } }
+  function qSave(q){ try{ localStorage.setItem(QK, JSON.stringify(q)); }catch(e){} }
+  function qAdd(entry){ var q=qLoad(); q.push(entry); if(q.length>300) q=q.slice(-300); qSave(q); }
+  function qSend(path, method, body){
+    var opts = { method: method, headers: Object.assign({}, headers(), { 'Prefer': method==='POST' ? 'resolution=merge-duplicates,return=minimal' : 'return=minimal' }), body: JSON.stringify(body) };
+    return fetch(SB_URL + path, opts)
+      .then(function(r){ if(!r.ok) return r.text().then(function(t){ throw new Error(t); }); return true; })
+      .catch(function(e){ qAdd({ path:path, method:method, body:body, t:Date.now() }); throw e; });
   }
-  function patch(path, body){
-    return fetch(SB_URL + path, { method:'PATCH', headers: Object.assign({}, headers(), { 'Prefer':'return=minimal' }), body: JSON.stringify(body) })
-      .then(function(r){ if(!r.ok) return r.text().then(function(t){ throw new Error(t); }); return true; });
+  function post(path, body){ return qSend(path, 'POST', body); }
+  function patch(path, body){ return qSend(path, 'PATCH', body); }
+  function qFlush(){
+    if(!session) return Promise.resolve();
+    var q = qLoad(); if(!q.length) return Promise.resolve();
+    qSave([]);
+    var failed = [];
+    return q.reduce(function(chain, e){
+      return chain.then(function(){
+        var opts = { method:e.method, headers: Object.assign({}, headers(), { 'Prefer': e.method==='POST' ? 'resolution=merge-duplicates,return=minimal' : 'return=minimal' }), body: JSON.stringify(e.body) };
+        return fetch(SB_URL + e.path, opts).then(function(r){ if(!r.ok) throw new Error('q'); }, function(){ failed.push(e); });
+      });
+    }, Promise.resolve()).then(function(){ if(failed.length) qSave(failed.concat(qLoad())); });
   }
   function ensureAuth(){
     if(!session) return Promise.reject(new Error('not signed in'));
@@ -462,7 +753,70 @@
   }
 
   /* drawer */
-  function syncScrim(){ var o = $('drawer').classList.contains('open') || !$('pmenu').classList.contains('hidden'); $('scrim').classList.toggle('open', o); }
+  var _lockY = 0;
+  function lockPage(on){
+    try{
+      var b = document.body, de = document.documentElement;
+      if(on){
+        if(b.classList.contains('locked')) return;
+        _lockY = window.scrollY || window.pageYOffset || 0;
+        b.style.top = (-_lockY) + 'px';
+        b.classList.add('locked'); de.style.overflow = 'hidden';
+      } else {
+        if(!b.classList.contains('locked')) return;
+        b.classList.remove('locked'); b.style.top = ''; de.style.overflow = '';
+        window.scrollTo(0, _lockY);
+      }
+    }catch(e){}
+  }
+  function overlayOpen(){
+    try{
+      return $('drawer').classList.contains('open') || !$('pmenu').classList.contains('hidden')
+        || !$('viewer').classList.contains('hidden')
+        || !$('modal').classList.contains('hidden') || !$('impModal').classList.contains('hidden')
+        || !$('subModal').classList.contains('hidden') || !$('renModal').classList.contains('hidden')
+        || !$('lockModal').classList.contains('hidden');
+    }catch(e){ return false; }
+  }
+  function syncScrim(){ var o = $('drawer').classList.contains('open') || !$('pmenu').classList.contains('hidden'); $('scrim').classList.toggle('open', o); lockPage(overlayOpen()); }
+  /* keep the page behind locked whenever any overlay opens/closes */
+  try{
+    var _mo = new MutationObserver(function(){ try{ syncScrim(); }catch(e){} });
+    ['drawer','pmenu','viewer','modal','impModal','subModal','renModal','lockModal'].forEach(function(id){
+      var el = $(id); if(el) _mo.observe(el, { attributes:true, attributeFilter:['class','style'] });
+    });
+  }catch(e){}
+  /* ---------- focus management: Esc closes the top panel; Tab stays inside it ---------- */
+  var OVORDER = ['drawer','pmenu','modal','impModal','subModal','renModal','lockModal','viewer'];
+  function overlayIsOpen(id){
+    var el = $(id); if(!el) return false;
+    return id === 'drawer' ? el.classList.contains('open') : !el.classList.contains('hidden');
+  }
+  function openOverlays(){ return OVORDER.filter(overlayIsOpen); }
+  function closeTopOverlay(id){
+    try{
+      if(id === 'drawer') return closeDrawer();
+      if(id === 'pmenu') return closeProfile();
+      if(id === 'viewer') return $('back').click();
+      var map = { modal:'mvCancel', impModal:'impCancel', subModal:'subCancel', renModal:'renCancel', lockModal:'lockClose' };
+      var btn = map[id] && $(map[id]);
+      if(btn){ btn.click(); return; }
+      $(id).classList.add('hidden');
+    }catch(e){}
+  }
+  document.addEventListener('keydown', function(e){
+    var open = openOverlays(); if(!open.length) return;
+    var top = open[open.length-1], el = $(top);
+    if(e.key === 'Escape'){ e.preventDefault(); closeTopOverlay(top); return; }
+    if(e.key === 'Tab' && el){
+      var f = el.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select,textarea,[tabindex]:not([tabindex="-1"])');
+      if(!f.length) return;
+      var first = f[0], last = f[f.length-1];
+      if(e.shiftKey && (document.activeElement === first || !el.contains(document.activeElement))){ e.preventDefault(); last.focus(); }
+      else if(!e.shiftKey && (document.activeElement === last || !el.contains(document.activeElement))){ e.preventDefault(); first.focus(); }
+    }
+  });
+
   function openDrawer(){ closeProfile(); $('drawer').classList.add('open'); $('drawer').setAttribute('aria-hidden','false'); syncScrim(); }
   function closeDrawer(){ $('drawer').classList.remove('open'); $('drawer').setAttribute('aria-hidden','true'); syncScrim(); }
   function openProfile(){ closeDrawer(); $('pmenu').classList.remove('hidden'); syncScrim(); }
@@ -484,22 +838,24 @@
     $('acctOut').classList.toggle('hidden', on);
     $('acctIn').classList.toggle('hidden', !on);
     $('pEmail').textContent = on ? em : 'Not signed in';
-    $('pSub').textContent = on ? 'Tap for account settings' : 'Tap to sign in';
+    $('pSub').textContent = on ? 'Tap for account settings \u203a' : 'Tap to sign in';
     $('profileBtn').textContent = on ? initials(em) : '?';
     $('pAvatar').textContent = on ? initials(em) : '?';
     $('heroText').textContent = on ? 'Your decks, organised by year, subject and set.' : 'Tap the profile circle (top-right) to sign in.';
     setDot(on ? 'on' : '');
     if(on){
+      pullLastDeck();
+      pullRoundsMap();
       loadTitle().then(function(owner){
         IS_OWNER = owner;
         $('addSubjBtn').classList.toggle('hidden', !owner);
         $('addFilesBtn').classList.toggle('hidden', !owner);
         $('syncNow').classList.toggle('hidden', !owner);
-        $('renBtn').classList.toggle('hidden', !owner);
         $('passBtn').classList.toggle('hidden', owner);
         $('insightBtn').classList.toggle('hidden', !owner);
         $('whatsNewBtn').classList.toggle('hidden', !owner);
         selfUpdate();
+        updateCatBtn();
         if(owner){ load(); publishSelf(); }
         else { loadPublic(); }
       });
@@ -508,10 +864,10 @@
       $('addSubjBtn').classList.add('hidden');
       $('addFilesBtn').classList.add('hidden');
       $('syncNow').classList.add('hidden');
-      $('renBtn').classList.add('hidden');
       $('passBtn').classList.add('hidden');
       $('insightBtn').classList.add('hidden');
       $('whatsNewBtn').classList.add('hidden');
+      updateCatBtn();
       loadPublic();
       selfUpdate();
     }
@@ -533,6 +889,16 @@
     s.appendChild(document.createTextNode('Locked'));
     return s;
   }
+  function lockMini(){
+    var s = document.createElement('span'); s.className = 'lockmini';
+    s.innerHTML = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="4.5" y="10.5" width="15" height="9.5" rx="2.2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg>';
+    return s;
+  }
+  function groupLocked(list){
+    if(!list || !list.length) return false;
+    for(var i=0;i<list.length;i++){ if(!lockedKeys[list[i].deck_key]) return false; }
+    return true;
+  }
   function deckEl(d, agg, label){
     var locked = !!d.locked;
     var a = agg[d.deck_key] || { total:0, rated:0, due:0 };
@@ -548,23 +914,22 @@
     var h = document.createElement('h3'); h.textContent = label || d.topic || d.deck_key; el.appendChild(h);
     var sub = document.createElement('div'); sub.className = 'sub';
     sub.textContent = locked ? (total + ' cards \u00b7 sign in to unlock')
-                             : (total + ' cards \u00b7 ' + a.rated + ' seen \u00b7 ' + a.due + ' due now');
+                             : (total + ' cards \u00b7 ' + a.rated + ' seen \u00b7 ' + a.due + ' due now \u00b7 ' + roundsText(d.deck_key));
     el.appendChild(sub);
-    var bar = document.createElement('div'); bar.className = 'bar'; var i = document.createElement('i'); i.style.width = pct + '%'; bar.appendChild(i); el.appendChild(bar);
-    var m2 = document.createElement('div'); m2.className = 'meta2';
-    var s1 = document.createElement('span'); s1.textContent = locked ? 'Locked' : (pct + '% covered');
-    var s2 = document.createElement('span'); s2.textContent = d.deck_key;
-    m2.appendChild(s1); m2.appendChild(s2); el.appendChild(m2);
+    var bar = document.createElement('div'); bar.className = 'bar ' + pctClass(pct); var i = document.createElement('i'); i.style.width = pct + '%'; bar.appendChild(i); el.appendChild(bar);
+    if(!locked){
+      var m2 = document.createElement('div'); m2.className = 'meta2';
+      var s1 = document.createElement('span'); s1.textContent = pct + '% covered';
+      m2.appendChild(s1); el.appendChild(m2);
+    }
     var acts = document.createElement('div'); acts.className = 'acts';
-    var go = document.createElement('button'); go.className = 'btn primary sm';
-    go.textContent = locked ? 'Unlock' : 'Open';
-    if(locked){ go.onclick = function(){ openLock(d.topic || d.deck_key); }; }
-    else { go.onclick = function(){ openDeck(d.deck_key, d.topic || d.deck_key); }; }
-    acts.appendChild(go);
-    if(IS_OWNER){
-      var mv = document.createElement('button'); mv.className = 'btn sm'; mv.textContent = 'Category';
-      mv.onclick = function(){ openMove(d); };
-      acts.appendChild(mv);
+    if(locked){
+      var go = document.createElement('button'); go.className = 'btn primary sm';
+      go.textContent = 'Unlock';
+      go.onclick = function(){ openLock(d.topic || d.deck_key); };
+      acts.appendChild(go);
+    } else {
+      acts.appendChild(playBtn(function(){ practiceNode({ deck: d.deck_key, s: d.subject }); }));
     }
     el.appendChild(acts);
     return el;
@@ -572,20 +937,24 @@
 
   function chev(open){ var s = document.createElement('span'); s.className = 'chev'; s.textContent = open ? '\u25BE' : '\u25B8'; return s; }
 
+  var lastLoadAt = 0;
+  var loadRetries = 0;
   function load(){
-    $('content').textContent = '';
-    $('counts').textContent = '';
+    lastLoadAt = Date.now();
     setDot('on');
     ensureAuth().then(function(){
       var uid = session.user.id;
       return Promise.all([
         get('/rest/v1/decks?select=deck_key,topic,subject,set_no,unit,category,cards,updated_at&user_id=eq.' + uid + '&filed=is.true&order=updated_at.desc'),
-        get('/rest/v1/deck_state?select=deck_key,rating,due_at,deleted&user_id=eq.' + uid),
+        get('/rest/v1/deck_state?select=deck_key,rating,due_at,deleted,updated_ms&user_id=eq.' + uid),
         get('/rest/v1/subjects?select=year,name,sort_order&user_id=eq.' + uid)
       ]);
     }).then(function(res){
+      loadRetries = 0;
       finishLoad(res[0] || [], res[1] || [], res[2] || [], false);
-    }).catch(function(e){ setDot('off'); $('heroText').textContent = 'Could not load. ' + (e && e.message ? e.message : ''); });
+    }).catch(function(e){ setDot('off'); $('heroText').textContent = 'Could not load. ' + (e && e.message ? e.message : '');
+      if(loadRetries < 4){ loadRetries++; setTimeout(function(){ try{ load(); }catch(_){} }, 2000 * loadRetries); }
+    });
   }
 
   function finishLoad(decks, states, taxRows, pub){
@@ -680,18 +1049,22 @@
 
       treeData = tree; aggData = agg; decksData = decks;
       if(view.t === 'subject' && !(tree[view.y] && tree[view.y][view.s])) view = { t:'home' };
-      var _y = window.scrollY || 0;
-      render();
-      window.scrollTo(0, _y);
+      var _sig;
+      try{ _sig = JSON.stringify(states) + '|' + (decks||[]).map(function(d){ return d.deck_key + ':' + (Array.isArray(d.cards) ? d.cards.length : (d.n||0)) + ':' + (d.updated_at||''); }).join(',') + '|' + JSON.stringify(roundsMap) + '|' + (taxRows||[]).length + '|' + view.t; }
+      catch(e){ _sig = String(Math.random()); }
+      var _changed = (_sig !== lastSig); lastSig = _sig;
+      if(viewerOpen()){ if(_changed) deferRender = true; }
+      else if(_changed){ quietRender(); }
       if(!pub){ setLastSync(Date.now()); setDot('on'); }
   }
 
   function render(){
     if(view.t === 'subject') renderSubject(view.y, view.s);
-    else if(view.t === 'all') renderTree(treeData, aggData);
     else if(view.t === 'passes') renderPasses();
     else if(view.t === 'insights') renderInsights();
     else if(view.t === 'whatsnew') renderWhatsNew();
+    else if(view.t === 'search') renderSearch();
+    else if(view.t === 'account') renderAccount();
     else renderHome();
     updateFab();
   }
@@ -712,10 +1085,78 @@
     eachDeck(tmap, function(d){ out.push(d); });
     return out;
   }
-  function listTotals(list){
-    var due = 0, total = 0, rated = 0, decks = 0;
-    (list || []).forEach(function(d){ var a = aggData[d.deck_key] || { total:0, rated:0, due:0 }; due += a.due; total += a.total; rated += a.rated; decks++; });
-    return { due:due, total:total, rated:rated, decks:decks };
+  function nodeStats(list){
+    var decks = 0, openDecks = 0, total = 0, rated = 0, due = 0;
+    (list || []).forEach(function(d){
+      decks++;
+      if(!IS_OWNER && !UNLOCKED && lockedKeys[d.deck_key]) return;
+      var a = aggData[d.deck_key] || { total:0, rated:0, due:0 };
+      openDecks++; total += a.total; rated += a.rated; due += a.due;
+    });
+    return { decks:decks, openDecks:openDecks, total:total, rated:rated, due:due, pct: total ? Math.round(rated/total*100) : 0 };
+  }
+  function pctClass(p){ return p >= 60 ? 'hi' : (p >= 30 ? 'mid' : 'lo'); }
+  function pbarEl(t){ var b = document.createElement('span'); b.className = 'pbar ' + pctClass(t.pct || 0); var i = document.createElement('i'); i.style.width = (t.pct || 0) + '%'; b.appendChild(i); return b; }
+  function playBtn(fn){
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'playbtn'; b.setAttribute('aria-label', 'Practise due cards'); b.title = 'Practise due cards';
+    b.innerHTML = '<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
+    b.onclick = function(ev){ ev.stopPropagation(); fn(); };
+    return b;
+  }
+  function wrapNode(headEl, playFn, locked){
+    var row = document.createElement('div'); row.className = 'noderow';
+    row.appendChild(headEl);
+    var pb = playBtn(playFn);
+    if(locked){ pb.classList.add('locked'); pb.disabled = true; pb.setAttribute('aria-disabled','true'); pb.title = 'Locked'; pb.onclick = function(ev){ ev.stopPropagation(); }; }
+    row.appendChild(pb);
+    return row;
+  }
+  function practiceNode(f){
+    var base = {};
+    if(f.s) base.subjects = [f.s];
+    if(f.unit !== undefined) base.units = [f.unit];
+    if(f.category !== undefined) base.categories = [f.category];
+    if(f.deck) base.decks = [f.deck];
+    var cards = collectCards(Object.assign({ dueOnly:true }, base));
+    if(!cards.length) cards = collectCards(base);
+    var nm = f.deck ? f.deck.replace(/_/g, ' ') : (f.category || f.unit || f.s || 'Practice');
+    openPractice(nm + ' \u2014 due now', cards);
+    viewDeckKey = f.deck ? f.deck : ''; updateCatBtn();
+  }
+  function allOpenKeys(open){
+    var keys = {};
+    allYears.forEach(function(y){
+      if(!treeData[y]) return;
+      keys['Y:' + y] = open;
+      Object.keys(treeData[y]).forEach(function(s){
+        keys['S:' + y + ':' + s] = open;
+        var tmap = treeData[y][s];
+        Object.keys(tmap).forEach(function(u){
+          if(u === '') return;
+          ['S','F'].forEach(function(pf){
+            var ukey = pf + ':U:' + y + ':' + s + ':' + u; keys[ukey] = open;
+            Object.keys(tmap[u]).forEach(function(cg){ if(cg !== '') keys[ukey + ':C:' + cg] = open; });
+          });
+        });
+      });
+    });
+    return keys;
+  }
+  function expandCollapse(open){
+    if(open){ openMap = Object.assign({}, openMap, allOpenKeys(true)); }
+    else { openMap = {}; }
+    ss('fd:openmap', openMap); render(); window.scrollTo(0,0);
+  }
+  function expandBtn(){
+    var b = document.createElement('button'); b.className = 'btn sm'; b.style.margin = '8px 2px 0';
+    b.textContent = 'Expand all / Collapse all';
+    b.onclick = function(){ var anyClosed = Object.keys(openMap).filter(function(k){ return openMap[k]; }).length === 0; expandCollapse(anyClosed); };
+    return b;
+  }
+  function psubEl(t){
+    var sp = document.createElement('span'); sp.className = 'psub';
+    sp.textContent = (t.pct || 0) + '% \u00b7 ' + t.rated + ' seen \u00b7 ' + Math.max(0, t.total - t.rated) + ' left' + (t.due ? ' \u00b7 ' + t.due + ' due' : '');
+    return sp;
   }
   function appendTree(container, y, s, prefix){
     var tmap = (treeData[y] && treeData[y][s]) || {};
@@ -739,17 +1180,20 @@
         dd.forEach(function(d){ container.appendChild(deckEl(d, aggData, topicOf(d))); });
         return;
       }
-      var ut = listTotals(unitDeckList(tmap, u));
+      var uList = unitDeckList(tmap, u);
+      var ut = nodeStats(uList);
       var ukey = prefix + ':U:' + y + ':' + s + ':' + u;
       var uopen = !!openMap[ukey];
       var ublock = document.createElement('div'); ublock.className = 'topicblock';
       var uh = document.createElement('button'); uh.className = 'topichead unithead' + (ut.due ? '' : ' zero');
       uh.appendChild(chev(uopen));
       var un = document.createElement('span'); un.className = 'nm'; un.textContent = u; uh.appendChild(un);
-      var uc = document.createElement('span'); uc.className = 'ct'; uc.textContent = ut.decks + (ut.decks === 1 ? ' deck' : ' decks'); uh.appendChild(uc);
+      if(groupLocked(uList)){ uh.classList.add('locked'); uh.appendChild(lockMini()); }
+      var uc = document.createElement('span'); uc.className = 'ct'; uc.textContent = ut.decks + (ut.decks === 1 ? ' deck' : ' decks') + ' \u00b7 ' + ut.total + ' cards'; uh.appendChild(uc);
       var ud = document.createElement('span'); ud.className = 'cnt'; ud.textContent = ut.due ? ut.due : '\u2713'; uh.appendChild(ud);
+      uh.appendChild(pbarEl(ut)); uh.appendChild(psubEl(ut));
       uh.onclick = function(){ openMap[ukey] = !uopen; ss('fd:openmap', openMap); render(); };
-      ublock.appendChild(uh);
+      ublock.appendChild(wrapNode(uh, function(){ practiceNode({ s:s, unit:u }); }, groupLocked(uList)));
       if(uopen){
         var cats = Object.keys(tmap[u]).sort(function(a,b){ return a.toLowerCase() < b.toLowerCase() ? -1 : 1; });
         cats.forEach(function(cg){
@@ -757,17 +1201,19 @@
             tmap[u][cg].slice().sort(byTopic).forEach(function(d){ ublock.appendChild(deckEl(d, aggData, topicOf(d))); });
             return;
           }
-          var ct2 = listTotals(tmap[u][cg]);
+          var ct2 = nodeStats(tmap[u][cg]);
           var ckey = ukey + ':C:' + cg;
           var copen = !!openMap[ckey];
           var cblock = document.createElement('div'); cblock.className = 'topicblock catblock';
           var ch = document.createElement('button'); ch.className = 'topichead cathead' + (ct2.due ? '' : ' zero');
           ch.appendChild(chev(copen));
           var cn = document.createElement('span'); cn.className = 'nm'; cn.textContent = cg; ch.appendChild(cn);
-          var cc = document.createElement('span'); cc.className = 'ct'; cc.textContent = ct2.decks + (ct2.decks === 1 ? ' deck' : ' decks'); ch.appendChild(cc);
+          if(groupLocked(tmap[u][cg])){ ch.classList.add('locked'); ch.appendChild(lockMini()); }
+          var cc = document.createElement('span'); cc.className = 'ct'; cc.textContent = ct2.decks + (ct2.decks === 1 ? ' deck' : ' decks') + ' \u00b7 ' + ct2.total + ' cards'; ch.appendChild(cc);
           var cd = document.createElement('span'); cd.className = 'cnt'; cd.textContent = ct2.due ? ct2.due : '\u2713'; ch.appendChild(cd);
+          ch.appendChild(pbarEl(ct2)); ch.appendChild(psubEl(ct2));
           ch.onclick = function(){ openMap[ckey] = !copen; ss('fd:openmap', openMap); render(); };
-          cblock.appendChild(ch);
+          cblock.appendChild(wrapNode(ch, function(){ practiceNode({ s:s, unit:u, category:cg }); }, groupLocked(tmap[u][cg])));
           if(copen){
             tmap[u][cg].slice().sort(byTopic).forEach(function(d){ cblock.appendChild(deckEl(d, aggData, topicOf(d))); });
           }
@@ -825,8 +1271,14 @@
   function tileEl(val, lab){ var el = document.createElement('div'); el.className = 'tile'; var b = document.createElement('b'); b.textContent = val; el.appendChild(b); var s = document.createElement('span'); s.textContent = lab; el.appendChild(s); return el; }
   function recallCard(t){
     var rc = document.createElement('div'); rc.className = 'card3';
-    var h = document.createElement('div'); h.className = 'chead'; h.textContent = 'Recall (Good + Easy)'; rc.appendChild(h);
+    var h = document.createElement('div'); h.className = 'chead'; h.textContent = 'Recall \u2014 cards you knew well'; rc.appendChild(h);
     var bg = document.createElement('div'); bg.className = 'big'; bg.textContent = (t.rated ? Math.round((t.r[2]+t.r[3])/t.rated*100) : 0) + '%'; rc.appendChild(bg);
+    var sub = document.createElement('div'); sub.className = 'muted small'; sub.style.margin = '-4px 0 2px'; sub.style.fontWeight = '600';
+    var good = t.r[2] + t.r[3];
+    sub.textContent = t.rated
+      ? (good + ' of the ' + t.rated + ' cards you have rated were Good or Easy \u2014 higher means you recall them well.')
+      : 'Rate a few cards and your recall score will appear here.';
+    rc.appendChild(sub);
     var bar = document.createElement('div'); bar.className = 'bar2';
     var cols = ['#c81e1e','#b45309','#1d4ed8','#0f766e'];
     t.r.forEach(function(n, i){ if(!n) return; var seg = document.createElement('i'); seg.style.width = (t.rated ? (n/t.rated*100) : 0) + '%'; seg.style.background = cols[i]; bar.appendChild(seg); });
@@ -917,6 +1369,7 @@
       if(f.subjects && f.subjects.length && f.subjects.indexOf(d.subject) < 0) return;
       if(f.units && f.units.length && f.units.indexOf(unitOf(d)) < 0) return;
       if(f.categories && f.categories.length && f.categories.indexOf(catOf(d)) < 0) return;
+      if(f.decks && f.decks.length && f.decks.indexOf(d.deck_key) < 0) return;
       (Array.isArray(d.cards) ? d.cards : []).forEach(function(c){
         if(f.tags && f.tags.length && f.tags.indexOf(c.tag) < 0) return;
         if(f.dueOnly && !cardDue(d.deck_key, c.id, now)) return;
@@ -929,7 +1382,8 @@
   }
   function openPractice(title, cards){
     if(!cards.length){ window.alert('No cards match this filter.'); return; }
-    $('vtitle').textContent = title; $('viewer').classList.remove('hidden');
+    viewDeckKey = ''; updateCatBtn();
+    $('vtitle').textContent = title; $('viewer').classList.remove('hidden'); document.body.classList.add('deckopen');
     frameMsg('Loading ' + title + '\u2026');
     getDeckTemplate().then(function(base){
       if(!base){ frameMsg('Deck template not available. Please reload the app.'); return; }
@@ -1013,34 +1467,94 @@
     rows.sort(function(a, b){ return b.total - a.total; });
     return rows;
   }
-  function unitProgressRows(y, s){
-    var tmap = (treeData[y] && treeData[y][s]) || {}, rows = [];
-    Object.keys(tmap).forEach(function(u){
-      var rated = 0, total = 0, due = 0, decks = 0;
-      Object.keys(tmap[u]).forEach(function(cg){
-        tmap[u][cg].forEach(function(d){
-          if(!IS_OWNER && !UNLOCKED && lockedKeys[d.deck_key]) return;
-          var a = aggData[d.deck_key] || { total:0, rated:0, due:0 };
-          rated += a.rated; total += a.total; due += a.due; decks++;
-        });
-      });
-      if(!decks) return;
-      rows.push({ name: u || 'Misc Topics', rated: rated, total: total, due: due, u: u });
-    });
-    rows.sort(function(a, b){ return b.total - a.total; });
-    return rows;
+  function todayStr(){ var d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+  function yestStr(){ var y=new Date(); y.setDate(y.getDate()-1); return y.getFullYear()+'-'+String(y.getMonth()+1).padStart(2,'0')+'-'+String(y.getDate()).padStart(2,'0'); }
+  function streakLine(){
+    var t=todayStr(), yst=yestStr(), today=0;
+    Object.keys(deckStates).forEach(function(k){ (deckStates[k]||[]).forEach(function(r){
+      if(!r || !r.updated_ms) return;
+      var d=new Date(r.updated_ms); var ds=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+      if(ds===t) today++;
+    }); });
+    var st=ls('fd:streak',{last:'',days:0});
+    if(today>0 && st.last!==t){ st.days = (st.last===yst) ? (st.days||0)+1 : 1; st.last=t; ss('fd:streak', st); }
+    var shown = (st.last===t || st.last===yst) ? (st.days||0) : 0;
+    var d=document.createElement('div'); d.className='muted small'; d.style.margin='2px 2px 6px'; d.style.fontWeight='600';
+    d.textContent = '\uD83D\uDD25 Streak: ' + shown + ' day' + (shown===1?'':'s') + ' \u00b7 Rated today: ' + today + ' card' + (today===1?'':'s');
+    return d;
   }
-  function practiceUnit(y, s, u){
-    var cards = collectCards({ subjects:[s], units:[u], dueOnly:true });
-    if(!cards.length) cards = collectCards({ subjects:[s], units:[u] });
-    openPractice((u || 'Misc Topics') + ' \u2014 ' + s, cards);
+  function ask3(msg, cb){
+    if(!window.confirm(msg + '  (1 of 3)')) return;
+    if(!window.confirm(msg + '  (2 of 3)')) return;
+    if(!window.confirm(msg + '  (3 of 3)')) return;
+    cb();
+  }
+  function reauthPrompt(cb){
+    if(!session){ window.alert('Please sign in first.'); return; }
+    var ov=document.createElement('div'); ov.className='reauth';
+    ov.innerHTML = '<div class="reauth-box"><div class="reauth-h">Confirm your identity</div>'
+      + '<div class="muted small">Enter your account password to reset all progress.</div>'
+      + '<input id="reauthEmail" type="email" autocomplete="username" placeholder="you@example.com">'
+      + '<input id="reauthPass" type="password" autocomplete="current-password" placeholder="password">'
+      + '<div class="reauth-msg" id="reauthMsg"></div>'
+      + '<div class="reauth-row"><button id="reauthCancel" class="btn">Cancel</button><button id="reauthOk" class="btn primary">Confirm</button></div></div>';
+    document.body.appendChild(ov);
+    try{ $('reauthEmail').value = (session.user && session.user.email) || ''; }catch(e){}
+    $('reauthCancel').onclick=function(){ ov.remove(); };
+    $('reauthOk').onclick=function(){
+      var em=($('reauthEmail').value||'').trim(), pw=$('reauthPass').value||'';
+      if(!em || !pw){ $('reauthMsg').textContent='Enter your email and password.'; return; }
+      $('reauthOk').disabled=true; $('reauthMsg').textContent='Checking\u2026';
+      signIn(em, pw).then(function(){ ov.remove(); cb(); })
+        .catch(function(e){ $('reauthOk').disabled=false; $('reauthMsg').textContent = (e && e.message) ? e.message : 'Wrong email or password.'; });
+    };
+  }
+  function resetAllProgress(){
+    reauthPrompt(function(){
+    ask3('Reset ALL your progress (ratings, due dates, deletions)? This cannot be undone.', function(){
+      try{ Object.keys(localStorage).forEach(function(k){ if(k.indexOf('fd:review:')===0||k.indexOf('fd:cardu:')===0||k.indexOf('fd:deleted:')===0){ localStorage.removeItem(k); } }); }catch(e){}
+      ss('fd:today',{date:todayStr(),n:0}); ss('fd:streak',{last:'',days:0});
+      if(!session){ window.alert('Progress cleared on this device.'); loadPublic(); return; }
+      ensureAuth().then(function(){
+        return patch('/rest/v1/deck_state?user_id=eq.' + session.user.id, { rating:null, interval_days:null, due_at:null, deleted:false, front:null, back:null, note:null, updated_ms: Date.now() });
+      }).then(function(){ window.alert('All progress cleared.'); load(); })
+       .catch(function(){ window.alert('Cleared on this device (could not reach the server).'); load(); });
+    });
+    });
+  }
+  function recentCard(){
+    var key=null, ts=0;
+    try{ Object.keys(deckStates||{}).forEach(function(k){ (deckStates[k]||[]).forEach(function(s){ if(s && s.updated_ms && s.updated_ms > ts){ ts = s.updated_ms; key = k; } }); }); }catch(e){}
+    var d = ls('fd:lastdeck', null);
+    if(!key && d && d.key){ key = d.key; ts = d.ts || 0; }
+    if(!key) return null;
+    var topic = (d && d.key === key && d.topic) ? d.topic : null;
+    if(!topic){ (decksData || []).forEach(function(x){ if(x && x.deck_key === key) topic = x.topic; }); }
+    if(!topic) topic = key;
+    var a = aggData[key] || { total:0, rated:0, due:0 };
+    var pct = a.total ? Math.round(a.rated / a.total * 100) : 0;
+    var dc = document.createElement('div'); dc.className = 'card3';
+    var h = document.createElement('div'); h.className = 'chead'; h.textContent = 'Recently practised'; dc.appendChild(h);
+    var b = document.createElement('button'); b.className = 'duerow';
+    var nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = topic; b.appendChild(nm);
+    var yr = document.createElement('span'); yr.className = 'yr'; yr.textContent = ts ? ('last ' + new Date(ts).toLocaleString('en-IN', {day:'numeric', month:'short', hour:'numeric', minute:'2-digit'})) : ''; b.appendChild(yr);
+    var ct = document.createElement('span'); ct.className = 'cnt'; ct.textContent = '\u25b6'; b.appendChild(ct);
+    b.onclick = function(){ openDeck(key, topic); };
+    dc.appendChild(b);
+    var sub = document.createElement('div'); sub.className = 'muted small'; sub.style.margin = '2px 2px 0';
+    sub.textContent = a.total ? (pct + '% covered \u00b7 ' + a.rated + ' of ' + a.total + ' seen \u00b7 ' + a.due + ' due now \u00b7 ' + roundsText(key)) : '';
+    dc.appendChild(sub);
+    var bar = document.createElement('div'); bar.className = 'bar ' + pctClass(pct); var bi = document.createElement('i'); bi.style.width = pct + '%'; bar.appendChild(bi); dc.appendChild(bar);
+    return dc;
   }
   function renderHome(){
     var c = $('content'); c.textContent = '';
     var t = statTotals();
     if(!IS_OWNER) c.appendChild(publicNote());
     c.appendChild(heroCard(t, 'cards · ' + t.decksDue + ' decks · ' + t.subsDue + ' subjects', reviewDue));
+    var _rc = recentCard(); if(_rc) c.appendChild(_rc);
     c.appendChild(tilesCard([[t.cards,'Cards'],[t.rated,'Seen'],[Math.max(0,t.cards-t.rated),'Remaining'],[pctOf(t.rated,t.cards) + '%','Coverage']]));
+    c.appendChild(streakLine());
     if(!IS_OWNER){
       var fb = document.createElement('button'); fb.className = 'btn primary wide'; fb.style.marginTop = '12px';
       fb.textContent = 'Free practice — all three tags';
@@ -1048,20 +1562,19 @@
       c.appendChild(fb);
     }
     c.appendChild(recallCard(t));
-    c.appendChild(progressCard('Progress by subject', subjectProgressRows(), function(x){ view = { t:'subject', y:x.y, s:x.s }; render(); window.scrollTo(0,0); }));
+    var hl = document.createElement('div'); hl.className = 'chead'; hl.style.margin = '18px 2px 0'; hl.textContent = 'Progress by subject';
+    c.appendChild(hl);
+    c.appendChild(expandBtn());
+    buildTree(c);
     var pdBtn = document.createElement('button'); pdBtn.className = 'btn primary wide'; pdBtn.style.marginTop = '12px';
     pdBtn.textContent = 'Practice all due now'; pdBtn.onclick = function(){ practiceDueAll(null, null); };
     c.appendChild(pdBtn);
+    if(IS_OWNER){ var sb = document.createElement('button'); sb.className='btn wide'; sb.style.marginTop='8px'; sb.textContent='Search all cards'; sb.onclick=function(){ view={t:'search'}; render(); window.scrollTo(0,0); }; c.appendChild(sb); }
     var subjOpts = [];
     Object.keys(treeData).forEach(function(y){ Object.keys(treeData[y]).forEach(function(s){ var st = subjectTotals(y, s); if(st.decks) subjOpts.push({ key:s, label:s }); }); });
     c.appendChild(practicePanel({ heading:'Filter & practice', options: subjOpts, optionsKind:'subjects', title:'Practice' }));
     var trows = tagRows('global');
     if(trows.length) c.appendChild(dueListCard('Due by tag', trows, function(x){ openTag(x.scope, x.tg); }));
-    var subs = [];
-    Object.keys(treeData).forEach(function(y){
-      Object.keys(treeData[y]).forEach(function(s){ var st = subjectTotals(y, s); if(st.decks) subs.push({ name:s, sub:y, due:st.due, y:y, s:s }); });
-    });
-    if(subs.length) c.appendChild(dueListCard('Due by subject', subs, function(x){ view = { t:'subject', y:x.y, s:x.s }; render(); window.scrollTo(0,0); }));
     if(!IS_OWNER && !UNLOCKED){
       var frows = [];
       Object.keys(FREE).forEach(function(k){
@@ -1070,9 +1583,6 @@
       });
       if(frows.length) c.appendChild(dueListCard('Free decks \u2014 tap to practise', frows, function(x){ openDeck(x.key, x.name); }));
     }
-    var ba = document.createElement('button'); ba.className = 'btn wide'; ba.style.marginTop = '12px'; ba.textContent = 'Browse all decks';
-    ba.onclick = function(){ view = { t:'all' }; render(); window.scrollTo(0,0); };
-    c.appendChild(ba);
   }
   function renderSubject(y, s){
     var c = $('content'); c.textContent = '';
@@ -1088,7 +1598,6 @@
     c.appendChild(heroCard(t, 'cards · ' + t.decksDue + ' decks · ' + t.topics + ' systems', function(){ reviewDueIn(y, s); }));
     c.appendChild(tilesCard([[t.topics,'Systems'],[t.cards,'Cards'],[t.rated,'Seen'],[pctOf(t.rated,t.cards) + '%','Coverage']]));
     c.appendChild(recallCard(t));
-    c.appendChild(progressCard('Progress by system', unitProgressRows(y, s), function(x){ practiceUnit(y, s, x.u); }));
     var pdBtn = document.createElement('button'); pdBtn.className = 'btn primary wide'; pdBtn.style.marginTop = '12px';
     pdBtn.textContent = 'Practice all due now'; pdBtn.onclick = function(){ practiceDueAll(y, s); };
     c.appendChild(pdBtn);
@@ -1098,50 +1607,52 @@
     var trows = tagRows(y + '|' + s);
     if(trows.length) c.appendChild(dueListCard('Due by tag', trows, function(x){ openTag(x.scope, x.tg); }));
 
-    var lbl = document.createElement('div'); lbl.className = 'chead'; lbl.style.margin = '20px 2px 0'; lbl.textContent = 'Systems';
+    var lbl = document.createElement('div'); lbl.className = 'chead'; lbl.style.margin = '20px 2px 0'; lbl.textContent = 'Systems \u2014 progress';
     c.appendChild(lbl);
+    c.appendChild(expandBtn());
     appendTree(c, y, s, 'F');
   }
-  function renderTree(tree, agg){
-    var c = $('content'); c.textContent = '';
+  function buildTree(container){
     var anyDecks = false;
     allYears.forEach(function(y){
-      if(!tree[y]) return;
-      var subs = Object.keys(tree[y]);
-      var yTotal = 0; subs.forEach(function(s){ yTotal += decksInSubject(y, s).length; });
-      if(yTotal) anyDecks = true;
-
+      if(!treeData[y]) return;
+      var subs = Object.keys(treeData[y]);
+      var yList = []; subs.forEach(function(s){ yList = yList.concat(decksInSubject(y, s)); });
+      if(!yList.length) return;
+      anyDecks = true;
+      var yStat = nodeStats(yList);
+      var ykey = 'Y:' + y, yopen = !!openMap[ykey];
       var yh = document.createElement('button'); yh.className = 'yearhead';
-      yh.appendChild(chev(!collapsed['Y:'+y]));
+      yh.appendChild(chev(yopen));
       var nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = y; yh.appendChild(nm);
-      var ct = document.createElement('span'); ct.className = 'ct'; ct.textContent = yTotal; yh.appendChild(ct);
-      yh.onclick = function(){ collapsed['Y:'+y] = !collapsed['Y:'+y]; ss('fd:collapsed', collapsed); render(); };
-      c.appendChild(yh);
-      if(collapsed['Y:'+y]) return;
-
+      if(groupLocked(yList)){ yh.classList.add('locked'); yh.appendChild(lockMini()); }
+      var ct = document.createElement('span'); ct.className = 'ct'; ct.textContent = yList.length; yh.appendChild(ct);
+      yh.appendChild(pbarEl(yStat)); yh.appendChild(psubEl(yStat));
+      yh.onclick = function(){ openMap[ykey] = !yopen; ss('fd:openmap', openMap); render(); };
+      container.appendChild(yh);
+      if(!yopen) return;
       subs.sort(function(a,b){ return a.toLowerCase() < b.toLowerCase() ? -1 : 1; }).forEach(function(s){
-        var sTotal = decksInSubject(y, s).length;
+        var sList = decksInSubject(y, s);
+        var sStat = nodeStats(sList);
+        var skey = 'S:' + y + ':' + s, sopen = !!openMap[skey];
         var card = document.createElement('div'); card.className = 'subjcard'; card.id = 'sub-' + slug(y + '::' + s);
         var sh = document.createElement('button'); sh.className = 'subjhead';
-        sh.appendChild(chev(!collapsed['S:'+y+':'+s]));
+        sh.appendChild(chev(sopen));
         var sn = document.createElement('span'); sn.className = 'nm'; sn.textContent = s; sh.appendChild(sn);
-        var sc = document.createElement('span'); sc.className = 'ct'; sc.textContent = sTotal + (sTotal === 1 ? ' deck' : ' decks'); sh.appendChild(sc);
-        sh.onclick = function(){ collapsed['S:'+y+':'+s] = !collapsed['S:'+y+':'+s]; ss('fd:collapsed', collapsed); render(); };
-        card.appendChild(sh);
-
-        if(!collapsed['S:'+y+':'+s]){
+        if(groupLocked(sList)){ sh.classList.add('locked'); sh.appendChild(lockMini()); }
+        var sc = document.createElement('span'); sc.className = 'ct'; sc.textContent = sList.length + (sList.length === 1 ? ' deck' : ' decks') + ' \u00b7 ' + sStat.total + ' cards'; sh.appendChild(sc);
+        sh.appendChild(pbarEl(sStat)); sh.appendChild(psubEl(sStat));
+        sh.onclick = function(){ openMap[skey] = !sopen; ss('fd:openmap', openMap); render(); };
+        card.appendChild(wrapNode(sh, function(){ practiceNode({ s:s }); }, groupLocked(sList)));
+        if(sopen){
           var body = document.createElement('div'); body.className = 'subbody';
           appendTree(body, y, s, 'S');
           card.appendChild(body);
         }
-        c.appendChild(card);
+        container.appendChild(card);
       });
     });
-    if(!anyDecks){
-      var e2 = document.createElement('div'); e2.className = 'emptybox';
-      e2.textContent = 'No decks yet. Build one in the chat and file it into Connectus.';
-      c.appendChild(e2);
-    }
+    return anyDecks;
   }
 
   function fillYearSelect(sel, selected){
@@ -1309,18 +1820,18 @@
   function selfUpdate(){
     var swaps = 0;
     try{ if(sessionStorage.getItem('fd:selfupdate') === APP_BUILD) return; swaps = parseInt(sessionStorage.getItem('fd:selfupdate_n') || '0', 10) || 0; }catch(e){}
-    if(swaps > 2) return;
-    fetch(SB_URL + '/functions/v1/medcircuit?api=version', { headers: { 'apikey': SB_KEY } })
+    fetch(SB_URL + '/functions/v1/medcircuit?api=version&_=' + Date.now(), { headers: { 'apikey': SB_KEY }, cache: 'no-store' })
       .then(function(r){ return r.ok ? r.json() : null; })
       .then(function(v){
         if(!v || !v.ui_version) return;
         if(vnum(v.ui_version) <= vnum(APP_BUILD)) return;
-        return fetch(SB_URL + '/functions/v1/medcircuit', { headers: { 'apikey': SB_KEY } })
+        return fetch(SB_URL + '/functions/v1/medcircuit', { headers: { 'apikey': SB_KEY }, cache: 'no-store' })
           .then(function(r){ return r.text(); })
           .then(function(html){
             if(html.indexOf('id="content"') < 0 || html.indexOf('collapseFab') < 0 || html.indexOf('</html>') < 0) return;
             /* safeguard: the fetched build must match the advertised version, else reject (never swap a wrong/partial build) */
             if(html.indexOf("APP_BUILD = '" + v.ui_version + "'") < 0) return;
+            if(viewerOpen()){ pendingSelfUpdate = html; return; }
             try{ sessionStorage.setItem('fd:selfupdate', APP_BUILD); sessionStorage.setItem('fd:selfupdate_n', String(swaps + 1)); }catch(e){}
             document.open(); document.write(html); document.close();
           });
@@ -1407,7 +1918,7 @@
   }
   function apiJson(path, opts){
     return ensureAuth().catch(function(){}).then(function(){
-      return fetch(SB_URL + '/functions/v1/medcircuit' + path, Object.assign({ headers: authHeaders() }, opts || {}));
+      return fetch(SB_URL + '/functions/v1/medcircuit' + path, Object.assign({ headers: authHeaders(), cache: 'no-store' }, opts || {}));
     }).then(function(r){ return r.json().then(function(d){ return { ok:r.ok, status:r.status, d:d }; }); });
   }
   function track(kind, deckKey){
@@ -1504,17 +2015,15 @@
     html = html.replace(/(<div class="topic">)[^<]*(<\/div>)/, '$1' + esc(title) + '$2');
     var inject = '<scr' + 'ipt>window.__FD_DECKKEY__=' + JSON.stringify(key) + ';' + (tag ? ('window.__FD_TAG__=' + JSON.stringify(tag) + ';') : '') + '</scr' + 'ipt>';
     if(html.indexOf('</head>') >= 0) html = html.replace('</head>', inject + '</head>'); else html = inject + html;
-    var wm = 'Connectus';
-    if(session && session.user && session.user.email){ wm += ' \u00b7 ' + session.user.email + ' \u00b7 ' + new Date().toLocaleDateString('en-IN'); }
-    var mark = '<scr' + 'ipt>(function(){function w(){try{var m=document.querySelector(".meta");if(!m)return;var sp=document.createElement("span");sp.style.cssText="margin-left:8px;opacity:.6";sp.textContent=' + JSON.stringify('\u00b7 ' + wm) + ';m.appendChild(sp);}catch(e){}}if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",w);}else{w();}})();</scr' + 'ipt>';
-    if(html.indexOf('</body>') >= 0) html = html.replace('</body>', mark + '</body>'); else html += mark;
     return html;
   }
   function frameMsg(t){ $('frame').srcdoc = '<!DOCTYPE html><html><body style="font-family:sans-serif;padding:24px;color:#7a6a5d">' + esc(t) + '</body></html>'; }
   function openPublicDeck(key, title, tag){
+    viewDeckKey = ''; updateCatBtn();
+    setLastDeck(key, title);
     $('vtitle').textContent = title;
     track('deck', key);
-    $('viewer').classList.remove('hidden');
+    $('viewer').classList.remove('hidden'); document.body.classList.add('deckopen');
     frameMsg('Loading ' + title + '\u2026');
     getPayload(key).then(function(d){
       if(!d.cards || !d.cards.length) throw new Error('This deck has no cards yet.');
@@ -1524,7 +2033,7 @@
   function openMixed(title, tag){
     $('vtitle').textContent = title;
     track('mix');
-    $('viewer').classList.remove('hidden');
+    $('viewer').classList.remove('hidden'); document.body.classList.add('deckopen');
     frameMsg('Loading ' + title + '\u2026');
     loadMix().then(function(d){
       var cards = [];
@@ -1613,6 +2122,57 @@
       card.appendChild(ul);
       c.appendChild(card);
     });
+  }
+  function openAccount(){ if(!session) return; closeProfile(); closeDrawer(); view = { t:'account' }; render(); window.scrollTo(0,0); }
+  function doSignOut(){ saveSession(null); closeProfile(); closeDrawer(); view = { t:'home' }; show(); }
+  function renderAccount(){
+    var c = $('content'); c.textContent = '';
+    var head = document.createElement('div'); head.className = 'viewhead';
+    var back = document.createElement('button'); back.className = 'btn sm'; back.textContent = '\u2190 Home';
+    back.onclick = function(){ view = { t:'home' }; render(); window.scrollTo(0,0); };
+    head.appendChild(back);
+    var nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = 'Account settings'; head.appendChild(nm);
+    c.appendChild(head);
+    var em = document.createElement('div'); em.className = 'muted small'; em.style.margin = '0 2px 14px';
+    em.textContent = (session && session.user && session.user.email) ? session.user.email : 'Not signed in';
+    c.appendChild(em);
+    function abtn(label, fn, danger){ var b = document.createElement('button'); b.className = 'btn wide' + (danger ? ' danger' : ''); b.style.marginTop = '8px'; b.textContent = label; b.onclick = fn; c.appendChild(b); }
+    if(IS_OWNER) abtn('Rename page', openRename);
+    abtn('Change password', changePassword);
+    abtn('Reset all progress\u2026', resetAllProgress, true);
+    abtn('Sign out', doSignOut);
+  }
+  function renderSearch(){
+    var c = $('content'); c.textContent = '';
+    var head = document.createElement('div'); head.className = 'viewhead';
+    var back = document.createElement('button'); back.className = 'btn sm'; back.textContent = '\u2190 Home';
+    back.onclick = function(){ view = { t:'home' }; render(); window.scrollTo(0,0); };
+    head.appendChild(back);
+    var nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = 'Search all cards'; head.appendChild(nm);
+    c.appendChild(head);
+    var inp = document.createElement('input'); inp.className = 'search2'; inp.type = 'text'; inp.placeholder = 'Search question or answer text\u2026'; inp.autocomplete = 'off'; inp.id = 'globalCardSearch';
+    c.appendChild(inp);
+    var out = document.createElement('div'); c.appendChild(out);
+    function run(){
+      var q = inp.value.trim().toLowerCase(); out.textContent = '';
+      if(q.length < 2){ var m=document.createElement('div'); m.className='muted small'; m.style.margin='10px 2px'; m.textContent='Type at least 2 letters.'; out.appendChild(m); return; }
+      var hits = [];
+      decksData.forEach(function(d){ (Array.isArray(d.cards)?d.cards:[]).forEach(function(cd){ var hay=((cd.q||'')+' '+(cd.a||'')).toLowerCase(); if(hay.indexOf(q)>=0) hits.push({ d:d, cd:cd }); }); });
+      var head2 = document.createElement('div'); head2.className='muted small'; head2.style.margin='10px 2px'; head2.textContent = hits.length + ' match' + (hits.length===1?'':'es'); out.appendChild(head2);
+      if(hits.length){
+        var pb = document.createElement('button'); pb.className='btn primary wide'; pb.textContent='Practise these ' + hits.length + ' cards';
+        pb.onclick = function(){ var cs = hits.map(function(h){ var cc=JSON.parse(JSON.stringify(h.cd)); cc.id=h.d.deck_key+'::'+h.cd.id; cc.dk=h.d.deck_key; cc.rid=h.cd.id; return cc; }); openPractice('Search: ' + inp.value.trim(), cs); };
+        out.appendChild(pb);
+        hits.slice(0, 60).forEach(function(h){
+          var b = document.createElement('button'); b.className='duerow'; b.style.display='block';
+          var t1 = document.createElement('div'); t1.style.fontWeight='650'; t1.textContent = (h.cd.q||'').slice(0,90); b.appendChild(t1);
+          var t2 = document.createElement('div'); t2.className='muted small'; t2.textContent = (h.d.topic||h.d.deck_key) + (h.cd.a ? (' \u00b7 ' + String(h.cd.a).slice(0,70)) : ''); b.appendChild(t2);
+          b.onclick = function(){ openDeck(h.d.deck_key, h.d.topic||h.d.deck_key); };
+          out.appendChild(b);
+        });
+      }
+    }
+    inp.oninput = run; run();
   }
   function renderInsights(){
     var c = $('content'); c.textContent = '';
@@ -1739,13 +2299,6 @@
     $('lockPrimary').textContent = session ? 'See passes' : 'Sign in';
     $('lockModal').classList.remove('hidden');
   }
-  function lockIcon(){
-    var s = document.createElement('span');
-    s.className = 'lockbadge';
-    s.innerHTML = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="4.5" y="10.5" width="15" height="9.5" rx="2.2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg>';
-    s.appendChild(document.createTextNode('Locked'));
-    return s;
-  }
   function recoverFromLink(){
     var h = String(location.hash || '');
     if(h.indexOf('type=recovery') < 0) return;
@@ -1768,7 +2321,9 @@
   }
   function openDeck(key, title, tag){
     if(!IS_OWNER){ openPublicDeck(key, title, tag); return; }
-    $('vtitle').textContent = title; $('viewer').classList.remove('hidden');
+    setLastDeck(key, title);
+    viewDeckKey = key; updateCatBtn();
+    $('vtitle').textContent = title; $('viewer').classList.remove('hidden'); document.body.classList.add('deckopen');
     var uid = session.user.id;
     $('frame').srcdoc = '<!DOCTYPE html><html><body style="font-family:sans-serif;padding:24px;color:#7a6a5d">Loading ' + title + '...</body></html>';
     ensureAuth().then(function(){
@@ -1807,15 +2362,14 @@
       .catch(function(e){ $('msg').textContent = 'Sign-in failed. ' + (e && e.message ? e.message : ''); });
   };
   $('syncNow').onclick = function(){ load(); };
-  $('renBtn').onclick = openRename;
+  $('pinfo').onclick = openAccount;
   $('renSave').onclick = saveRename;
   $('renCancel').onclick = function(){ $('renModal').classList.add('hidden'); };
-  $('changePw').onclick = changePassword;
   $('themeBtn').onclick = function(){ theme = theme==='dark'?'light':'dark'; ss('fd:theme', theme); applyTheme(); };
-  $('signOut').onclick = function(){ saveSession(null); closeProfile(); closeDrawer(); show(); };
   $('passBtn').onclick = function(){ closeProfile(); closeDrawer(); openPasses(); };
   $('insightBtn').onclick = function(){ closeProfile(); closeDrawer(); view = { t:'insights' }; render(); window.scrollTo(0,0); };
   $('whatsNewBtn').onclick = function(){ closeProfile(); closeDrawer(); view = { t:'whatsnew' }; render(); window.scrollTo(0,0); };
+  $('checkUpdateBtn').onclick = function(){ closeProfile(); checkUpdate(); };
   $('legalBtn').onclick = function(){ window.open('terms.html', '_blank'); };
   $('doSignUp').onclick = function(){
     var em = $('email').value.trim(), pw = $('pass').value;
@@ -1845,14 +2399,30 @@
   $('mvCancel').onclick = function(){ $('modal').classList.add('hidden'); };
   $('lockPrimary').onclick = function(){ $('lockModal').classList.add('hidden'); if(session) openPasses(); else openProfile(); };
   $('lockClose').onclick = function(){ $('lockModal').classList.add('hidden'); };
-  $('back').onclick = function(){ $('viewer').classList.add('hidden'); $('frame').srcdoc = ''; if(IS_OWNER && session) setTimeout(load, 350); };
+  $('back').onclick = function(){ viewDeckKey=''; updateCatBtn(); $('viewer').classList.add('hidden'); document.body.classList.remove('deckopen'); $('frame').srcdoc = '';
+    if(pendingSelfUpdate){ var _h = pendingSelfUpdate; pendingSelfUpdate = null; try{ sessionStorage.setItem('fd:selfupdate', APP_BUILD); }catch(e){} try{ document.open(); document.write(_h); document.close(); }catch(e){} return; }
+    deferRender = false; quietRender();
+    if(IS_OWNER && session) setTimeout(load, 350); };
+  $('deckMenuBtn').onclick = function(){ try{ var f=$('frame'); if(f && f.contentWindow) f.contentWindow.postMessage({fd:'menu'}, '*'); }catch(e){} };
+  var viewDeckKey = '';
+  function updateCatBtn(){ var b=$('catBtn'); if(!b) return; b.classList.toggle('hidden', !(IS_OWNER && viewDeckKey)); }
+  $('catBtn').onclick = function(){ var d=null; (decksData||[]).forEach(function(x){ if(x && x.deck_key===viewDeckKey) d=x; }); if(d) openMove(d); };
+  function pushLastDeck(d){ if(!session || !d || !d.key) return; try{ post('/rest/v1/settings?on_conflict=user_id,key', { user_id: session.user.id, key:'lastdeck', value: JSON.stringify(d), updated_at: new Date().toISOString() }).catch(function(){}); }catch(e){} }
+  function setLastDeck(key, topic){ if(!key) return; var d={ key:key, topic:topic||key, ts: Date.now() }; try{ ss('fd:lastdeck', d); }catch(e){} pushLastDeck(d); }
+  function pullRoundsMap(){ if(!session) return Promise.resolve(); try{ return get('/rest/v1/settings?select=key,value&key=like.rounds:*&user_id=eq.' + session.user.id).then(function(rows){ var m={}; (rows||[]).forEach(function(r){ if(r && r.key){ var n=parseInt(r.value,10)||0; if(n) m[r.key.slice(7)] = n; } }); roundsMap = m; try{ quietRender(); }catch(e){} }).catch(function(){}); }catch(e){ return Promise.resolve(); } }
+  function roundsText(k){ var n = roundsMap[k] || 0; return n + (n === 1 ? ' round completed' : ' rounds completed'); }
+  function pullLastDeck(){ if(!session) return Promise.resolve(); try{ return get('/rest/v1/settings?select=value&key=eq.lastdeck&user_id=eq.' + session.user.id).then(function(rows){ if(Array.isArray(rows) && rows.length && rows[0].value){ applyCloudLastDeck(JSON.parse(rows[0].value)); try{ quietRender(); }catch(e){} } }).catch(function(){}); }catch(e){ return Promise.resolve(); } }
+  function applyCloudLastDeck(v){ try{ var cur = ls('fd:lastdeck', null); if(v && v.key && (!cur || !cur.ts || (v.ts||0) >= (cur.ts||0))){ ss('fd:lastdeck', v); } else if(cur && cur.key && v && (cur.ts||0) > (v.ts||0)){ pushLastDeck(cur); } }catch(e){} }
+  window.addEventListener('message', function(e){ var d=e.data; if(!d) return; if(d.fd==='practised' && d.key) setLastDeck(d.key, d.topic); else if(d.fd==='exit'){ try{ $('back').click(); }catch(_){} } });
 
   $('lastSync').onclick = function(){ load(); };
   $('collapseFab').onclick = function(){ openMap = {}; ss('fd:openmap', openMap); render(); window.scrollTo({ top:0, behavior:'smooth' }); };
   $('appTitle').onclick = function(){ view = { t:'home' }; render(); window.scrollTo(0,0); };
   setInterval(renderLastSync, 30000);
-  setInterval(function(){ if(session && !document.hidden) load(); }, 60000);
-  document.addEventListener('visibilitychange', function(){ if(!document.hidden && session) load(); });
+  setInterval(function(){ if(session && !document.hidden){ try{ qFlush(); }catch(e){} if(Date.now() - lastLoadAt > 25000) load(); } }, 30000);
+  document.addEventListener('visibilitychange', function(){ if(!document.hidden){ selfUpdate(); if(session && (Date.now() - lastLoadAt > 30000)) load(); else quietRender(); } });
+  window.addEventListener('online', function(){ if(session){ try{ qFlush(); }catch(e){} load(); } });
+  window.addEventListener('focus', function(){ selfUpdate(); if(session && (Date.now() - lastLoadAt > 30000)) load(); else quietRender(); });
 
   applyBuild(); buildToast();
   wireSearch();
