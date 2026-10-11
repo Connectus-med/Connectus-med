@@ -9,10 +9,12 @@ Everything about changing the app. Read this before touching `index.html`.
 | **The app** | `public.settings.library_html` (Supabase, project `vcsfjzlelpwditxdbaea`) | The **cloud is the update.** Every visitor's page self-updates on load when the cloud build is newer. |
 | **The build number** | `public.settings.ui_version` | Must **equal** the `APP_BUILD` string inside `library_html`. |
 | **The deck template** | `public.settings.deck_template` | Every deck renders from this. |
-| **The published copy** | `index.html` in this repo + `terms.html`, `refund.html`, `privacy.html` | A **backup / first install**, and what the one-off Netlify deploy uses. |
+| **The published copy** | `index.html` + `terms.html`, `refund.html`, `privacy.html` + the PWA files (`manifest.webmanifest`, `sw.js`, `icon-192.png`, `icon-512.png`, `icon-maskable-512.png`) | A **backup / first install**, and what the Netlify deploy serves. |
 | **The source of truth for editing** | `src/library.html` in this repo | Identical to `library_html`. Start every change from here. |
 
-**Never deploy to update the app.** Publishing the two settings rows is the update. A production Netlify deploy costs ~15 of 300 free monthly credits and is only for the one-off deploy (the four files go together — a lone `index.html` breaks the policy links).
+**Never deploy to update the app.** Publishing the two settings rows is the update. A production Netlify deploy costs ~15 of 300 free monthly credits and is only for the one-off deploy. **The deploy must carry all nine files together** — a lone `index.html` breaks the policy links, and without `manifest.webmanifest` + `sw.js` + the icons the app cannot be installed or open offline.
+
+**The PWA only activates at a deploy.** The cloud self-update can swap the page's *DOM*, but it cannot put new *files* on the origin — and a service worker must be a same-origin file. So until the deploy runs, the manifest and worker 404 quietly and the app behaves exactly as before (no breakage — the registration is wrapped and the manifest is a progressive enhancement).
 
 ## 2. The loop
 
