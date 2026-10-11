@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-18 12:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-18 14:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -723,6 +723,17 @@
     background:linear-gradient(100deg, var(--line) 30%, var(--panel-2) 50%, var(--line) 70%);
     background-size:220% 100%; animation:shim 1.15s linear infinite}
   @keyframes shim{to{background-position:-220% 0}}
+  /* study dashboard: goal, focus rows, mini bars */
+  .goalrow{display:flex; gap:8px; flex-wrap:wrap; margin-top:12px}
+  .goalchip{border:1px solid var(--line); background:var(--bg); color:var(--ink); border-radius:999px; padding:7px 14px; font:inherit; font-size:var(--fs-sm); font-weight:750; cursor:pointer; min-height:38px}
+  .goalchip.on{background:var(--accent-2); border-color:var(--accent-2); color:#fff}
+  .focusrow{display:flex; align-items:center; gap:10px; width:100%; text-align:left; border:1px solid var(--line); background:var(--panel-2); border-radius:var(--r-md); padding:11px 13px; margin-top:8px; font:inherit; color:inherit; cursor:pointer; min-height:48px}
+  .focusrow .n{flex:1; font-weight:650}
+  .focusrow .c{font-weight:800; color:var(--accent-2)}
+  .minibars{display:flex; align-items:flex-end; gap:7px; height:70px; margin-top:12px}
+  .minibar{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; gap:6px; height:100%}
+  .minibar .b{width:100%; border-radius:6px 6px 3px 3px; background:var(--accent); min-height:3px}
+  .minibar .l{font-size:.66rem; color:var(--muted); font-weight:700}
 </style>
 </head>
 <body>
@@ -879,9 +890,15 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-18 12:00';
-  var BUILD_NOTE = 'Design system, part 2: one token layer (type, radius, spacing, elevation, dark ramp) applied across the app, stronger section headers, real empty states, a loading skeleton, a clearer Home and bigger tap targets.';
+  var APP_BUILD = '2026-10-18 14:00';
+  var BUILD_NOTE = 'Home study dashboard: a Daily goal with editable targets, a Focus now card (due / never attempted / low recall, each one tap), a cross-deck Today N cards queue, and a last-7-days cards + recall card.';
   var CHANGELOG = [
+    { build:'2026-10-18 14:00', title:'Home: daily goal, focus now, 7-day stats', items:[
+      'New Daily goal card on Home - set 10/20/30/50/100 cards a day and watch the bar fill; your streak stays beside it.',
+      'New Focus now card: due, never attempted and low recall across every deck, each with a count and one tap to practise, plus a single Start today N cards mixed queue drawn from every deck.',
+      'New Your last 7 days card: cards rated per day, and the share you recalled well (Good or Easy).',
+      'Every screen rendered and reviewed before shipping.',
+    ]},
     { build:'2026-10-18 12:00', title:'Design system: tokens, hierarchy, empty states', items:[
       'The whole app now runs on one token layer - type sizes, radii, spacing and elevation come from a single scale, so screens are consistent instead of ad-hoc.',
       'Stronger section headers with a hairline, and a clearer Home hierarchy: Today, then Practice, Your progress, and Exam.',
@@ -3570,6 +3587,106 @@
   function skeleton(){ var d = document.createElement('div'); for(var i=0;i<3;i++){ var r = document.createElement('div'); r.className = 'skel-card'; d.appendChild(r); } return d; }
   function sectHead(t){ var d = document.createElement('div'); d.className = 'sechead'; d.textContent = t; return d; }
 
+  function dayKey(ms){ var d = new Date(ms); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+  function dailyGoal(){ var g = ls('fd:goal', 30); return (typeof g === 'number' && g > 0) ? g : 30; }
+  function allCardsFlat(){
+    var out = [];
+    (decksData || []).forEach(function(d){
+      if(!IS_OWNER && !UNLOCKED && lockedKeys[d.deck_key]) return;
+      var rows = deckStates[d.deck_key] || [], byId = {};
+      rows.forEach(function(r){ byId[r.card_id] = r; });
+      (Array.isArray(d.cards) ? d.cards : []).forEach(function(c){
+        var st = byId[c.id]; if(st && st.deleted) return;
+        var cc = JSON.parse(JSON.stringify(c)); cc.id = d.deck_key + '::' + c.id; cc.dk = d.deck_key; cc.rid = c.id;
+        out.push({ cc:cc, st:st || null });
+      });
+    });
+    return out;
+  }
+  function ratedTodayCount(){
+    var t = todayStr(), n = 0;
+    Object.keys(deckStates).forEach(function(k){ (deckStates[k]||[]).forEach(function(r){ if(r && r.updated_ms && dayKey(r.updated_ms) === t) n++; }); });
+    return n;
+  }
+  function dailyGoalCard(){
+    var goal = dailyGoal(), today = ratedTodayCount();
+    var dc = document.createElement('div'); dc.className = 'card3';
+    var h = document.createElement('div'); h.className = 'chead'; h.textContent = 'Daily goal'; dc.appendChild(h);
+    var bg = document.createElement('div'); bg.className = 'big'; bg.textContent = today + ' / ' + goal; dc.appendChild(bg);
+    var sub = document.createElement('div'); sub.className = 'muted small'; sub.style.margin = '-4px 0 8px'; sub.style.fontWeight = '600';
+    sub.textContent = today >= goal ? ('Goal met \u2014 ' + today + ' cards today.') : (today + ' of ' + goal + ' cards today \u00b7 ' + (goal - today) + ' to go.');
+    dc.appendChild(sub);
+    var bar = document.createElement('div'); bar.className = 'bar2';
+    var seg = document.createElement('i'); seg.style.width = Math.min(100, Math.round(today / goal * 100)) + '%'; seg.style.background = 'var(--accent-2)'; bar.appendChild(seg); dc.appendChild(bar);
+    var row = document.createElement('div'); row.className = 'goalrow';
+    [10,20,30,50,100].forEach(function(g){
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'goalchip' + (g === goal ? ' on' : ''); b.textContent = g;
+      b.onclick = function(){ ss('fd:goal', g); render(); };
+      row.appendChild(b);
+    });
+    dc.appendChild(row);
+    var lbl = document.createElement('div'); lbl.className = 'muted small'; lbl.style.margin = '8px 2px 0'; lbl.textContent = 'Cards to rate each day.'; dc.appendChild(lbl);
+    return dc;
+  }
+  function focusNowCard(){
+    var flat = allCardsFlat(), now = Date.now(), due = [], fresh = [], weak = [];
+    flat.forEach(function(x){
+      var st = x.st;
+      if(!st || st.rating == null){ fresh.push(x.cc); return; }
+      if(st.rating <= 2) weak.push(x.cc);
+      if((st.due_at || 0) <= now) due.push(x.cc);
+    });
+    var dc = document.createElement('div'); dc.className = 'card3';
+    var h = document.createElement('div'); h.className = 'chead'; h.textContent = 'Focus now'; dc.appendChild(h);
+    var sub = document.createElement('div'); sub.className = 'muted small'; sub.style.margin = '0 0 4px';
+    sub.textContent = 'Due, never attempted and low recall \u2014 across every deck.'; dc.appendChild(sub);
+    var goal = dailyGoal();
+    var seen = {}, queue = [];
+    [due, weak, fresh].forEach(function(group){ group.forEach(function(c){ if(!seen[c.id]){ seen[c.id] = 1; queue.push(c); } }); });
+    queue = queue.slice(0, goal);
+    if(queue.length){
+      var big = document.createElement('button'); big.className = 'btn primary wide'; big.style.marginTop = '10px';
+      big.textContent = 'Start today\u2019s ' + queue.length + ' cards';
+      big.onclick = function(){ openPractice('Today\u2019s ' + queue.length + ' cards', queue); };
+      dc.appendChild(big);
+    } else {
+      dc.appendChild(emptyState('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 6 9 17l-5-5"/></svg>', 'Nothing to practise right now', 'Every card is scheduled ahead \u2014 come back when the next one is due.'));
+    }
+    [['Due now', due], ['Never attempted', fresh], ['Low recall (Again / Hard)', weak]].forEach(function(x){
+      if(!x[1].length) return;
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'focusrow';
+      var n = document.createElement('span'); n.className = 'n'; n.textContent = x[0]; b.appendChild(n);
+      var c = document.createElement('span'); c.className = 'c'; c.textContent = x[1].length; b.appendChild(c);
+      b.onclick = function(){ openPractice(x[0] + ' (' + x[1].length + ')', x[1]); };
+      dc.appendChild(b);
+    });
+    return dc;
+  }
+  function studyStatsCard(){
+    var D = 86400000, now = Date.now(), days = [];
+    for(var i = 6; i >= 0; i--){ var d = new Date(now - i * D); days.push({ k:dayKey(d.getTime()), label:['S','M','T','W','T','F','S'][d.getDay()], n:0, good:0 }); }
+    var byk = {}; days.forEach(function(x){ byk[x.k] = x; });
+    Object.keys(deckStates).forEach(function(k){ (deckStates[k]||[]).forEach(function(r){
+      if(!r || !r.updated_ms) return; var x = byk[dayKey(r.updated_ms)]; if(!x) return; x.n++; if(r.rating >= 3) x.good++;
+    }); });
+    var total = 0, good = 0; days.forEach(function(x){ total += x.n; good += x.good; });
+    var dc = document.createElement('div'); dc.className = 'card3';
+    var h = document.createElement('div'); h.className = 'chead'; h.textContent = 'Your last 7 days'; dc.appendChild(h);
+    var sub = document.createElement('div'); sub.className = 'muted small'; sub.style.margin = '0 0 2px';
+    sub.textContent = total ? (total + ' cards rated \u00b7 ' + Math.round(good / total * 100) + '% recalled well (Good or Easy)') : 'Rate cards and your week appears here.';
+    dc.appendChild(sub);
+    var max = 1; days.forEach(function(x){ if(x.n > max) max = x.n; });
+    var bars = document.createElement('div'); bars.className = 'minibars';
+    days.forEach(function(x){
+      var w = document.createElement('div'); w.className = 'minibar';
+      var b = document.createElement('div'); b.className = 'b'; b.style.height = Math.round(x.n / max * 50) + 'px'; w.appendChild(b);
+      var l = document.createElement('div'); l.className = 'l'; l.textContent = x.label; w.appendChild(l);
+      bars.appendChild(w);
+    });
+    dc.appendChild(bars);
+    return dc;
+  }
+
   function renderHome(){
     var c = $('content'); c.textContent = '';
     var t = statTotals();
@@ -3577,8 +3694,10 @@
     c.appendChild(todayCard(t));
     c.appendChild(homeBanner(t));
     c.appendChild(streakLine());
+    c.appendChild(dailyGoalCard());
     var _rc = recentCard(); if(_rc) c.appendChild(_rc);
     c.appendChild(sectHead('Practice'));
+    c.appendChild(focusNowCard());
     var pdBtn = document.createElement('button'); pdBtn.className = 'btn primary wide'; pdBtn.style.marginTop = '8px';
     pdBtn.textContent = 'Practice all due now'; pdBtn.onclick = function(){ practiceDueAll(); };
     c.appendChild(pdBtn);
@@ -3586,6 +3705,7 @@
     c.appendChild(sectHead('Your progress'));
     c.appendChild(recallCard(t));
     c.appendChild(masteryInfographic());
+    c.appendChild(studyStatsCard());
     c.appendChild(coverageCard());
     c.appendChild(sectHead('Exam'));
     c.appendChild(examCard());
