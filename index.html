@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-18 14:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-18 16:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -388,10 +388,10 @@
   /* coverage */
   .covlist{display:flex; flex-direction:column; gap:2px; margin-top:4px}
   .covrow{display:flex; align-items:center; gap:8px; border:0; background:none; padding:7px 0; font:inherit; cursor:pointer; text-align:left; color:var(--ink)}
-  .covname{flex:1 1 auto; min-width:0; font-size:.84rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
-  .covbar{flex:0 0 74px; height:7px; background:var(--line); border-radius:999px; overflow:hidden}
+  .covname{flex:1 1 auto; min-width:0; font-size:var(--fs-base); line-height:1.25; white-space:normal}
+  .covbar{flex:0 0 56px; height:7px; background:var(--line); border-radius:999px; overflow:hidden}
   .covbar i{display:block; height:100%; background:var(--accent-2)}
-  .covval{flex:0 0 auto; font-size:.74rem; font-weight:750; color:var(--muted); min-width:78px; text-align:right}
+  .covval{flex:0 0 auto; font-size:var(--fs-sm); font-weight:750; color:var(--muted); min-width:64px; text-align:right}
   /* planner */
   .datein{font:inherit; padding:10px 12px; border:1px solid var(--line); border-radius:12px; background:var(--bg); color:var(--ink); width:100%}
   .prow{display:flex; align-items:baseline; justify-content:space-between; gap:10px; padding:5px 0; font-size:.86rem; border-top:1px solid var(--line)}
@@ -890,9 +890,16 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-18 14:00';
-  var BUILD_NOTE = 'Home study dashboard: a Daily goal with editable targets, a Focus now card (due / never attempted / low recall, each one tap), a cross-deck Today N cards queue, and a last-7-days cards + recall card.';
+  var APP_BUILD = '2026-10-18 16:00';
+  var BUILD_NOTE = 'App still-to-build: stamina drill + scheduled weekly grand test (test engine), and coverage drill-down, time studied and weakest-topics ranking (analytics).';
   var CHANGELOG = [
+    { build:'2026-10-18 16:00', title:'Test engine + analytics: stamina, scheduling, drill-down', items:[
+      'New Stamina drill - a long mixed timed set from every subject, built for exam endurance.',
+      'New Weekly grand test - schedule a full paper on a fixed day; the app shows the next one and flags it as due on Home and on the Test screen.',
+      'Coverage now drills down: subject to unit, and unit to category.',
+      'The last-7-days card now also shows time studied, and a new Weakest topics card ranks the chapters you miss most, one tap to practise.',
+      'The roadmap card now hides finished work.',
+    ]},
     { build:'2026-10-18 14:00', title:'Home: daily goal, focus now, 7-day stats', items:[
       'New Daily goal card on Home - set 10/20/30/50/100 cards a day and watch the bar fill; your streak stays beside it.',
       'New Focus now card: due, never attempted and low recall across every deck, each with a count and one tap to practise, plus a single Start today N cards mixed queue drawn from every deck.',
@@ -3662,6 +3669,37 @@
     });
     return dc;
   }
+  function weakestTopicsCard(){
+    var wn = weakNodes();
+    var dc = document.createElement('div'); dc.className = 'card3';
+    var h = document.createElement('div'); h.className = 'chead'; h.textContent = 'Weakest topics'; dc.appendChild(h);
+    if(!wn.length){
+      dc.appendChild(emptyState('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 20V10M18 20V4M6 20v-4"/></svg>', 'No weak spots yet', 'Rate cards and sit a paper \u2014 the topics you keep missing will rank here.'));
+      return dc;
+    }
+    var sub = document.createElement('div'); sub.className = 'muted small'; sub.style.margin = '0 0 2px';
+    sub.textContent = 'Ranked by how often you miss them, most recent first \u2014 tap to practise.'; dc.appendChild(sub);
+    wn.slice(0, 6).forEach(function(n){
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'focusrow';
+      var nm = document.createElement('span'); nm.className = 'n'; nm.textContent = n.chapter + (n.subject ? (' \u00b7 ' + n.subject) : ''); b.appendChild(nm);
+      var c = document.createElement('span'); c.className = 'c'; c.textContent = n.rate + '%'; b.appendChild(c);
+      b.onclick = function(){
+        var cs = [];
+        (decksData || []).forEach(function(d){
+          if(CHAP[d.deck_key] !== n.chapter) return;
+          if(!IS_OWNER && !UNLOCKED && lockedKeys[d.deck_key]) return;
+          (Array.isArray(d.cards) ? d.cards : []).forEach(function(cd){
+            var cc = JSON.parse(JSON.stringify(cd)); cc.id = d.deck_key + '::' + cd.id; cc.dk = d.deck_key; cc.rid = cd.id; cs.push(cc);
+          });
+        });
+        if(!cs.length){ toast('No cards in this chapter yet.'); return; }
+        openPractice(n.chapter, cs);
+      };
+      dc.appendChild(b);
+    });
+    return dc;
+  }
+
   function studyStatsCard(){
     var D = 86400000, now = Date.now(), days = [];
     for(var i = 6; i >= 0; i--){ var d = new Date(now - i * D); days.push({ k:dayKey(d.getTime()), label:['S','M','T','W','T','F','S'][d.getDay()], n:0, good:0 }); }
@@ -3675,6 +3713,14 @@
     var sub = document.createElement('div'); sub.className = 'muted small'; sub.style.margin = '0 0 2px';
     sub.textContent = total ? (total + ' cards rated \u00b7 ' + Math.round(good / total * 100) + '% recalled well (Good or Easy)') : 'Rate cards and your week appears here.';
     dc.appendChild(sub);
+    var wk = 0;
+    for(var j = 0; j < 7; j++){ wk += (studyAcc[dayKey(now - j * D)] || 0); }
+    if(wk > 60000){
+      var tm = document.createElement('div'); tm.className = 'muted small'; tm.style.margin = '2px 0 0';
+      var hh = Math.floor(wk / 3600000), mm = Math.round((wk % 3600000) / 60000);
+      tm.textContent = 'Time studied this week: ' + (hh ? hh + ' h ' : '') + mm + ' min.';
+      dc.appendChild(tm);
+    }
     var max = 1; days.forEach(function(x){ if(x.n > max) max = x.n; });
     var bars = document.createElement('div'); bars.className = 'minibars';
     days.forEach(function(x){
@@ -3692,6 +3738,7 @@
     var t = statTotals();
     if(!IS_OWNER) c.appendChild(publicNote());
     c.appendChild(todayCard(t));
+    var _wb = weeklyBanner(); if(_wb) c.appendChild(_wb);
     c.appendChild(homeBanner(t));
     c.appendChild(streakLine());
     c.appendChild(dailyGoalCard());
@@ -3706,6 +3753,7 @@
     c.appendChild(recallCard(t));
     c.appendChild(masteryInfographic());
     c.appendChild(studyStatsCard());
+    c.appendChild(weakestTopicsCard());
     c.appendChild(coverageCard());
     c.appendChild(sectHead('Exam'));
     c.appendChild(examCard());
@@ -4829,6 +4877,8 @@
     return dc;
   }
   function pendingCard(items){
+    /* show only what is genuinely still to do - hide finished work */
+    items = (items || []).filter(function(it){ var st = it.s || 'planned'; return st !== 'done' && !/netlify/i.test(it.t || ''); });
     var dc = document.createElement('div'); dc.className = 'card3';
     var h = document.createElement('div'); h.className = 'chead'; h.textContent = 'App \u2014 still to build'; dc.appendChild(h);
     if(!items.length){ var e = document.createElement('div'); e.className = 'muted small'; e.textContent = 'Nothing pending.'; dc.appendChild(e); return dc; }
@@ -6308,6 +6358,64 @@
     try{ inp.focus(); }catch(e){}
   }
 
+  function getSched(){ var s = ls('fd:sched', null); if(!s || typeof s !== 'object') s = { on:false, day:0, time:'09:00' }; return s; }
+  function setSched(s){ ss('fd:sched', s); }
+  function nextSched(s){
+    s = s || getSched(); var now = new Date();
+    var d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    var add = (s.day - d.getDay() + 7) % 7; d.setDate(d.getDate() + add);
+    var t = String(s.time || '09:00').split(':');
+    d.setHours(parseInt(t[0] || '9', 10), parseInt(t[1] || '0', 10), 0, 0);
+    if(d.getTime() <= now.getTime()) d.setDate(d.getDate() + 7);
+    return d;
+  }
+  function schedDueToday(s){ s = s || getSched(); return !!s.on && new Date().getDay() === s.day; }
+  function weeklyTestCard(){
+    var s = getSched(), days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    var dc = document.createElement('div'); dc.className = 'tcard';
+    var h = document.createElement('div'); h.className = 'tlabel'; h.textContent = 'Weekly grand test'; dc.appendChild(h);
+    if(!s.on){
+      var p = document.createElement('div'); p.className = 'tsub small'; p.style.margin = '0 0 8px';
+      p.textContent = 'Sit a full exam paper on the same day each week \u2014 your endurance check.'; dc.appendChild(p);
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'btn sm'; b.textContent = 'Schedule every Sunday';
+      b.onclick = function(){ setSched({ on:true, day:0, time:'09:00' }); render(); };
+      dc.appendChild(b);
+      return dc;
+    }
+    var nx = nextSched(s);
+    var p2 = document.createElement('div'); p2.className = 'tsub small'; p2.style.margin = '0 0 8px';
+    p2.textContent = 'Every ' + days[s.day] + ' at ' + s.time + ' \u00b7 next ' + nx.toLocaleDateString(undefined, { weekday:'short', day:'numeric', month:'short' }) + '.';
+    dc.appendChild(p2);
+    var row = document.createElement('div'); row.className = 'tchips';
+    days.forEach(function(dn, i){
+      var c = document.createElement('button'); c.type = 'button'; c.className = 'tchip' + (i === s.day ? ' on' : ''); c.textContent = dn;
+      c.onclick = function(){ setSched({ on:true, day:i, time:s.time }); render(); };
+      row.appendChild(c);
+    });
+    dc.appendChild(row);
+    if(schedDueToday(s)){
+      var go = document.createElement('button'); go.type = 'button'; go.className = 'tstart'; go.style.marginTop = '12px';
+      go.textContent = 'Due today \u2014 start the paper';
+      go.onclick = function(){ view = { t:'test', tMode:'grand' }; render(); window.scrollTo(0,0); };
+      dc.appendChild(go);
+    }
+    var off = document.createElement('button'); off.type = 'button'; off.className = 'btn sm'; off.style.marginTop = '8px'; off.textContent = 'Turn off';
+    off.onclick = function(){ setSched({ on:false, day:s.day, time:s.time }); render(); };
+    dc.appendChild(off);
+    return dc;
+  }
+  function weeklyBanner(){
+    var s = getSched(); if(!schedDueToday(s)) return null;
+    var dc = document.createElement('div'); dc.className = 'card3';
+    var h = document.createElement('div'); h.className = 'chead'; h.textContent = 'Weekly grand test due'; dc.appendChild(h);
+    var p = document.createElement('div'); p.className = 'muted small'; p.style.margin = '0 0 8px';
+    p.textContent = 'Today is your scheduled paper day \u2014 sit one to keep the streak of practice going.'; dc.appendChild(p);
+    var b = document.createElement('button'); b.className = 'btn primary wide'; b.textContent = 'Start the grand test';
+    b.onclick = function(){ view = { t:'test', tMode:'grand' }; render(); window.scrollTo(0,0); };
+    dc.appendChild(b);
+    return dc;
+  }
+
   function renderTestModes(){
     testDeck = ''; testCustom = false; testPriority = null; pendingScope = null;
     var box = $('content'); box.textContent = '';
@@ -6327,9 +6435,13 @@
     modes.appendChild(testModeTile({ title:'Start a test', desc:'Pick your subjects, systems and length \u2014 or just hit start for a sensible paper.', soon:false, onTap:function(){ view = { t:'test', tMode:'build', bMode:'custom' }; render(); window.scrollTo(0,0); } }));
     modes.appendChild(testModeTile({ title:'Subject test', desc:'A timed paper from one whole subject, at its real weight in the exam you pick.', soon:false, onTap:function(){ view = { t:'test', tMode:'build', bMode:'subject' }; render(); window.scrollTo(0,0); } }));
     modes.appendChild(testModeTile({ title:'Real Exam Grand Test', desc:'A timed paper built to a real exam pattern — NEET-PG, INI-CET or RUHS-MO.', soon:false, onTap:function(){ view = { t:'test', tMode:'grand' }; render(); window.scrollTo(0,0); } }));
+    modes.appendChild(testModeTile({ title:'Stamina drill', desc:'A long mixed set from every subject \u2014 timed, to build the endurance for a full paper.', soon:false, onTap:function(){
+      testPriority = null; testCustom = true; testSelYears = []; testSelSubjects = []; testSelUnits = []; testSelChapters = [];
+      testScope = 'all'; testDeck = ''; testLen = 60; view = { t:'test' }; testStart();
+    } }));
     modes.appendChild(testModeTile({ title:'Weak areas', desc:'Built from your real accuracy \u2014 every question you missed, worst first, plus the chapters you are weakest in.', soon:false, onTap:function(){ view = { t:'test', tMode:'build', bMode:'weak' }; render(); window.scrollTo(0,0); } }));
     modes.appendChild(testModeTile({ title:'Find a question', desc:'Search every question in your bank by word or phrase \u2014 then practise just those.', soon:false, onTap:function(){ view = { t:'test', tMode:'find' }; render(); window.scrollTo(0,0); } }));
-    if(testSeg === 'paper'){ wrap.appendChild(modes); }
+    if(testSeg === 'paper'){ wrap.appendChild(weeklyTestCard()); wrap.appendChild(modes); }
 
     /* Qbank — the WHOLE MBBS tree: Year → Subject → Unit → Chapter → deck, collapsible */
     if(testSeg === 'qbank'){
@@ -8163,6 +8275,37 @@
   }
 
   /* ---------- coverage: how much of each subject you have touched ---------- */
+  var covByUnit = false, covOpen = {};
+  var studyAcc = ls('fd:studytime', {}); if(!studyAcc || typeof studyAcc !== 'object' || Array.isArray(studyAcc)) studyAcc = {};
+  function studyPulse(){
+    var now = Date.now(), last = ls('fd:studylast', now);
+    var active = document.body.classList.contains('deckopen') || !!testRun;
+    if(active && now - last < 45000){ var k = todayStr(); studyAcc[k] = (studyAcc[k] || 0) + (now - last); ss('fd:studytime', studyAcc); }
+    ss('fd:studylast', now);
+  }
+  function coverageUnitRows(){
+    var out = [];
+    Object.keys(treeData || {}).forEach(function(y){
+      Object.keys(treeData[y] || {}).forEach(function(sb){
+        var tmap = treeData[y][sb] || {};
+        Object.keys(tmap).forEach(function(u){
+          var utot = 0, ucov = 0, cats = [];
+          Object.keys(tmap[u] || {}).forEach(function(cg){
+            var ctot = 0, ccov = 0;
+            (tmap[u][cg] || []).forEach(function(d){
+              if(!d || !d.deck_key) return;
+              if(!IS_OWNER && !UNLOCKED && lockedKeys[d.deck_key]) return;
+              var a = aggData[d.deck_key] || { total:0, rated:0 }; ctot += a.total; ccov += a.rated;
+            });
+            if(ctot) cats.push({ cg:cg || 'Misc', total:ctot, covered:ccov, pct: ctot ? Math.round(ccov / ctot * 100) : 0 });
+            utot += ctot; ucov += ccov;
+          });
+          if(utot) out.push({ y:y, s:sb, u:u || 'Misc Topics', total:utot, covered:ucov, pct: utot ? Math.round(ucov / utot * 100) : 0, cats:cats });
+        });
+      });
+    });
+    return out.sort(function(a, b){ return b.total - a.total; });
+  }
   function coverageRows(){
     var out = [];
     Object.keys(treeData || {}).forEach(function(y){
@@ -8205,6 +8348,32 @@
       list.appendChild(b);
     });
     dc.appendChild(list);
+    var tog = document.createElement('button'); tog.type = 'button'; tog.className = 'btn sm'; tog.style.marginTop = '10px';
+    tog.textContent = covByUnit ? 'Show subjects' : 'Break down by unit';
+    tog.onclick = function(){ covByUnit = !covByUnit; covOpen = {}; render(); };
+    dc.appendChild(tog);
+    if(covByUnit){
+      var ul = document.createElement('div'); ul.className = 'covlist';
+      coverageUnitRows().forEach(function(r){
+        var key = r.y + '|' + r.s + '|' + r.u;
+        var b = document.createElement('button'); b.type = 'button'; b.className = 'covrow';
+        var n = document.createElement('span'); n.className = 'covname'; n.textContent = r.s + ' \u00b7 ' + r.u; b.appendChild(n);
+        var bar = document.createElement('span'); bar.className = 'covbar'; var i = document.createElement('i'); i.style.width = r.pct + '%'; bar.appendChild(i); b.appendChild(bar);
+        var v = document.createElement('span'); v.className = 'covval'; v.textContent = r.covered + '/' + r.total + '  ' + r.pct + '%'; b.appendChild(v);
+        b.onclick = function(){ covOpen[key] = !covOpen[key]; render(); };
+        ul.appendChild(b);
+        if(covOpen[key]){
+          r.cats.forEach(function(cg){
+            var cb = document.createElement('div'); cb.className = 'covrow'; cb.style.paddingLeft = '22px'; cb.style.cursor = 'default';
+            var cn = document.createElement('span'); cn.className = 'covname'; cn.textContent = cg.cg; cb.appendChild(cn);
+            var cbar = document.createElement('span'); cbar.className = 'covbar'; var ci = document.createElement('i'); ci.style.width = cg.pct + '%'; cbar.appendChild(ci); cb.appendChild(cbar);
+            var cv = document.createElement('span'); cv.className = 'covval'; cv.textContent = cg.covered + '/' + cg.total + '  ' + cg.pct + '%'; cb.appendChild(cv);
+            ul.appendChild(cb);
+          });
+        }
+      });
+      dc.appendChild(ul);
+    }
     return dc;
   }
 
@@ -8602,6 +8771,7 @@
     var _ry = parseInt(ls('fd:scroll', '0'), 10) || 0;
     if(_ry > 0) setTimeout(function(){ try{ window.scrollTo(0, _ry); }catch(e){} }, 400);
   }catch(e){}
+  try{ setInterval(studyPulse, 15000); }catch(e){}
   try{ var _cc = $('content'); if(_cc && !_cc.childNodes.length) _cc.appendChild(skeleton()); }catch(e){}
   show();
   recoverFromLink();
