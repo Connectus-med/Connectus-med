@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-15 14:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-15 12:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -792,14 +792,8 @@
   var testPriority = null;   /* deck|id keys the paper must include (weak-areas paper) */
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var APP_BUILD = '2026-10-14 09:00';
-  var BUILD_NOTE = 'The result review now shows one question at a time, with the filmstrip along the top to jump anywhere.';
+  var BUILD_NOTE = 'Owner status no longer drops out on a network blip, and the result navigator is a strip across the top instead of a column down the side.';
   var CHANGELOG = [
-    { build:'2026-10-15 14:00', title:'The review, one question at a time', items:[
-      'After you submit a paper, the review no longer dumps every question into one long scroll. It shows one question at a time, with Prev / Next and a \u201cQ n of N\u201d counter.',
-      'The filmstrip along the top lists every question in the paper - tap any square to jump straight to it.',
-      'The source line and your note box stay with the question you are looking at.',
-    ],
-
     { build:'2026-10-15 12:00', title:'Owner status holds, and the navigator moved up top', items:[
       'Fixed: the owner was sometimes shown as an ordinary customer - the profile menu offered \u201cOwner access\u201d and asked for a recovery code, while the owner was already signed in. Ownership was being decided by a single settings read, and any network hiccup or a token refresh in flight made that read fail. A failed read now keeps the last known answer, and the answer is remembered on the device.',
       'The question navigator on the result review is now a single row across the top of the screen, scrolled sideways - instead of a scrollbar column down the right edge.',
@@ -4854,7 +4848,6 @@
      MCQs in the content yet, so a question shows the card front, you reveal the
      answer, and you mark yourself right or wrong. Every wrong card goes to the
      error log, and you can re-practise just those. */
-  var reviewIdx = 0;
   var testRun = null, testTimerId = null, testScope = 'all', testLen = 200, testDeck = '', testExam = 'NEET-PG', testSections = true, testSeed = 0, testUntimed = false, testWithPyq = true, testCustom = false, testSelSubjects = [], testSelUnits = [], testSelChapters = [], testSelYears = [];
 
   /* Extraction sometimes left HTML entities in the text (\&lt; for <, \&gt; for >,
@@ -6732,46 +6725,24 @@
       var rv = document.createElement('div'); rv.className = 'tcard';
       var vl = document.createElement('div'); vl.className = 'tlabel'; vl.textContent = 'Review'; rv.appendChild(vl);
       rv.appendChild(qLegend([['right','correct'],['wrong','wrong'],['skip','not attempted'],['mark','marked']]));
-      /* One question at a time - the strip along the top is the filmstrip, so
-         tapping any square jumps straight to that question. */
-      if(typeof reviewIdx !== 'number' || reviewIdx < 0 || reviewIdx >= res.review.length) reviewIdx = 0;
       res.review.forEach(function(item, i){
-        var iq = item.q, iok = (item.picked === iq.answer);
-        _palItems.push({
-          n: i + 1,
-          status: (item.picked == null ? 'skip' : (iok ? 'right' : 'wrong')),
-          mark: !!item.mark,
-          el: (function(idx){ return function(){ reviewIdx = idx; renderTestResult(); return document.getElementById('rvi'); }; })(i)
+        var q = item.q, ok = (item.picked === q.answer);
+        var eb = document.createElement('div'); eb.className = 'terr'; eb.id = 'rvi' + i;
+        _palItems.push({ n:i+1, status:((item.picked == null) ? 'skip' : (ok ? 'right' : 'wrong')), mark:!!item.mark, el:(function(id){ return function(){ return document.getElementById(id); }; })('rvi' + i) });
+        var m = document.createElement('div'); m.className = 'terr-m';
+        m.textContent = 'Q' + (i+1) + ' \u00b7 ' + (q.id || '') + ' \u00b7 ' + [q.s, q.t].filter(Boolean).join(' \u00b7 ') + ' \u00b7 ' + (item.picked==null ? 'not attempted' : (ok ? 'correct' : 'wrong'));
+        eb.appendChild(m);
+        var qq = document.createElement('div'); qq.className = 'terr-q'; qq.textContent = q.q; eb.appendChild(qq);
+        (q.options||[]).forEach(function(o,k){
+          var row = document.createElement('div'); row.className = 'rvopt' + (k===q.answer ? ' correct' : (k===item.picked ? ' picked' : ''));
+          row.textContent = String.fromCharCode(65+k) + ') ' + o + (k===q.answer ? '  \u2713' : (k===item.picked ? '  (your answer)' : ''));
+          eb.appendChild(row);
         });
+        if(q.explain){ var ex = document.createElement('div'); ex.className = 'rvexp'; ex.textContent = q.explain; eb.appendChild(ex); }
+        var _sl1 = srcLine(q); if(_sl1) eb.appendChild(_sl1);
+        if(!ok || item.mark){ errNoteRow(q.k, q.id, eb); }
+        rv.appendChild(eb);
       });
-      var shown = res.review[reviewIdx];
-      var sq = shown.q, sok = (shown.picked === sq.answer);
-      var eb = document.createElement('div'); eb.className = 'terr'; eb.id = 'rvi';
-      var m = document.createElement('div'); m.className = 'terr-m';
-      m.textContent = 'Q' + (reviewIdx+1) + ' of ' + res.review.length + '  \u00b7  ' + [sq.s, sq.t].filter(Boolean).join(' \u00b7 ')
-        + '  \u00b7  ' + (shown.picked==null ? 'not attempted' : (sok ? 'correct' : 'wrong'));
-      eb.appendChild(m);
-      var qq = document.createElement('div'); qq.className = 'terr-q'; qq.textContent = sq.q; eb.appendChild(qq);
-      (sq.options||[]).forEach(function(o,k){
-        var row = document.createElement('div'); row.className = 'rvopt' + (k===sq.answer ? ' correct' : (k===shown.picked ? ' picked' : ''));
-        row.textContent = String.fromCharCode(65+k) + ') ' + o + (k===sq.answer ? '  \u2713' : (k===shown.picked ? '  (your answer)' : ''));
-        eb.appendChild(row);
-      });
-      if(sq.explain){ var ex = document.createElement('div'); ex.className = 'rvexp'; ex.textContent = sq.explain; eb.appendChild(ex); }
-      var _sl1 = srcLine(sq); if(_sl1) eb.appendChild(_sl1);
-      if(!sok || shown.mark){ errNoteRow(sq.k, sq.id, eb); }
-      rv.appendChild(eb);
-      var rnav = document.createElement('div'); rnav.className = 'tnav';
-      var rprev = document.createElement('button'); rprev.type = 'button'; rprev.className = 'tend'; rprev.textContent = '\u2039 Prev';
-      rprev.disabled = reviewIdx <= 0;
-      rprev.onclick = function(){ if(reviewIdx > 0){ reviewIdx--; renderTestResult(); window.scrollTo(0,0); } };
-      rnav.appendChild(rprev);
-      var rmid = document.createElement('span'); rmid.className = 'tqn'; rmid.textContent = (reviewIdx+1) + ' / ' + res.review.length; rnav.appendChild(rmid);
-      var rnext = document.createElement('button'); rnext.type = 'button'; rnext.className = 'tend'; rnext.textContent = 'Next \u203a';
-      rnext.disabled = reviewIdx >= res.review.length - 1;
-      rnext.onclick = function(){ if(reviewIdx < res.review.length - 1){ reviewIdx++; renderTestResult(); window.scrollTo(0,0); } };
-      rnav.appendChild(rnext);
-      rv.appendChild(rnav);
       wrap.appendChild(rv);
     }
 
