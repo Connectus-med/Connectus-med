@@ -41,8 +41,31 @@ def _exps(content):
     ch = re.split(r"(?m)^#*\s*Solution to Question (\d+):", ex)
     return {int(ch[i]): ch[i+1].strip() for i in range(1, len(ch), 2)}
 
+def decode_entities(t):
+    """Turn stray HTML entities into the characters they stand for.
+
+    The source PDFs/KB sometimes carry '&lt;', '&gt;', '&amp;' through extraction
+    (e.g. "rate of &lt;5 mg/dl"). Decode BEFORE the card is built - the app renders
+    text as plain text, not HTML, so an undecoded code shows up literally.
+    """
+    if t is None:
+        return t
+    t = str(t)
+    pairs = (("&lt;", "<"), ("&gt;", ">"), ("&quot;", '"'),
+             ("&#39;", "'"), ("&apos;", "'"), ("&nbsp;", " "),
+             ("&hellip;", "\u2026"), ("&ndash;", "\u2013"),
+             ("&mdash;", "\u2014"), ("&amp;", "&"))
+    for _ in range(2):          # two passes: a double-encoded &amp;lt; also resolves
+        before = t
+        for a, b in pairs:
+            t = t.replace(a, b)
+        if t == before:
+            break
+    return t
+
 def _split(raw):
     raw = CITE.sub("", ANCHOR.sub("", raw))
+    raw = decode_entities(raw)
     pos = {}
     for L in "abcd":
         m = re.search(r"(?m)^\s*%s\)\s*" % L, raw)
@@ -115,7 +138,7 @@ async def build(FOLDER, meta, overrides=None, insert=False):
         if re.match(r"^([A-E]|\d+)(\s*(,|and)\s*([A-E]|\d+))+", (opts[0] if opts else ""), re.I): flags.append("combo")
         card = {"id": "%s_q%d" % (meta["deck_key"], n), "type": "mcq",
                 "q": stem, "options": opts, "answer": a,
-                "explain": ov.get("explain", exp), "src": "%s — Pedia Qbank Ed8 (Q%d)%s" % (meta["topic"], n, ov.get("srcnote", "")),
+                "explain": decode_entities(ov.get("explain", exp)), "src": "%s — Pedia Qbank Ed8 (Q%d)%s" % (meta["topic"], n, ov.get("srcnote", "")),
                 "tag": ov.get("tag", _tag(stem, n))}
         cards.append(card)
         report.append((n, flags, stem, imgdesc))
