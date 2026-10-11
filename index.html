@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-16 20:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-16 22:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -840,9 +840,15 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-16 20:00';
-  var BUILD_NOTE = 'A new Strategy tab on Tests reads the exam marking rule and your own papers to tell you when a guess is worth it, the pace the paper allows versus yours, the section plan, where your marks leak, and what skipping has cost you.';
+  var APP_BUILD = '2026-10-16 22:00';
+  var BUILD_NOTE = 'The Strategy engine is now intelligent: it reads your own papers - pace, whether you rush or fade late, whether marking and crossing out options actually help you - and returns a ranked plan with each move priced in marks.';
   var CHANGELOG = [
+    { build:'2026-10-16 22:00', title:'Strategy now learns from your papers', items:[
+      'Strategy is now a ranked plan, not fixed tips: each move is priced in marks and sorted, so the top line is the single highest-leverage change for you right now.',
+      'It reads your behaviour from your papers: how fast you answer against your own median, which wrong answers were rushed (carelessness) and which were slow (a real gap), whether your accuracy fades late, and whether marking or crossing out options actually helps you.',
+      'Every paper now records each question outcome and how many options you crossed out, so this analysis sharpens with every paper you sit.',
+      'Each move you can act on carries a button - practise your weak questions, start a paper for your weakest subject, or sit one and attempt everything.',
+    ]},
     { build:'2026-10-16 20:00', title:'A strategy engine that tells you how to score higher', items:[
       'Tests now has a Strategy tab. It derives the attempt rule from the marking itself: with +4/-1 a blind guess is worth +0.25 so never leave a blank, while with INI-CET a blind guess is neutral so eliminate one option first.',
       'It compares the pace the paper allows (seconds per question) against your own recent pace, and says whether speed or care is your bigger lever.',
@@ -7032,6 +7038,7 @@
                 max: maxScore, secs: secs, scope: testRun.scope, perSubject: perSubject, exam: ex.k, seed: testRun.seed,
                 wrongList: testRun.qs.filter(function(q,i){ return !ansCorrect(q, testRun.answers[i]); }),
                 tq: (testRun.tq || []).slice(),
+                struck: (testRun.struck || []).map(function(a){ return (a||[]).length; }),
                 review: review };
     /* NOTE: we no longer dump questions into an error log. What you missed is tracked by
        per-question stats (fd:qstats, synced) and the error log itself is written BY YOU. */
@@ -7212,7 +7219,7 @@
         ts: res.ts, seed: res.seed, exam: res.exam, n: res.n, scope: res.scope,
         right: res.right, wrong: res.wrong, skipped: res.skipped, score: res.score, max: res.max, secs: res.secs,
         perSubject: res.perSubject,
-        items: (res.review || []).map(function(it, i){ return { k: it.q.k, id: it.q.id, picked: it.picked, mark: !!it.mark, tq: (res.tq && res.tq[i]) || 0 }; })
+        items: (res.review || []).map(function(it, i){ return { k: it.q.k, id: it.q.id, picked: it.picked, mark: !!it.mark, tq: (res.tq && res.tq[i]) || 0, ok: ansCorrect(it.q, it.picked), st: (res.struck && res.struck[i]) || 0 }; })
       };
       var ks = Object.keys(papers).sort(function(a, b){ return Number(b) - Number(a); });
       ks.slice(12).forEach(function(k){ delete papers[k]; });
@@ -7317,52 +7324,101 @@
     box.appendChild(wrap);
   }
 
-  /* ================= Strategy engine =================
-     Turns the exam's own marking rule and your own papers into concrete advice:
-     the attempt rule (when a guess is worth it), the pace the paper allows versus
-     yours, the section plan, where the marks leak, and what skipping has cost. */
+  /* ================= Strategy engine (intelligent) =================
+     Everything here is derived. The exam's own marking gives the attempt rule;
+     your saved papers give the behaviour - pace, where time helps or hurts,
+     whether you fade late, how well marking and elimination actually work, and
+     where the marks leak. The output is a ranked plan, each move priced in marks. */
   function paperAgg(){
     var papers = ls('fd:testpapers', {}); if(!papers || typeof papers !== 'object' || Array.isArray(papers)) papers = {};
-    var list = Object.keys(papers).map(function(k){ return papers[k]; }).filter(Boolean);
-    var S = 0, A = 0, R = 0, W = 0, n = 0, secs = 0, q = 0, bySub = {};
-    list.forEach(function(p){
-      n++;
-      S += p.skipped || 0; R += p.right || 0; W += p.wrong || 0;
-      A += (p.right || 0) + (p.wrong || 0);
-      secs += p.secs || 0; q += p.n || 0;
-      Object.keys(p.perSubject || {}).forEach(function(sb){
+    var list = Object.keys(papers).map(function(k){ return papers[k]; }).filter(Boolean).sort(function(x,y){ return (x.ts||0) - (y.ts||0); });
+    var S=0, A=0, R=0, W=0, n=0, secs=0, q=0, bySub={}, items=[];
+    list.forEach(function(p, pi){
+      n++; S += p.skipped||0; R += p.right||0; W += p.wrong||0; A += (p.right||0)+(p.wrong||0);
+      secs += p.secs||0; q += p.n||0;
+      Object.keys(p.perSubject||{}).forEach(function(sb){
         var v = p.perSubject[sb]; if(!v) return;
-        var r = bySub[sb] || (bySub[sb] = { total:0, right:0 });
-        r.total += v.total || 0; r.right += v.right || 0;
+        var r = bySub[sb] || (bySub[sb] = { total:0, right:0 }); r.total += v.total||0; r.right += v.right||0;
       });
+      (p.items||[]).forEach(function(it){ items.push(it); });
     });
-    return { n:n, S:S, A:A, R:R, W:W, secs:secs, q:q, bySub:bySub };
+    return { n:n, S:S, A:A, R:R, W:W, secs:secs, q:q, bySub:bySub, items:items, list:list };
   }
   function strategyFor(examKey){
     var ex = examOf(examKey || testExam);
-    var k = 4;                                   /* options per question */
+    var k = 4;
     var blindEV = (1/k) * ex.pos + ((k-1)/k) * ex.neg;
     var elim1EV = (1/(k-1)) * ex.pos + ((k-2)/(k-1)) * ex.neg;
     var secPerQ = ex.mins * 60 / ex.q;
     var ag = paperAgg();
-    var mySecPerQ = ag.q ? ag.secs / ag.q : null;
+    var answered = ag.items.filter(function(it){ return it.picked != null; });
+    var known = answered.filter(function(it){ return typeof it.ok === 'boolean'; });
     var attAcc = ag.A ? ag.R / ag.A : null;
-    var skipGain = (ag.S && attAcc != null) ? ag.S * (attAcc * ex.pos + (1 - attAcc) * ex.neg) : null;
+
+    /* pace from the median question time, not the mean */
+    var times = answered.map(function(it){ return it.tq || 0; }).filter(function(x){ return x > 0; }).sort(function(x,y){ return x - y; });
+    var mySec = times.length ? times[Math.floor(times.length/2)] / 1000 : null;
+
+    /* time x outcome quadrant - careless vs knowledge gap */
+    var quad = { fr:0, fw:0, sr:0, sw:0 };
+    if(mySec && known.length){
+      var thr = mySec * 1000;
+      known.forEach(function(it){
+        var slow = (it.tq||0) > thr, ok = !!it.ok;
+        if(!slow && ok) quad.fr++; else if(!slow && !ok) quad.fw++; else if(slow && ok) quad.sr++; else quad.sw++;
+      });
+    }
+
+    /* do you fade late? accuracy in the first vs last quarter of each paper */
+    var fR=0, fN=0, lR=0, lN=0;
+    ag.list.forEach(function(p){
+      var its = (p.items||[]).filter(function(it){ return typeof it.ok === 'boolean' && it.picked != null; });
+      var m = Math.max(1, Math.floor(its.length / 4));
+      its.slice(0, m).forEach(function(it){ fN++; if(it.ok) fR++; });
+      its.slice(-m).forEach(function(it){ lN++; if(it.ok) lR++; });
+    });
+    var decay = (fN >= 4 && lN >= 4) ? { first: fR/fN, last: lR/lN } : null;
+
+    /* marking + elimination calibration */
+    var mk = answered.filter(function(it){ return it.mark && typeof it.ok === 'boolean'; });
+    var marked = mk.length >= 3 ? { n:mk.length, acc: mk.filter(function(it){ return it.ok; }).length / mk.length } : null;
+    var stK = answered.filter(function(it){ return (it.st||0) > 0 && typeof it.ok === 'boolean'; });
+    var noK = answered.filter(function(it){ return !(it.st||0) && typeof it.ok === 'boolean'; });
+    var strike = (stK.length >= 3 && noK.length >= 3)
+      ? { n:stK.length, acc: stK.filter(function(it){ return it.ok; }).length / stK.length, base: noK.filter(function(it){ return it.ok; }).length / noK.length }
+      : null;
+
+    /* leak by exam weight x (1 - accuracy) */
     var leak = [];
     Object.keys(ag.bySub).forEach(function(sb){
       var v = ag.bySub[sb]; if(!v.total) return;
-      var acc = v.right / v.total, w0 = 0;
-      (ex.w || []).forEach(function(p){ if(p[0] === sb) w0 = p[1]; });
+      var acc = v.right / v.total, w0 = 0; (ex.w||[]).forEach(function(p){ if(p[0] === sb) w0 = p[1]; });
       leak.push({ s:sb, acc:acc, total:v.total, w:w0, risk:(w0 || 1) * (1 - acc) });
     });
-    leak.sort(function(a,b){ return b.risk - a.risk; });
-    return { ex:ex, k:k, blindEV:blindEV, elim1EV:elim1EV, secPerQ:secPerQ, mySecPerQ:mySecPerQ, attAcc:attAcc, skipGain:skipGain, ag:ag, leak:leak };
+    leak.sort(function(x,y){ return y.risk - x.risk; });
+
+    var skipGain = (ag.S && attAcc != null) ? ag.S * (attAcc * ex.pos + (1 - attAcc) * ex.neg) : null;
+
+    /* the ranked plan: each move priced in marks */
+    var span = (ex.pos - ex.neg) || 1;
+    var moves = [];
+    if(skipGain != null && skipGain > 2) moves.push({ t:'Attempt the borderline ones', d:'You skipped ' + ag.S + ' across your papers. At your ' + Math.round(attAcc*100) + '% accuracy, attempting them is worth about +' + skipGain.toFixed(1) + ' marks.', m:skipGain, act:'guess' });
+    if(quad.fw >= 3) moves.push({ t:'Slow down on what you rush', d: quad.fw + ' questions you answered faster than your own median and got wrong - careless errors, not gaps.', m: quad.fw * span * 0.6, act:'' });
+    if(quad.sw >= 3) moves.push({ t:'Revise where you are slow AND wrong', d: quad.sw + ' questions took longer than usual and still went wrong - that is a knowledge gap, not speed.', m: quad.sw * span * 0.5, act:'weak' });
+    if(leak.length && leak[0].acc < 0.75) moves.push({ t:'Lift ' + leak[0].s, d:'Your weakest by exam weight - ' + Math.round(leak[0].acc*100) + '% over ' + leak[0].total + ' questions' + (leak[0].w ? ', weight ' + leak[0].w + 'Q' : '') + '.', m: (leak[0].w || 10) * 0.12 * ex.pos, act:'subject:' + leak[0].s });
+    if(strike && strike.acc - strike.base > 0.12) moves.push({ t:'Eliminate before you answer', d:'When you crossed out an option you were right ' + Math.round(strike.acc*100) + '%, against ' + Math.round(strike.base*100) + '% otherwise - elimination clearly works for you.', m: 0, act:'' });
+    if(decay && (decay.first - decay.last) > 0.12) moves.push({ t:'Train for the full length', d:'You open at ' + Math.round(decay.first*100) + '% and finish at ' + Math.round(decay.last*100) + '% - accuracy falls off late. Sit full timed papers.', m: (decay.first - decay.last) * ag.q * ex.pos * 0.3, act:'' });
+    moves.sort(function(x,y){ return y.m - x.m; });
+    moves = moves.slice(0, 4);
+
+    return { ex:ex, k:k, blindEV:blindEV, elim1EV:elim1EV, secPerQ:secPerQ, ag:ag, mySec:mySec,
+             quad:quad, decay:decay, marked:marked, strike:strike, leak:leak, skipGain:skipGain, attAcc:attAcc, moves:moves };
   }
   function renderStrategy(wrap){
     var st = strategyFor(testExam), ex = st.ex;
     var h = document.createElement('div'); h.className = 'tbig'; h.textContent = 'Strategy'; wrap.appendChild(h);
     var sub = document.createElement('div'); sub.className = 'tsub';
-    sub.textContent = 'How to actually score higher in a paper - derived from the marking rule and your own attempts.';
+    sub.textContent = 'Your plan, derived from the marking rule and your own papers - ranked by how many marks each move is worth.';
     wrap.appendChild(sub);
     var erow = document.createElement('div'); erow.className = 'tchips'; erow.style.margin = '6px 0 10px';
     EXAMS.forEach(function(e){
@@ -7372,29 +7428,65 @@
     });
     wrap.appendChild(erow);
 
-    /* 1. the one rule that matters most */
+    /* the ranked plan first - the intelligent core */
+    var c0 = document.createElement('div'); c0.className = 'tcard';
+    var l0 = document.createElement('div'); l0.className = 'tlabel'; l0.textContent = 'Your highest-leverage moves'; c0.appendChild(l0);
+    if(st.moves.length){
+      st.moves.forEach(function(mv, idx){
+        var r = document.createElement('div'); r.className = 'an-worst';
+        var head = document.createElement('div'); head.className = 'an-row';
+        var t = document.createElement('span'); t.className = 'an-lab'; t.style.fontWeight = '800'; t.textContent = (idx+1) + '. ' + mv.t; head.appendChild(t);
+        if(mv.m > 1){ var pm = document.createElement('span'); pm.className = 'an-pct'; pm.textContent = '+~' + Math.round(mv.m) + ' marks'; head.appendChild(pm); }
+        r.appendChild(head);
+        var d = document.createElement('div'); d.className = 'an-worst-m'; d.textContent = mv.d; r.appendChild(d);
+        if(mv.act === 'weak' || mv.act === 'guess' || (mv.act && mv.act.indexOf('subject:') === 0)){
+          var ab = document.createElement('button'); ab.type = 'button'; ab.className = 'btn sm'; ab.style.marginTop = '6px';
+          ab.textContent = (mv.act === 'weak') ? 'Practise my weak questions' : (mv.act === 'guess' ? 'Sit a paper and attempt all' : 'Start a ' + mv.act.slice(8) + ' paper');
+          ab.onclick = (function(a){
+            return function(){
+              if(a === 'weak'){ testPriority = weakPriorityIds(60); testCustom = true; testSelYears = []; testSelSubjects = []; testSelUnits = []; testSelChapters = []; testScope = 'all'; testDeck = ''; testLen = 50; view = { t:'test' }; testStart(); }
+              else if(a === 'guess'){ view = { t:'test', tMode:'grand' }; render(); window.scrollTo(0,0); }
+              else { var sb = a.slice(8); testCustom = true; testSelYears = []; testSelSubjects = [sb]; testSelUnits = []; testSelChapters = []; testScope = 'all'; testDeck = ''; testLen = 40; view = { t:'test' }; testStart(); }
+            };
+          })(mv.act);
+          r.appendChild(ab);
+        }
+        c0.appendChild(r);
+      });
+    } else {
+      var e0 = document.createElement('div'); e0.className = 'tsub small';
+      e0.textContent = 'Sit a couple of papers and this becomes a ranked, mark-priced plan for you.';
+      c0.appendChild(e0);
+    }
+    wrap.appendChild(c0);
+
+    /* the one rule */
     var c1 = document.createElement('div'); c1.className = 'tcard';
     var l1 = document.createElement('div'); l1.className = 'tlabel'; l1.textContent = 'The one rule that matters most'; c1.appendChild(l1);
     var _blind = st.blindEV, _elim = st.elim1EV, rule;
     if(_blind > 0.01) rule = 'Attempt every question. With ' + ex.mark + ', a blind guess among 4 options is worth ' + (_blind > 0 ? '+' : '') + _blind.toFixed(2) + ' marks in expectation - so never leave a blank.';
-    else if(_elim > 0.01) rule = 'Guess only when you can rule out at least one option. A blind guess is neutral (' + _blind.toFixed(2) + '), but with one option gone it is worth +' + _elim.toFixed(2) + ' - so eliminate, then answer.';
-    else rule = 'Do not guess blindly (' + _blind.toFixed(2) + '). Guess only when you can rule out options - with one gone it is ' + (_elim > 0 ? '+' : '') + _elim.toFixed(2) + '.';
+    else if(_elim > 0.01) rule = 'Guess only when you can rule out at least one option. A blind guess is neutral (' + _blind.toFixed(2) + '), but with one option gone it is worth +' + _elim.toFixed(2) + ' - eliminate, then answer.';
+    else rule = 'Do not guess blindly (' + _blind.toFixed(2) + '). Guess only when you can rule out options.';
     var rp = document.createElement('div'); rp.className = 'an-strategy'; rp.textContent = rule; c1.appendChild(rp);
     wrap.appendChild(c1);
 
-    /* 2. pace */
+    /* pace & time */
     var c2 = document.createElement('div'); c2.className = 'tcard';
-    var l2 = document.createElement('div'); l2.className = 'tlabel'; l2.textContent = 'Pace'; c2.appendChild(l2);
+    var l2 = document.createElement('div'); l2.className = 'tlabel'; l2.textContent = 'Pace & time'; c2.appendChild(l2);
     var p2 = document.createElement('div'); p2.className = 'tsub small';
-    p2.textContent = 'The paper allows ' + Math.round(st.secPerQ) + ' seconds a question (' + ex.q + ' Q in ' + ex.mins + ' min).'
-      + (st.mySecPerQ
-          ? ' Your recent average is ' + Math.round(st.mySecPerQ) + 's a question'
-            + (st.mySecPerQ > st.secPerQ * 1.1 ? ' - you run slow; sit timed papers until this comes down.' : (st.mySecPerQ < st.secPerQ * 0.85 ? ' - you have room to slow down and read more carefully.' : ' - right on pace.'))
-          : ' Sit a paper and this compares against your own pace.');
+    p2.textContent = 'The paper allows ' + Math.round(st.secPerQ) + 's a question (' + ex.q + ' Q in ' + ex.mins + ' min).'
+      + (st.mySec ? ' Your median question time is ' + st.mySec.toFixed(0) + 's' + (st.mySec > st.secPerQ*1.1 ? ' - you run slow.' : (st.mySec < st.secPerQ*0.85 ? ' - you can afford to slow down and read more carefully.' : ' - right on pace.')) : ' Sit a paper and this compares against your own pace.');
     c2.appendChild(p2);
+    if(st.mySec){
+      var q = st.quad;
+      var qr = document.createElement('div'); qr.className = 'tsub small'; qr.style.marginTop = '6px';
+      qr.textContent = 'Fast & right: ' + q.fr + '  \u00b7  fast & wrong: ' + q.fw + '  \u00b7  slow & right: ' + q.sr + '  \u00b7  slow & wrong: ' + q.sw
+        + '. ' + (q.fw > q.sw ? 'Your faster wrong answers point to carelessness.' : (q.sw > q.fw ? 'Your slower wrong answers point to knowledge gaps.' : 'Your time and accuracy look balanced.'));
+      c2.appendChild(qr);
+    }
     wrap.appendChild(c2);
 
-    /* 3. section plan */
+    /* section plan */
     var c3 = document.createElement('div'); c3.className = 'tcard';
     var l3 = document.createElement('div'); l3.className = 'tlabel'; l3.textContent = 'Section plan'; c3.appendChild(l3);
     var p3 = document.createElement('div'); p3.className = 'tsub small';
@@ -7404,7 +7496,7 @@
     c3.appendChild(p3);
     wrap.appendChild(c3);
 
-    /* 4. where the marks leak */
+    /* where the marks leak */
     var c4 = document.createElement('div'); c4.className = 'tcard';
     var l4 = document.createElement('div'); l4.className = 'tlabel'; l4.textContent = 'Where your marks leak'; c4.appendChild(l4);
     if(st.leak.length){
@@ -7414,51 +7506,29 @@
       st.leak.slice(0, 5).forEach(function(x){
         var r = document.createElement('div'); r.className = 'thist';
         var a = document.createElement('span'); a.className = 'thist-d'; a.textContent = x.s + (x.w ? '  (' + x.w + 'Q weight)' : '');
-        var b = document.createElement('span'); b.className = 'thist-s'; b.textContent = Math.round(x.acc * 100) + '%';
+        var b = document.createElement('span'); b.className = 'thist-s'; b.textContent = Math.round(x.acc*100) + '%';
         var c = document.createElement('span'); c.className = 'thist-t'; c.textContent = x.total + ' Q';
         r.appendChild(a); r.appendChild(b); r.appendChild(c); c4.appendChild(r);
       });
-    } else {
-      var e4 = document.createElement('div'); e4.className = 'tsub small'; e4.textContent = 'Sit a paper and your weakest subjects surface here.';
-      c4.appendChild(e4);
-    }
+    } else { var e4 = document.createElement('div'); e4.className = 'tsub small'; e4.textContent = 'Sit a paper and your weakest subjects surface here.'; c4.appendChild(e4); }
     wrap.appendChild(c4);
 
-    /* 5. skip vs guess, from your own data */
+    /* how you read a question */
     var c5 = document.createElement('div'); c5.className = 'tcard';
-    var l5 = document.createElement('div'); l5.className = 'tlabel'; l5.textContent = 'Skip vs guess - from your own papers'; c5.appendChild(l5);
+    var l5 = document.createElement('div'); l5.className = 'tlabel'; l5.textContent = 'How you read a question'; c5.appendChild(l5);
     var p5 = document.createElement('div'); p5.className = 'tsub small';
-    if(st.ag.n && st.attAcc != null){
-      p5.textContent = 'Across ' + st.ag.n + ' paper' + (st.ag.n === 1 ? '' : 's') + ' you skipped ' + st.ag.S + ' question' + (st.ag.S === 1 ? '' : 's')
-        + ' and got ' + Math.round(st.attAcc * 100) + '% of what you attempted right.'
-        + (st.skipGain != null ? ' Attempting those skips at that accuracy would have been worth about ' + (st.skipGain > 0 ? '+' : '') + st.skipGain.toFixed(1) + ' marks.' : '');
-    } else {
-      p5.textContent = 'Sit a paper and this shows what your skipped questions have actually cost you.';
-    }
+    var bits = [];
+    if(st.marked) bits.push('Of the ones you marked, you got ' + Math.round(st.marked.acc*100) + '% right' + (st.marked.acc > 0.6 ? ' - your "unsure" flag is honest; trust it.' : ' - you mark more than you need.'));
+    if(st.strike) bits.push('When you crossed out an option you were right ' + Math.round(st.strike.acc*100) + '%, against ' + Math.round(st.strike.base*100) + '% otherwise' + (st.strike.acc - st.strike.base > 0.12 ? ' - elimination works, use it more.' : '.'));
+    if(st.decay) bits.push('You open at ' + Math.round(st.decay.first*100) + '% and close at ' + Math.round(st.decay.last*100) + '%' + (st.decay.first - st.decay.last > 0.12 ? ' - you fade late; train for the full length.' : ' - steady from start to finish.'));
+    p5.textContent = bits.length ? bits.join(' ') : 'Sit a paper and this shows whether your marking and elimination actually help you.';
     c5.appendChild(p5);
     wrap.appendChild(c5);
 
-    /* 6. your plan for the next paper */
-    var c6 = document.createElement('div'); c6.className = 'tcard';
-    var l6 = document.createElement('div'); l6.className = 'tlabel'; l6.textContent = 'Your plan for the next paper'; c6.appendChild(l6);
-    var tips = [];
-    tips.push(_blind > 0.01 ? 'Leave nothing blank - guess when unsure.' : 'Eliminate at least one option before you answer.');
-    tips.push('Cap yourself at about ' + Math.round(st.secPerQ) + 's a question; flag and move on.');
-    if(st.mySecPerQ && st.mySecPerQ > st.secPerQ * 1.1) tips.push('Sit the next paper timed - speed is your biggest leak right now.');
-    if(st.leak.length) tips.push('After the paper, redo your wrong questions in ' + st.leak[0].s + ' (weakest by weight).');
-    if(st.skipGain != null && st.skipGain > 0) tips.push('Attempt the borderline ones - your skips have been costing you marks.');
-    var ul = document.createElement('div');
-    tips.slice(0, 5).forEach(function(t){
-      var li = document.createElement('div'); li.className = 'an-row';
-      var d = document.createElement('span'); d.className = 'an-lab'; d.textContent = t; li.appendChild(d);
-      ul.appendChild(li);
-    });
-    c6.appendChild(ul);
     var go = document.createElement('button'); go.type = 'button'; go.className = 'btn primary wide'; go.style.marginTop = '10px';
     go.textContent = 'Start a ' + ex.name + ' paper now';
     go.onclick = function(){ testExam = ex.k; view = { t:'test', tMode:'grand' }; render(); window.scrollTo(0,0); };
-    c6.appendChild(go);
-    wrap.appendChild(c6);
+    wrap.appendChild(go);
   }
 
   /* ---------- mistake-analysis engine ---------- */
