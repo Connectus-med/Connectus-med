@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-17 14:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-17 16:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -677,6 +677,11 @@
   .tqx{margin-left:auto; color:var(--muted); font-weight:800; padding:0 4px; cursor:pointer; flex:none}
   .tqopt.struck .tqtext2{text-decoration:line-through; opacity:.5}
   .tqopt.struck .tqlet{opacity:.5}
+  /* update-ready pill: the app never reloads itself any more */
+  .updpill{position:fixed; left:50%; transform:translateX(-50%); bottom:calc(92px + env(safe-area-inset-bottom,0px));
+    z-index:60; border:0; background:var(--accent-2); color:#fff; border-radius:999px; padding:11px 18px;
+    font:inherit; font-size:.85rem; font-weight:800; cursor:pointer; box-shadow:0 14px 34px -12px rgba(120,60,10,.6)}
+  .updpill:active{transform:translateX(-50%) translateY(1px)}
 </style>
 </head>
 <body>
@@ -745,6 +750,8 @@
   <button class="tab" data-tab="test" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h8l4 4v14H7z"/><path d="M9 9h6"/><path d="M9 13h6"/><path d="M9 17h4"/></svg><span class="tlabel">Test</span></button>
   <button class="tab hidden" id="ownerTab" data-tab="owner" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v5H4z"/><path d="M4 14h16v5H4z"/><path d="M8 7.5h.01"/><path d="M8 16.5h.01"/></svg><span class="tlabel">Owner</span></button>
 </nav>
+
+<button id="updBtn" class="updpill hidden" type="button">Update ready - tap to update</button>
 
 <div id="viewer" class="hidden">
   <div class="vbar"><button id="back" class="btn">← Back</button><span id="vtitle" style="display:none"></span><div style="margin-left:auto; display:flex; gap:8px; align-items:center"><button id="catBtn" class="btn hidden">Category</button><button id="deckThemeBtn" class="btn" aria-label="Theme" title="Theme" style="display:inline-flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" style="display:block"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"></circle><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"></path></svg></button></div></div>
@@ -840,9 +847,15 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-17 14:00';
-  var BUILD_NOTE = 'Fixed the sync label, which grew stale and reset unpredictably. It now updates on every successful sync with the cloud, so it reads a small steady number and only grows when you are actually offline.';
+  var APP_BUILD = '2026-10-17 16:00';
+  var BUILD_NOTE = 'The app no longer reloads itself while you use it - a newer version waits behind an Update ready pill you tap when you want. The sync label is calm too: syncing while writes are queued, then a steady synced.';
   var CHANGELOG = [
+    { build:'2026-10-17 16:00', title:'No more self-reload; a calm sync label', items:[
+      'Fixed the flash/blink: the app used to reload itself whenever a newer version was published, which fired on every focus and looked like a blink. It never reloads itself now.',
+      'A newer version instead shows a small Update ready - tap to update pill. Tap it when you are not mid-paper or mid-deck and it switches over; if you are in a paper or a deck it waits and tells you so.',
+      'The sync label is calm now: syncing while your writes are queued, then a steady synced, and only a number when it has genuinely been a while.',
+      'Verified: the cloud and the GitHub repo both already carry this build, so the update itself was never failing.',
+    ]},
     { build:'2026-10-17 14:00', title:'Fixed: the synced label', items:[
       'Fixed the synced label - it could read synced 36m one moment and synced now the next. It was only updated on a full library load, so it grew stale while the app was syncing your progress every few seconds.',
       'It now updates on every successful round-trip with the cloud - a load, a progress write, or the 30-second check - so it reads now or a few seconds, and only grows when you are actually offline.',
@@ -1993,10 +2006,14 @@
   var lastSyncAt = 0;
   function renderLastSync(){
     var el = $('lastSync'); if(!el) return;
+    /* a steady state, not a stopwatch: "syncing…" while writes are queued, then a
+       plain "synced" until it has genuinely been a while (only then a number). */
+    var q = 0; try{ q = qLoad().length; }catch(e){}
+    if(q){ el.textContent = 'syncing\u2026'; return; }
     if(!lastSyncAt){ el.textContent = ''; return; }
     var s = Math.floor((Date.now() - lastSyncAt) / 1000);
-    var t = s < 10 ? 'now' : (s < 60 ? s + 's' : (s < 3600 ? Math.floor(s/60) + 'm' : Math.floor(s/3600) + 'h'));
-    el.textContent = 'synced ' + t;
+    if(s < 90){ el.textContent = 'synced'; return; }
+    el.textContent = 'synced ' + (s < 3600 ? Math.floor(s/60) + 'm' : Math.floor(s/3600) + 'h');
   }
   function setLastSync(ts){ lastSyncAt = ts; renderLastSync(); }
   /* ---------- Sync: manual + auto (frequency presets / Always) ---------- */
@@ -2542,8 +2559,6 @@
   }
   function render(){
     try{ window.__lastRender = view && view.t; }catch(e){}
-    /* a swap was held back while a test was open - do it now that we have left */
-    try{ if(view.t !== 'test' && view.t !== 'review1' && applyPendingSelfUpdate()) return; }catch(e){}
     try{ ss('fd:builder', { custom:testCustom, exam:testExam, len:testLen, y:testSelYears, s:testSelSubjects, u:testSelUnits, c:testSelChapters }); }catch(e){}
     try{ var _pv = view; if(_pv && _pv.tResult) _pv = Object.assign({}, _pv, { tResult: null }); ss('fd:view', _pv); }catch(e){}
     try{ clearQPal(); }catch(e){}
@@ -4110,9 +4125,12 @@
             if(html.indexOf('id="content"') < 0 || html.indexOf('collapseFab') < 0 || html.indexOf('</html>') < 0) return;
             /* safeguard: the fetched build must match the advertised version, else reject (never swap a wrong/partial build) */
             if(html.indexOf("APP_BUILD = '" + v.ui_version + "'") < 0) return;
-            if(viewerOpen() || testRunning()){ pendingSelfUpdate = html; return; }
+            /* NEVER reload the page under the user. Arm a pill and let them update
+               when they choose - the reload used to fire on every focus, which is
+               the flash/blink people saw. */
+            pendingSelfUpdate = html;
             try{ sessionStorage.setItem('fd:selfupdate', APP_BUILD); sessionStorage.setItem('fd:selfupdate_n', String(swaps + 1)); }catch(e){}
-            document.open(); document.write(html); document.close();
+            try{ var _ub = $('updBtn'); if(_ub) _ub.classList.remove('hidden'); }catch(e){}
           });
       }).catch(function(){});
   }
@@ -8201,6 +8219,12 @@
     };
   }catch(e){}
   $('appTitle').onclick = function(){ view = { t:'home' }; render(); window.scrollTo(0,0); };
+  var _ubBtn = $('updBtn');
+  if(_ubBtn) _ubBtn.onclick = function(){
+    if(!pendingSelfUpdate){ _ubBtn.classList.add('hidden'); return; }
+    if(testRunning() || viewerOpen()){ try{ toast('Finish the paper or deck first, then update.'); }catch(e){} return; }
+    applyPendingSelfUpdate();
+  };
   document.body.classList.add('tabbar-on');
   try{ fitBrandQuote(); setTimeout(fitBrandQuote, 400); setTimeout(fitBrandQuote, 1200); window.addEventListener('resize', function(){ try{ fitBrandQuote(); }catch(_){} }); }catch(_){}
   try{ var _tr = ls('fd:testrun', null); if(_tr && Array.isArray(_tr.answers) && _tr.qs && _tr.qs.length && _tr.qs.every(function(x){ return isMcqItem(x); })){ if(!Array.isArray(_tr.marked) || _tr.marked.length !== _tr.qs.length) _tr.marked = _tr.qs.map(function(){ return false; }); testRun = _tr; } else if(_tr){ ss('fd:testrun', null); } }catch(e){}
