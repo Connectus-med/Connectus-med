@@ -62,7 +62,7 @@ const near = (got, want, tol) => Math.abs(got - want) <= tol;
     if (req.method() === 'OPTIONS') return req.respond({ status: 204, headers: cors, body: '' });
     let body = '[]';
     if (u.includes('/rest/v1/decks')) body = JSON.stringify(fx.decks);
-    else if (u.includes('/rest/v1/deck_state')) body = '[]';
+    else if (u.includes('/rest/v1/deck_state')) body = JSON.stringify(fx.states || []);
     else if (u.includes('/rest/v1/subjects')) body = JSON.stringify(fx.subjects);
     else if (u.includes('/rest/v1/settings')) body = JSON.stringify(fx.settings);
     else if (u.includes('/auth/v1/')) body = JSON.stringify({ access_token: 'x', refresh_token: 'x', expires_in: 999999, user: { id: fx.uid } });
@@ -150,6 +150,16 @@ const near = (got, want, tol) => Math.abs(got - want) <= tol;
   await w(400);
   check('Real Exam Grand Test tile exists', await clickTxt('Real Exam Grand Test'), '');
   await w(800);
+  // the library must read per-card state back from the cloud: one fixture card
+  // is deleted, so the pool has to be one short. If card_id is missing from the
+  // pull this reads the full count and fails.
+  const poolInfo = await page.evaluate(() => {
+    const t = [...document.querySelectorAll('.tsub.small')].map(x => x.textContent).find(x => /MCQs available/.test(x)) || '';
+    const m = t.match(/^(\d+) MCQs available/);
+    return m ? Number(m[1]) : -1;
+  });
+  const expected = fx.decks.reduce((a, d) => a + d.cards.length, 0) - (fx.states || []).filter(s => s.deleted).length;
+  check('deleted cards are kept out of the pool (per-card state is read back)', poolInfo === expected, poolInfo + ' vs ' + expected);
   if (!(await page.evaluate(() => !!document.querySelector('.tbig')))) {
     console.log('DIAG screen after tile click:', (await page.evaluate(() => (document.body.innerText || '').slice(0, 260))).replace(/\n/g, ' / '));
   }
