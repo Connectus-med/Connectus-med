@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-17 20:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-17 22:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -682,6 +682,7 @@
     z-index:60; border:0; background:var(--accent-2); color:#fff; border-radius:999px; padding:11px 18px;
     font:inherit; font-size:.85rem; font-weight:800; cursor:pointer; box-shadow:0 14px 34px -12px rgba(120,60,10,.6)}
   .updpill:active{transform:translateX(-50%) translateY(1px)}
+  .setdemo{margin:2px 0 2px; padding:9px 11px; border:1px dashed var(--line); border-radius:10px; font-size:1rem; line-height:1.5; color:var(--ink)}
 </style>
 </head>
 <body>
@@ -699,6 +700,7 @@
     <div class="avatar lg" id="pAvatar">L</div>
     <div class="pinfo tappable" id="pinfo" role="button" tabindex="0"><b id="pEmail">life.rknain@gmail.com</b><span class="muted small" id="pSub">Tap for account settings ›</span></div>
   </div>
+  <button id="settingsBtn" class="btn wide" style="margin-top:2px">⚙  Settings</button>
   <div id="acctOut" class="hidden">
     <div class="field"><label>Email</label><input id="email" type="email" autocomplete="username" placeholder="you@example.com"></div>
     <div class="field"><label>Password</label><input id="pass" type="password" autocomplete="current-password" placeholder="password"></div>
@@ -711,19 +713,9 @@
   <div id="acctIn" class="">
     <button id="passBtn" class="btn wide hidden">Passes / Unlock</button>
     <button id="insightBtn" class="btn wide">Insights</button>
-    <div id="syncBox">
-      <div class="tlabel" style="margin:6px 0 4px">Sync</div>
-      <button id="syncNow" class="btn wide">Sync now</button>
-      <div class="tchips" id="autoSyncRow" style="margin:6px 0 2px"></div>
-      <div class="muted small" id="autoSyncNote" style="margin:0 0 8px"></div>
-    </div>
     <button id="doOwnerIn" class="btn wide hidden">Owner access</button>
-    <button id="themeBtn" class="btn wide">Theme: Light</button>
     <div style="height:10px"></div>
   </div>
-  <button id="whatsNewBtn" class="btn wide hidden">What&#39;s New</button>
-  <button id="installBtn" class="btn wide hidden">Install the app</button>
-  <button id="legalBtn" class="btn wide">Terms, refund &amp; privacy</button>
   <button id="newCatBtn" class="btn wide hidden">+ New category</button>
   <button id="renCatBtn" class="btn wide hidden">Rename a category</button>
   <button id="delCatBtn" class="btn wide hidden">Delete a category</button>
@@ -847,9 +839,15 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-17 20:00';
-  var BUILD_NOTE = 'Fixed the question navigator on the result and error-log screens: it was pinned at a fixed 56px while the app bar is 69-76px tall, so the bar covered the top of every chip. It now sits exactly below the bar.';
+  var APP_BUILD = '2026-10-17 22:00';
+  var BUILD_NOTE = 'A proper Settings screen: Appearance (theme plus a new text-size control), Sync, Study and About, all in one organized place, reached from a Settings entry in the profile menu.';
   var CHANGELOG = [
+    { build:'2026-10-17 22:00', title:'Settings screen with a text-size control', items:[
+      'There is now a proper Settings screen - tap the avatar, then Settings. Appearance (theme and text size), Sync, Study & tests and About are all in one organized place.',
+      'New: Text size - Small, Default, Large or Larger - with a live sample, so you can set the reading size that suits you. It is remembered on your device.',
+      'The profile menu is now account-first (sign in, email, owner tools) with a single Settings entry, instead of a long flat list that mixed account and app settings.',
+      'Everything that moved out of the profile menu is wired back, so nothing broke.',
+    ]},
     { build:'2026-10-17 20:00', title:'Fixed: the question navigator was clipped by the top bar', items:[
       'Fixed the question navigator on the result and error-log screens - it showed as a clipped row of half-chips at the top-left. It was pinned at a fixed 56px while the app bar is 69-76px tall, so the bar covered the top of every chip.',
       'It now measures the real app bar and sits exactly below it, full width; in the wide layout it starts after the left tab bar, and the content below is padded so nothing hides under it.',
@@ -1911,6 +1909,8 @@
 
   var session = ls('fd:auth', null);
   var theme = ls('fd:theme', 'light');
+  var textScale = parseFloat(ls('fd:textscale', 1)) || 1;
+  function applyTextSize(){ try{ document.documentElement.style.fontSize = Math.round(1600 * textScale) / 100 + 'px'; }catch(e){} }
   var collapsed = ls('fd:collapsed', {});
   var openMap = ls('fd:openmap', {});
   var qbSeeded = ls('fd:qbseeded', false);   /* the Qbank's years default open ONCE ever — after that the user's choice wins, even across reloads */
@@ -1933,7 +1933,7 @@
       var _rv2 = BOOT_VIEW;
       if(!testRun && view.t === 'home' && (Date.now() - BOOT_AT) < 20000 &&
          _rv2 && typeof _rv2 === 'object' && _rv2.t &&
-         ['home','learn','revise','test','errors','owner','insights','passes','whatsnew','search','account','subject'].indexOf(_rv2.t) >= 0){
+         ['home','learn','revise','test','errors','owner','insights','passes','whatsnew','settings','search','account','subject'].indexOf(_rv2.t) >= 0){
         view = _rv2;
         try{ render(); }catch(e9){}
       }
@@ -1963,7 +1963,7 @@
     _qrTimer = setTimeout(function(){ _qrTimer = null; var y = window.scrollY || 0; render(); try{ window.scrollTo(0, y); }catch(e){} }, 60);
   }
 
-  function applyTheme(){ document.body.classList.toggle('dark', theme==='dark'); $('themeBtn').textContent = 'Theme: ' + (theme==='dark'?'Dark':'Light'); }
+  function applyTheme(){ document.body.classList.toggle('dark', theme==='dark'); var _tb = $('themeBtn'); if(_tb) _tb.textContent = 'Theme: ' + (theme==='dark'?'Dark':'Light'); }
   function applyTitle(){ var e=$('appTitleTxt'); if(e) e.textContent = appTitle; document.title = appTitle + ' - Flashcards'; try{ fitBrandQuote(); }catch(_){} }
   function applyBuild(){
     var pb = $('pmenuBuild');
@@ -2189,7 +2189,7 @@
   function show(){
     var on = !!session;
     var em = on ? ((session.user && session.user.email) || '') : '';
-    applyTitle(); applyTheme();
+    applyTitle(); applyTheme(); applyTextSize();
     $('acctOut').classList.toggle('hidden', on);
     $('acctIn').classList.toggle('hidden', !on);
     $('pEmail').textContent = on ? em : 'Not signed in';
@@ -2212,7 +2212,7 @@
         $('passBtn').classList.toggle('hidden', owner);
         var _ob = $('doOwnerIn'); if(_ob) _ob.classList.toggle('hidden', owner);
         $('insightBtn').classList.toggle('hidden', !owner);
-        $('whatsNewBtn').classList.toggle('hidden', !owner);
+        var _wnb1 = $('whatsNewBtn'); if(_wnb1) _wnb1.classList.toggle('hidden', !owner);
         selfUpdate();
         if(owner){ loadCats().then(loadChanges).then(function(){ load(); publishSelf(); }); }
         else { loadPublic(); }
@@ -2223,7 +2223,7 @@
       var _sb2 = $('syncBox'); if(_sb2) _sb2.classList.add('hidden');
       $('passBtn').classList.add('hidden');
       $('insightBtn').classList.add('hidden');
-      $('whatsNewBtn').classList.add('hidden');
+      var _wnb2 = $('whatsNewBtn'); if(_wnb2) _wnb2.classList.add('hidden');
       loadPublic();
       selfUpdate();
     }
@@ -2585,6 +2585,7 @@
     else if(view.t === 'passes') renderPasses();
 
     else if(view.t === 'whatsnew') renderWhatsNew();
+    else if(view.t === 'settings') renderSettings();
     else if(view.t === 'search') renderSearch();
     else if(view.t === 'account') renderAccount();
     else renderHome();
@@ -4911,15 +4912,15 @@
     signIn(em, pw).then(function(){ $('msg').textContent = ''; show(); closeDrawer(); closeProfile(); })
       .catch(function(e){ $('msg').textContent = 'Sign-in failed. ' + (e && e.message ? e.message : ''); });
   };
-  $('syncNow').onclick = function(){ toast('Syncing…'); try{ load(); }catch(e){} };
+  var _sn = $('syncNow'); if(_sn) _sn.onclick = function(){ toast('Syncing…'); try{ load(); }catch(e){} };
   $('pinfo').onclick = openAccount;
   $('renSave').onclick = saveRename;
   $('renCancel').onclick = function(){ $('renModal').classList.add('hidden'); };
-  $('themeBtn').onclick = function(){ theme = theme==='dark'?'light':'dark'; ss('fd:theme', theme); applyTheme(); };
+  var _tbn = $('themeBtn'); if(_tbn) _tbn.onclick = function(){ theme = theme==='dark'?'light':'dark'; ss('fd:theme', theme); applyTheme(); };
   $('passBtn').onclick = function(){ closeProfile(); closeDrawer(); openPasses(); };
   $('insightBtn').onclick = function(){ closeProfile(); closeDrawer(); view = { t:'insights' }; render(); window.scrollTo(0,0); };
-  $('whatsNewBtn').onclick = function(){ closeProfile(); closeDrawer(); view = { t:'whatsnew' }; render(); window.scrollTo(0,0); };
-  $('legalBtn').onclick = function(){ window.open('terms.html', '_blank'); };
+  var _wnb = $('whatsNewBtn'); if(_wnb) _wnb.onclick = function(){ closeProfile(); closeDrawer(); view = { t:'whatsnew' }; render(); window.scrollTo(0,0); };
+  var _lgb = $('legalBtn'); if(_lgb) _lgb.onclick = function(){ window.open('terms.html', '_blank'); };
   $('doSignUp').onclick = function(){
     var em = $('email').value.trim(), pw = $('pass').value;
     if(!em || !pw){ $('msg').textContent = 'Enter your email and a password.'; return; }
@@ -7870,6 +7871,84 @@
   }
 
 
+  /* ---------- Settings: one organized place for every app setting ---------- */
+  function renderSettings(){
+    var c = $('content'); c.textContent = '';
+    var head = document.createElement('div'); head.className = 'viewhead';
+    var back = document.createElement('button'); back.className = 'btn sm'; back.textContent = '\u2190 Back';
+    back.onclick = function(){ view = { t:'home' }; render(); window.scrollTo(0,0); };
+    head.appendChild(back);
+    var tt = document.createElement('div'); tt.className = 'vhead'; tt.textContent = 'Settings'; head.appendChild(tt);
+    c.appendChild(head);
+
+    /* Appearance */
+    var a = document.createElement('div'); a.className = 'card3';
+    var al = document.createElement('div'); al.className = 'tlabel'; al.textContent = 'Appearance'; a.appendChild(al);
+    var tr = document.createElement('div'); tr.className = 'tchips'; tr.style.margin = '6px 0 2px';
+    [['light','Light'],['dark','Dark']].forEach(function(o){
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'tchip' + (theme === o[0] ? ' on' : ''); b.textContent = o[1];
+      b.onclick = function(){ theme = o[0]; ss('fd:theme', theme); applyTheme(); renderSettings(); };
+      tr.appendChild(b);
+    });
+    a.appendChild(tr);
+    var tl = document.createElement('div'); tl.className = 'tlabel'; tl.style.marginTop = '12px'; tl.textContent = 'Text size'; a.appendChild(tl);
+    var fr = document.createElement('div'); fr.className = 'tchips'; fr.style.margin = '6px 0 6px';
+    [['Small',0.9],['Default',1],['Large',1.12],['Larger',1.28]].forEach(function(o){
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'tchip' + (Math.abs(textScale - o[1]) < 0.001 ? ' on' : ''); b.textContent = o[0];
+      b.onclick = function(){ textScale = o[1]; ss('fd:textscale', textScale); applyTextSize(); renderSettings(); };
+      fr.appendChild(b);
+    });
+    a.appendChild(fr);
+    var demo = document.createElement('div'); demo.className = 'setdemo';
+    demo.textContent = 'The preferred drug in chronic heart failure is\u2026';
+    a.appendChild(demo);
+    c.appendChild(a);
+
+    /* Sync */
+    var s = document.createElement('div'); s.className = 'card3';
+    var sl = document.createElement('div'); sl.className = 'tlabel'; sl.textContent = 'Sync'; s.appendChild(sl);
+    var sn = document.createElement('button'); sn.type = 'button'; sn.className = 'btn wide'; sn.style.margin = '8px 0 0'; sn.textContent = 'Sync now';
+    sn.onclick = function(){ toast('Syncing\u2026'); try{ load(); }catch(e){} };
+    s.appendChild(sn);
+    var ar = document.createElement('div'); ar.className = 'tchips'; ar.id = 'autoSyncRow'; ar.style.margin = '8px 0 2px'; s.appendChild(ar);
+    var an = document.createElement('div'); an.className = 'muted small'; an.id = 'autoSyncNote'; an.style.margin = '0 0 4px'; s.appendChild(an);
+    c.appendChild(s);
+
+    /* Study & tests */
+    var st = document.createElement('div'); st.className = 'card3';
+    var stl = document.createElement('div'); stl.className = 'tlabel'; stl.textContent = 'Study & tests'; st.appendChild(stl);
+    var pr = document.createElement('div'); pr.className = 'tchips'; pr.style.margin = '6px 0 2px';
+    [['on','Include PYQ questions'],['off','Topic decks only']].forEach(function(o){
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'tchip' + ((testWithPyq ? 'on' : 'off') === o[0] ? ' on' : ''); b.textContent = o[1];
+      b.onclick = function(){ testWithPyq = (o[0] === 'on'); try{ ss('fd:testpyq', testWithPyq); }catch(e){} renderSettings(); };
+      pr.appendChild(b);
+    });
+    st.appendChild(pr);
+    var stn = document.createElement('div'); stn.className = 'muted small';
+    stn.textContent = 'Whether past-year (PYQ) papers are counted as questions when a paper is built.';
+    st.appendChild(stn);
+    c.appendChild(st);
+
+    /* About */
+    var ab = document.createElement('div'); ab.className = 'card3';
+    var abl = document.createElement('div'); abl.className = 'tlabel'; abl.textContent = 'About'; ab.appendChild(abl);
+    var bl = document.createElement('div'); bl.className = 'muted small'; bl.textContent = 'Build ' + APP_BUILD + ' \u2014 ' + BUILD_NOTE; ab.appendChild(bl);
+    if(IS_OWNER){
+      var wn = document.createElement('button'); wn.type = 'button'; wn.className = 'btn wide'; wn.style.marginTop = '8px'; wn.textContent = "What's New";
+      wn.onclick = function(){ view = { t:'whatsnew' }; render(); window.scrollTo(0,0); };
+      ab.appendChild(wn);
+    }
+    var lg = document.createElement('button'); lg.type = 'button'; lg.className = 'btn wide'; lg.style.marginTop = '8px'; lg.textContent = 'Terms, refund & privacy';
+    lg.onclick = function(){ window.open('terms.html', '_blank'); };
+    ab.appendChild(lg);
+    var ib = document.createElement('button'); ib.type = 'button'; ib.className = 'btn wide'; ib.style.marginTop = '8px'; ib.textContent = 'Install the app';
+    ib.onclick = function(){ try{ toast('Open your browser menu and choose Add to Home screen.'); }catch(e){} };
+    ab.appendChild(ib);
+    c.appendChild(ab);
+
+    try{ renderAutoSync(); }catch(e){}
+  }
+
   /* ================= Brand, Coverage, Exam planner, Error log ================= */
 
   /* The line under the brand name must end exactly where the name ends — whatever
@@ -8248,6 +8327,7 @@
     };
   }catch(e){}
   $('appTitle').onclick = function(){ view = { t:'home' }; render(); window.scrollTo(0,0); };
+  var _setb = $('settingsBtn'); if(_setb) _setb.onclick = function(){ closeProfile(); closeDrawer(); view = { t:'settings' }; render(); window.scrollTo(0,0); };
   var _ubBtn = $('updBtn');
   if(_ubBtn) _ubBtn.onclick = function(){
     if(!pendingSelfUpdate){ _ubBtn.classList.add('hidden'); return; }
