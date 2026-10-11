@@ -94,32 +94,10 @@ def fix_opts(opts):
     return opts
 
 REF = re.compile(r"\s*>?\s*\[[^\]]*\]\(tables/[^)]+\)[^\n]*")
-def decode_entities(t):
-    """Turn stray HTML entities into the characters they stand for.
-
-    The source PDFs/KB sometimes carry '&lt;', '&gt;', '&amp;' through extraction
-    (e.g. "rate of &lt;5 mg/dl"). Decode BEFORE the card is built - the app renders
-    text as plain text, not HTML, so an undecoded code shows up literally.
-    """
-    if t is None:
-        return t
-    t = str(t)
-    pairs = (("&lt;", "<"), ("&gt;", ">"), ("&quot;", '"'),
-             ("&#39;", "'"), ("&apos;", "'"), ("&nbsp;", " "),
-             ("&hellip;", "\u2026"), ("&ndash;", "\u2013"),
-             ("&mdash;", "\u2014"), ("&amp;", "&"))
-    for _ in range(2):          # two passes: a double-encoded &amp;lt; also resolves
-        before = t
-        for a, b in pairs:
-            t = t.replace(a, b)
-        if t == before:
-            break
-    return t
-
 def clean_refs(t):
     t = REF.sub(" ", t)
     t = re.sub(r"\s*>?\s*Answer Key\s*", " ", t)
-    return decode_entities(re.sub(r"\s+", " ", t).strip())
+    return re.sub(r"\s+", " ", t).strip()
 
 OVERRIDES = {
  ("Health Determinants and Indicators", 16): ("Which of the following are the components of the Physical Quality of Life Index (PQLI)?", ["Infant mortality rate, literacy rate and life expectancy at 1 year of age", "Birth rate, literacy rate and life expectancy at birth", "Infant mortality rate, per capita income and literacy rate", "Life expectancy, maternal mortality rate and literacy rate"], 0),
@@ -166,8 +144,11 @@ def build_cards(name, block, tables):
         if not exp: f.append("no-explain")
         if img: f.append("image")
         if img and stem: stem = (stem + " [Image: " + clean_refs(img)[:150] + "]").strip()
+        pg = re.search(r"\^p(\d+)-\d+", qs[n])
+        page = pg.group(1) if pg else ""
+        src = "%s — PSM Qbank Ed8, p.%s (Q%d)" % (name, page, n) if page else "%s — PSM Qbank Ed8 (Q%d)" % (name, n)
         card = {"id": "%s_q%d" % (dk, n), "type": "mcq", "q": stem, "options": opts, "answer": a,
-                "explain": decode_entities(exp), "src": "%s — PSM Qbank Ed8 (Q%d)" % (name, n), "tag": _tag(stem, n)}
+                "explain": exp, "src": src, "tag": _tag(stem, n)}
         if ov_ans is not None:
             card["gen"] = True; card["src"] += " [AI-regenerated from explanation]"
         cards.append(card)

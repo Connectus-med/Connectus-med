@@ -150,32 +150,10 @@ def fix_opts(opts):
 
 REF = re.compile(r"\s*>?\s*\[[^\]]*\]\(tables/[^)]+\)[^\n]*")
 LEAD = re.compile(r"^(?:\s*(?:Answer Key|Explanation)\b\s*(?:\(p\.\d+\))?|\s*\(p\.\d+\)|\s*\^p\d+-\d+)+\s*", re.I)
-def decode_entities(t):
-    """Turn stray HTML entities into the characters they stand for.
-
-    The source PDFs/KB sometimes carry '&lt;', '&gt;', '&amp;' through extraction
-    (e.g. "rate of &lt;5 mg/dl"). Decode BEFORE the card is built - the app renders
-    text as plain text, not HTML, so an undecoded code shows up literally.
-    """
-    if t is None:
-        return t
-    t = str(t)
-    pairs = (("&lt;", "<"), ("&gt;", ">"), ("&quot;", '"'),
-             ("&#39;", "'"), ("&apos;", "'"), ("&nbsp;", " "),
-             ("&hellip;", "\u2026"), ("&ndash;", "\u2013"),
-             ("&mdash;", "\u2014"), ("&amp;", "&"))
-    for _ in range(2):          # two passes: a double-encoded &amp;lt; also resolves
-        before = t
-        for a, b in pairs:
-            t = t.replace(a, b)
-        if t == before:
-            break
-    return t
-
 def clean_refs(t):
     t = REF.sub(" ", t)
     t = re.sub(r"\s*>?\s*Answer Key\s*", " ", t)
-    return decode_entities(re.sub(r"\s+", " ", t).strip())
+    return re.sub(r"\s+", " ", t).strip()
 
 
 def build_cards(num, name, block, tables):
@@ -200,8 +178,11 @@ def build_cards(num, name, block, tables):
         if not exp: f.append("no-explain")
         if img: f.append("image")
         if img and stem: stem = (stem + " [Image: " + clean_refs(img)[:150] + "]").strip()
+        pg = re.search(r"\^p(\d+)-\d+", qs[n])
+        page = pg.group(1) if pg else ""
+        src = "%s — Medicine Qbank Ed8, p.%s (Q%d)" % (name, page, n) if page else "%s — Medicine Qbank Ed8 (Q%d)" % (name, n)
         card = {"id": "%s_q%d" % (dk, n), "type": "mcq", "q": stem, "options": opts, "answer": a,
-                "explain": decode_entities(exp), "src": "%s — Medicine Qbank Ed8 (Q%d)" % (name, n), "tag": _tag(stem, n)}
+                "explain": exp, "src": src, "tag": _tag(stem, n)}
         cards.append(card)
         if f: flags.append((n, f))
     return dk, name, cards, flags
