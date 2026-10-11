@@ -10,6 +10,28 @@ from sarvam_tools import sarvam_kb_download_kb_files
 COLL = "col_b92ae989c18a446085d4b16a16499823"
 FOLDER = "12_Mendelian_and_Non-Mendelian_Disorders_27_Questions-9bd971a096d64071b3d080d97699c9d7"
 
+def decode_entities(t):
+    """Turn stray HTML entities into the characters they stand for.
+
+    The source PDFs/KB sometimes carry '&lt;', '&gt;', '&amp;' through extraction
+    (e.g. "rate of &lt;5 mg/dl"). Decode BEFORE the card is built - the app renders
+    text as plain text, not HTML, so an undecoded code shows up literally.
+    """
+    if t is None:
+        return t
+    t = str(t)
+    pairs = (("&lt;", "<"), ("&gt;", ">"), ("&quot;", '"'),
+             ("&#39;", "'"), ("&apos;", "'"), ("&nbsp;", " "),
+             ("&hellip;", "\u2026"), ("&ndash;", "\u2013"),
+             ("&mdash;", "\u2014"), ("&amp;", "&"))
+    for _ in range(2):          # two passes: a double-encoded &amp;lt; also resolves
+        before = t
+        for a, b in pairs:
+            t = t.replace(a, b)
+        if t == before:
+            break
+    return t
+
 def parse_questions(content):
     body = content.split("## Answer Key")[0]
     chunks = re.split(r"(?m)^## Question (\d+):", body)
