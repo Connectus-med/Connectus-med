@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install puppeteer (bundles Chromium)
+        run: npm init -y >/dev/null 2>&1; npm i puppeteer@23 --no-audit --no-fund
+      - name: Point the regression at the bundled Chromium
+        run: |
+          CHROME_BIN=$(node -e "console.log(require('puppeteer').executablePath())")
+          echo "CHROME=$CHROME_BIN" >> "$GITHUB_ENV"
+          echo "chromium at: $CHROME_BIN" 
+      - name: Run the regression suite
+        run: node tests/regression.js src/library.html
