@@ -113,6 +113,11 @@
   .back .tag{color:#fff; background:var(--accent-2)}
   .vbadge{font-size:.66rem; font-weight:800; letter-spacing:.02em; padding:4px 10px; border-radius:var(--cap); background:var(--line); color:var(--muted); cursor:pointer; white-space:nowrap; user-select:none; line-height:1.15}
   .vbadge.on{background:#16a34a; color:#fff}
+  /* the verify chip lives at the bottom, beside the controls - not in the card's
+     top row, where it crowded the Question/Answer tag */
+  .vrow{grid-column:1 / -1; display:flex; justify-content:center; align-items:center; margin-top:9px}
+  .vrow .vbadge{cursor:pointer}
+  .vrow:empty, .vrow.hidden{display:none}
   .lead{font-size:1.34rem; line-height:1.45; font-weight:700; letter-spacing:-.01em; margin:0}
   .back .lead{font-weight:600}
   .pts{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:11px}
@@ -339,8 +344,8 @@
 <main>
   <div class="scene">
     <div class="card" id="card">
-      <div class="face front"><div class="toprow"><span class="tag">Question</span><span class="chipgroup"><span class="vbadge" id="vbadgeF"></span><span class="cardtag tappable" id="chipF"></span></span></div><div class="inner" id="q"></div></div>
-      <div class="face back"><div class="toprow"><span class="tag">Answer</span><span class="chipgroup"><span class="vbadge" id="vbadgeB"></span><span class="cardtag tappable" id="chipB"></span></span></div><div class="inner"><div id="a"></div><div id="note"></div><div class="src" id="src"></div></div></div>
+      <div class="face front"><div class="toprow"><span class="tag">Question</span><span class="chipgroup"><span class="cardtag tappable" id="chipF"></span></span></div><div class="inner" id="q"></div></div>
+      <div class="face back"><div class="toprow"><span class="tag">Answer</span><span class="chipgroup"><span class="cardtag tappable" id="chipB"></span></span></div><div class="inner"><div id="a"></div><div id="note"></div><div class="src" id="src"></div></div></div>
     </div>
   </div>
   <div class="controls">
@@ -348,6 +353,7 @@
     <button id="flip" class="btn primary">Flip</button>
     <button id="next" class="btn">Next &#8594;</button>
   </div>
+  <div class="vrow" id="vrow"><span class="vbadge" id="vbadgeF"></span></div>
   <div class="rate hidden" id="rate">
     <button class="btn" data-r="0"><b>Again</b><small>&le;10%</small></button>
     <button class="btn" data-r="1"><b>Hard</b><small>upto 30%</small></button>
