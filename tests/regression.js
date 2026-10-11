@@ -73,6 +73,7 @@ const near = (got, want, tol) => Math.abs(got - want) <= tol;
     try {
       localStorage.setItem('fd:auth', JSON.stringify({ access_token: 'x', refresh_token: 'x', expires_at: 9999999999, user: { id: uid } }));
       localStorage.removeItem('fd:testrun'); localStorage.removeItem('fd:testseen'); localStorage.removeItem('fd:errors');
+      localStorage.removeItem('fd:errnotes'); localStorage.removeItem('fd:qstats');
     } catch (e) {}
   }, fx.uid);
   await page.goto('file://' + path.resolve(appPath), { waitUntil: 'domcontentloaded' });
@@ -259,22 +260,31 @@ const near = (got, want, tol) => Math.abs(got - want) <= tol;
   await submit();
   const ruhsScore = await page.evaluate(() => (document.querySelector('.tscore') || {}).textContent);
   check('RUHS-MO marking +1, no negative  => 1 / 100', ruhsScore === '1 / 100', ruhsScore);
+  // write our own line on the review screen — the error log must show ONLY this
+  await page.evaluate(() => {
+    const ta = document.querySelector('.errnote');
+    if (ta) { ta.value = 'regression: my own line'; ta.dispatchEvent(new Event('change')); }
+    const b = [...document.querySelectorAll('button')].find(x => /Save to error log/.test(x.textContent));
+    if (b) b.click();
+  });
+  await w(400);
   await clickTxt('New paper');
   await w(800);
 
-  // ---- 8. error log keeps only wrong + marked, and carries a palette ----
+  // ---- 8. error log = the user's own write-ups only ----
   await clickTxt('All test modes');
   await w(800);
   await clickTxt('Error log');
   await w(900);
   const errlog = await page.evaluate(() => {
-    const log = JSON.parse(localStorage.getItem('fd:errors') || '[]');
-    return { n: log.length, boxes: document.querySelectorAll('.errbox').length,
-             pal: document.querySelectorAll('.qpal .qpalcell').length,
+    const notes = JSON.parse(localStorage.getItem('fd:errnotes') || '{}');
+    return { n: Object.keys(notes).length, boxes: document.querySelectorAll('.errbox').length,
+             txt: (document.querySelector('.errnotetxt') || {}).textContent || '',
+             dump: (JSON.parse(localStorage.getItem('fd:errors') || '[]') || []).length,
              head: (document.querySelector('.vhead') || {}).textContent };
   });
-  check('error log opens with a palette', errlog.head === 'Error log' && errlog.pal === errlog.boxes && errlog.n > 0,
-    `boxes=${errlog.boxes} pal=${errlog.pal} logged=${errlog.n}`);
+  check('error log shows your own write-ups only', errlog.head === 'Error log' && errlog.n > 0 && /my own line/.test(errlog.txt) && errlog.dump === 0,
+    `notes=${errlog.n} boxes=${errlog.boxes} txt="${errlog.txt}" dump=${errlog.dump}`);
 
   await browser.close();
 
