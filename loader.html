@@ -21,51 +21,70 @@
   button{width:100%;padding:13px;border-radius:999px;border:0;background:var(--accent-2);color:#fff;font:inherit;font-weight:800;cursor:pointer}
   button:active{transform:translateY(1px)}
   .err{color:var(--muted);font-size:.85rem;line-height:1.5;margin:0 0 14px}
-  .tiny{color:var(--muted);font-size:.7rem;margin-top:12px;opacity:.8}
 </style>
 </head>
 <body>
 <div class="card" id="card">
   <div class="spin" id="spin"></div>
   <h1 class="brand">Connectus</h1>
-  <p class="q">Loading the latest version…</p>
+  <p class="q">Loading…</p>
   <p class="err" id="err" style="display:none"></p>
   <button id="retry" style="display:none">Try again</button>
-  <div class="tiny" id="tiny"></div>
 </div>
 <script>
 /* Connectus loader — the deployed page never goes stale.
-   It fetches the LIVE build from the cloud and renders it, so the site is
-   always current no matter how old this file is. Nothing else lives here. */
+   1. If we have the last good build cached, render it IMMEDIATELY (no spinner).
+   2. Then fetch the live build; if it differs and we are still on the very
+      first screen, swap it in; otherwise keep it for the next open. */
 (function(){
   var SB = "https://vcsfjzlelpwditxdbaea.supabase.co";
   var KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZjc2ZqemxlbHB3ZGl0eGRiYWVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE0NTg2NTEsImV4cCI6MjEwNzAzNDY1MX0.Sx9wB-78a4DEfdA67kSZpAA2qIIkxPBSH84chU_0RPc";
   var FN = SB + "/functions/v1/medcircuit";
+  var CACHE = "fd:appcache";
   var spin = document.getElementById("spin"), err = document.getElementById("err");
-  var retry = document.getElementById("retry"), tiny = document.getElementById("tiny");
-  try{ var th = localStorage.getItem("fd:theme"); if(th === "dark") document.body.classList.add("dark"); }catch(e){}
+  var retry = document.getElementById("retry");
+  var started = Date.now(), rendered = false;
+  try{ if(localStorage.getItem("fd:theme") === "dark") document.body.classList.add("dark"); }catch(e){}
+
+  function ok(html){
+    return html && html.indexOf('id="content"') >= 0 && html.indexOf("collapseFab") >= 0 && html.indexOf("</html>") >= 0;
+  }
+  function buildOf(html){ var m = String(html).match(/var APP_BUILD = '([^']+)'/); return m ? m[1] : ""; }
+  function show(html){
+    rendered = true;
+    try{ sessionStorage.setItem("fd:selfupdate", buildOf(html)); }catch(e){}
+    document.open(); document.write(html); document.close();
+  }
   function fail(msg){
+    if(rendered) return;
     spin.style.display = "none";
     err.style.display = "block";
     err.textContent = msg || "Could not reach the server. Check your connection and try again.";
     retry.style.display = "block";
   }
-  function load(){
-    err.style.display = "none"; retry.style.display = "none"; spin.style.display = "block";
+  function cached(){
+    try{ var c = localStorage.getItem(CACHE); return (c && ok(c)) ? c : null; }catch(e){ return null; }
+  }
+  function remember(html){ try{ localStorage.setItem(CACHE, html); }catch(e){ /* full or blocked */ } }
+
+  function fresh(){
     fetch(FN + "?_=" + Date.now(), { headers: { "apikey": KEY }, cache: "no-store" })
       .then(function(r){ if(!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
       .then(function(html){
-        if(html.indexOf('id="content"') < 0 || html.indexOf("collapseFab") < 0 || html.indexOf("</html>") < 0){
-          throw new Error("bad build");
-        }
-        var m = html.match(/var APP_BUILD = '([^']+)'/);
-        try{ sessionStorage.setItem("fd:selfupdate", m ? m[1] : ""); }catch(e){}
-        document.open(); document.write(html); document.close();
+        if(!ok(html)) throw new Error("bad build");
+        var cachedHtml = cached();
+        remember(html);
+        if(!cachedHtml){ show(html); return; }
+        /* we already painted the cached build — swap only if the user has not started working */
+        if(buildOf(html) !== buildOf(cachedHtml) && Date.now() - started < 6000) show(html);
       })
       .catch(function(){ fail(); });
   }
-  retry.onclick = load;
-  load();
+
+  var c0 = cached();
+  if(c0){ show(c0); fresh(); }        /* instant open, then check for a newer build */
+  else { fresh(); }                    /* first ever visit: spinner, then paint */
+  retry.onclick = function(){ err.style.display = "none"; retry.style.display = "none"; spin.style.display = "block"; fresh(); };
 })();
 </script>
 </body>
