@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#f97316">
+<meta http-equiv="Cache-Control" content="no-cache">
 <title>Connectus - Flashcards</title>
 <style>
   :root{--accent:#f97316;--accent-2:#ea580c;--bg:#f7f4f1;--panel:#fff;--ink:#20160f;--muted:#7a6a5d;--line:#ecdfd3}
@@ -21,70 +22,88 @@
   button{width:100%;padding:13px;border-radius:999px;border:0;background:var(--accent-2);color:#fff;font:inherit;font-weight:800;cursor:pointer}
   button:active{transform:translateY(1px)}
   .err{color:var(--muted);font-size:.85rem;line-height:1.5;margin:0 0 14px}
+  .tiny{color:var(--muted);font-size:.7rem;margin-top:12px;opacity:.75}
 </style>
 </head>
 <body>
 <div class="card" id="card">
   <div class="spin" id="spin"></div>
   <h1 class="brand">Connectus</h1>
-  <p class="q">Loading…</p>
+  <p class="q" id="msg">Starting…</p>
   <p class="err" id="err" style="display:none"></p>
   <button id="retry" style="display:none">Try again</button>
+  <div class="tiny" id="tiny"></div>
 </div>
 <script>
-/* Connectus loader — the deployed page never goes stale.
-   1. If we have the last good build cached, render it IMMEDIATELY (no spinner).
-   2. Then fetch the live build; if it differs and we are still on the very
-      first screen, swap it in; otherwise keep it for the next open. */
+/* Connectus loader. Rules it must never break:
+   1. Never spin forever — every network call has a timeout.
+   2. Paint the last good build instantly if we have one.
+   3. Check for a newer build in the background; swap only if the user has not started.
+   4. On failure, always offer a way forward (Try again), never a dead end. */
 (function(){
   var SB = "https://vcsfjzlelpwditxdbaea.supabase.co";
   var KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZjc2ZqemxlbHB3ZGl0eGRiYWVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE0NTg2NTEsImV4cCI6MjEwNzAzNDY1MX0.Sx9wB-78a4DEfdA67kSZpAA2qIIkxPBSH84chU_0RPc";
   var FN = SB + "/functions/v1/medcircuit";
-  var CACHE = "fd:appcache";
+  var CACHE = "fd:appcache", TIMEOUT = 20000;
   var spin = document.getElementById("spin"), err = document.getElementById("err");
-  var retry = document.getElementById("retry");
-  var started = Date.now(), rendered = false;
+  var retry = document.getElementById("retry"), msg = document.getElementById("msg"), tiny = document.getElementById("tiny");
+  var started = Date.now(), rendered = false, trying = false;
   try{ if(localStorage.getItem("fd:theme") === "dark") document.body.classList.add("dark"); }catch(e){}
 
-  function ok(html){
-    return html && html.indexOf('id="content"') >= 0 && html.indexOf("collapseFab") >= 0 && html.indexOf("</html>") >= 0;
-  }
-  function buildOf(html){ var m = String(html).match(/var APP_BUILD = '([^']+)'/); return m ? m[1] : ""; }
-  function show(html){
+  function ok(h){ return h && h.indexOf('id="content"') >= 0 && h.indexOf("collapseFab") >= 0 && h.indexOf("</html>") >= 0; }
+  function buildOf(h){ var m = String(h).match(/var APP_BUILD = '([^']+)'/); return m ? m[1] : ""; }
+  function show(h){
     rendered = true;
-    try{ sessionStorage.setItem("fd:selfupdate", buildOf(html)); }catch(e){}
-    document.open(); document.write(html); document.close();
+    try{ sessionStorage.setItem("fd:selfupdate", buildOf(h)); }catch(e){}
+    document.open(); document.write(h); document.close();
   }
-  function fail(msg){
-    if(rendered) return;
+  function getCached(){ try{ var c = localStorage.getItem(CACHE); return (c && ok(c)) ? c : null; }catch(e){ return null; } }
+  function put(h){ try{ localStorage.setItem(CACHE, h); }catch(e){ /* quota / private mode */ } }
+
+  /* fetch with a hard timeout — the whole point: never hang */
+  function pull(){
+    var ctl = null;
+    try{ ctl = new AbortController(); }catch(e){ ctl = null; }
+    var timer = setTimeout(function(){ try{ if(ctl) ctl.abort(); }catch(e){} }, TIMEOUT);
+    return fetch(FN + "?_=" + Date.now(), { headers: { "apikey": KEY }, cache: "no-store", signal: ctl ? ctl.signal : undefined })
+      .then(function(r){ clearTimeout(timer); if(!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
+      .catch(function(e){ clearTimeout(timer); throw e; });
+  }
+
+  function fail(soft){
+    /* soft = we already painted a cached build, so say nothing loud */
+    if(soft || rendered){ tiny.textContent = "Showing the last saved copy — will retry when online."; return; }
     spin.style.display = "none";
+    msg.style.display = "none";
     err.style.display = "block";
-    err.textContent = msg || "Could not reach the server. Check your connection and try again.";
+    err.textContent = "Could not load the app. Check your connection and tap Try again.";
     retry.style.display = "block";
   }
-  function cached(){
-    try{ var c = localStorage.getItem(CACHE); return (c && ok(c)) ? c : null; }catch(e){ return null; }
-  }
-  function remember(html){ try{ localStorage.setItem(CACHE, html); }catch(e){ /* full or blocked */ } }
 
-  function fresh(){
-    fetch(FN + "?_=" + Date.now(), { headers: { "apikey": KEY }, cache: "no-store" })
-      .then(function(r){ if(!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
-      .then(function(html){
-        if(!ok(html)) throw new Error("bad build");
-        var cachedHtml = cached();
-        remember(html);
-        if(!cachedHtml){ show(html); return; }
-        /* we already painted the cached build — swap only if the user has not started working */
-        if(buildOf(html) !== buildOf(cachedHtml) && Date.now() - started < 6000) show(html);
-      })
-      .catch(function(){ fail(); });
+  function refresh(){
+    if(trying) return;
+    trying = true;
+    pull().then(function(html){
+      trying = false;
+      if(!ok(html)) throw new Error("bad build");
+      var old = getCached();
+      put(html);
+      if(!old){ show(html); return; }
+      if(buildOf(html) !== buildOf(old) && Date.now() - started < 6000){ show(html); }
+      else { tiny.textContent = "Up to date."; setTimeout(function(){ tiny.textContent = ""; }, 1500); }
+    }).catch(function(){ trying = false; fail(!!getCached()); });
   }
 
-  var c0 = cached();
-  if(c0){ show(c0); fresh(); }        /* instant open, then check for a newer build */
-  else { fresh(); }                    /* first ever visit: spinner, then paint */
-  retry.onclick = function(){ err.style.display = "none"; retry.style.display = "none"; spin.style.display = "block"; fresh(); };
+  var c0 = getCached();
+  if(c0){ msg.textContent = "Opening…"; show(c0); refresh(); }
+  else { msg.textContent = "Loading the latest version…"; refresh(); }
+
+  retry.onclick = function(){
+    err.style.display = "none"; retry.style.display = "none"; spin.style.display = "block"; msg.style.display = "block";
+    msg.textContent = "Retrying…"; refresh();
+  };
+  /* if the tab comes back and we never painted, try again */
+  document.addEventListener("visibilitychange", function(){ if(!document.hidden && !rendered) refresh(); });
 })();
 </script>
 </body>
