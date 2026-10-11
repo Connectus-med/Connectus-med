@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-15 12:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-16 14:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -630,6 +630,40 @@
     padding:11px 13px; font:inherit; font-size:.92rem; margin:0 0 8px}
   .legalline{margin:10px 2px 20px; font-size:.76rem; color:var(--muted); line-height:1.55}
   .legalline a{color:var(--accent-2); font-weight:650}
+  /* question & explanation images (review / result) */
+  .qimgbox{margin-top:8px}
+  .qimgcap{font-size:.68rem; font-weight:800; letter-spacing:.07em; text-transform:uppercase; color:var(--muted); margin-bottom:5px}
+  .qimgthumbs{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:6px}
+  .qimgthumb{position:relative; display:inline-block; border:1px solid var(--line); border-radius:12px; overflow:hidden; background:var(--panel)}
+  .qimgthumb img{display:block; width:104px; height:104px; object-fit:cover}
+  .qimgthumb .rm{position:absolute; top:3px; right:3px; width:20px; height:20px; border-radius:50%; border:0; background:rgba(0,0,0,.62); color:#fff; font-size:14px; line-height:18px; cursor:pointer; padding:0}
+  .qimgrow{display:flex; gap:8px; flex-wrap:wrap}
+  .clipov{position:fixed; inset:0; z-index:120; background:rgba(0,0,0,.55); display:flex; align-items:center; justify-content:center; padding:20px}
+  .clipov-box{background:var(--panel); border:1px solid var(--line); border-radius:18px; padding:16px; width:min(420px,92vw); max-height:80vh; overflow:auto}
+  .clipov-h{font-weight:800; margin-bottom:10px}
+  .clipov-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(96px,1fr)); gap:8px; margin-bottom:12px}
+  .clipov-grid img{width:100%; height:96px; object-fit:cover; border-radius:12px; border:1px solid var(--line); cursor:pointer}
+  .tstart.wide{display:block; width:100%; text-align:center; margin-top:10px}
+  /* mistake analysis */
+  .an-head{display:flex; align-items:baseline; justify-content:space-between; gap:8px}
+  .an-big{font-size:1.7rem; font-weight:850; color:var(--accent-2); line-height:1.1}
+  .an-row{display:flex; align-items:center; gap:8px; margin:5px 0; font-size:.82rem}
+  .an-lab{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .an-bar{flex:none; width:96px; height:8px; border-radius:999px; background:var(--line); overflow:hidden}
+  .an-bar i{display:block; height:100%; background:var(--accent-2)}
+  .an-pct{flex:none; min-width:44px; text-align:right; font-weight:800}
+  .an-worst{padding:8px 0; border-top:1px solid var(--line)}
+  .an-worst:first-of-type{border-top:0}
+  .an-worst-m{font-size:.72rem; color:var(--muted); margin-bottom:2px}
+  .an-worst-q{font-size:.85rem; line-height:1.4}
+  .an-strategy{margin-top:10px; padding:10px 12px; border-left:3px solid var(--accent-2); background:var(--accent-soft); border-radius:10px; font-size:.85rem; line-height:1.5}
+  .thist-btn{display:flex; width:100%; border:0; background:none; color:inherit; font:inherit; text-align:left; cursor:pointer; padding:7px 0}
+  .thist-btn:hover{color:var(--accent-2)}
+  .thist-off{opacity:.6; cursor:default}
+  .thist-rev{color:var(--accent-2); font-size:.72rem; font-weight:800; flex:none}
+  /* pre-launch gate: nothing for non-owners yet */
+  body.launch-closed #tabbar{display:none!important}
+  body.launch-closed main{padding-bottom:calc(24px + env(safe-area-inset-bottom,0px))!important}
 </style>
 </head>
 <body>
@@ -791,9 +825,27 @@
   var viewRestored = false;
   var testPriority = null;   /* deck|id keys the paper must include (weak-areas paper) */
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
-  var APP_BUILD = '2026-10-14 09:00';
-  var BUILD_NOTE = 'Owner status no longer drops out on a network blip, and the result navigator is a strip across the top instead of a column down the side.';
+  var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
+  var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
+  var APP_BUILD = '2026-10-16 14:00';
+  var BUILD_NOTE = 'RUHS-MO paper blueprint rebalanced to the real past-paper weightage - Medicine is now the heaviest subject.';
   var CHANGELOG = [
+    { build:'2026-10-16 14:00', title:'RUHS-MO blueprint now matches the real paper', items:[
+      'The RUHS-MO subject weights were rebuilt from a 700-question RUHS-MO past-paper analysis (2015\u20132024-25, General Knowledge excluded).',
+      'Medicine is now the heaviest subject (19), ahead of Community Medicine (11) - previously Community Medicine led at 20. Pharmacology, Pathology, Surgery and every other subject now follow their real share of the paper.',
+      'Only the RUHS-MO pattern changed; the NEET-PG and INI-CET weights are untouched.',
+    ]},
+    { build:'2026-10-16 12:00', title:'Not open to everyone yet', items:[
+      'The library is owner-only while it is still being prepared: signing out, or signing in with an account that is not the owner, now shows a short "not open yet" notice instead of the catalogue. Nothing is offered to free or paid visitors until it is opened.',
+      'The owner is unaffected - the full library, tests, review, error log and analysis all work exactly as before. Opening the app to everyone is a one-line change.',
+    ]},
+    { build:'2026-10-16 10:00', title:'Past papers re-open, mistake analysis, and images in review', items:[
+      'Past tests can now be re-opened: tap any row under Past tests to see the whole paper again - every question, your answer, the correct answer and the explanation - exactly as after submit.',
+      'From any result, one tap practises just the questions you marked plus the ones you got wrong. Marked questions are included now, not only the missed ones.',
+      'You can attach an image to a question (1) and to its explanation (3) while reviewing - Add image or Paste from clipboard, each with its own Remove, synced across your devices.',
+      'A new Review one by one mode walks the paper a question at a time; the answer stays hidden until you tap Show answer, so the review is honest.',
+      'The Error log now opens with an Analysis block: your overall wrong rate, the split by hashtag type, by question pattern (single / MTF / image), by subject and by chapter, the worst questions first, a plain-language strategy line, and a one-tap paper of your worst questions.',
+    ]},
     { build:'2026-10-15 12:00', title:'Owner status holds, and the navigator moved up top', items:[
       'Fixed: the owner was sometimes shown as an ordinary customer - the profile menu offered \u201cOwner access\u201d and asked for a recovery code, while the owner was already signed in. Ownership was being decided by a single settings read, and any network hiccup or a token refresh in flight made that read fail. A failed read now keeps the last known answer, and the answer is remembered on the device.',
       'The question navigator on the result review is now a single row across the top of the screen, scrolled sideways - instead of a scrollbar column down the right edge.',
@@ -2240,6 +2292,8 @@
     });
   }
   function load(){
+    LAUNCH_CLOSED = false;
+    try{ document.body.classList.remove('launch-closed'); }catch(e){}
     lastLoadAt = Date.now();
     setDot('on');
     ensureAuth().then(function(){
@@ -2391,6 +2445,7 @@
 
       treeData = tree; aggData = agg; decksData = decks;
       loadImgMap();
+      qimgLoad();
       if(view.t === 'subject' && !(tree[view.y] && tree[view.y][view.s])) view = { t:'home' };
       var _sig;
       try{ _sig = JSON.stringify(states) + '|' + (decks||[]).map(function(d){ return d.deck_key + ':' + ((typeof d.n === 'number') ? d.n : (Array.isArray(d.cards) ? d.cards.length : 0)) + ':' + (d.updated_at||'') + ':' + (d.subject||'') + ':' + (d.unit||'') + ':' + (d.category||'') + ':' + (d.set_no||1); }).join(',') + '|' + JSON.stringify(roundsMap) + '|' + (taxRows||[]).length + '|' + view.t; }
@@ -2412,7 +2467,7 @@
     render(); window.scrollTo(0,0);
   }
   function paintTabs(){
-    var cur = (view.t === 'home') ? 'home' : (view.t === 'revise') ? 'revise' : (view.t === 'learn') ? 'learn' : (view.t === 'owner') ? 'owner' : (view.t === 'test' || view.t === 'errors') ? 'test' : null;
+    var cur = (view.t === 'home') ? 'home' : (view.t === 'revise') ? 'revise' : (view.t === 'learn') ? 'learn' : (view.t === 'owner') ? 'owner' : (view.t === 'test' || view.t === 'errors' || view.t === 'review1') ? 'test' : null;
     Array.prototype.forEach.call(document.querySelectorAll('#tabbar .tab'), function(b){
       b.classList.toggle('on', b.dataset.tab === cur);
     });
@@ -2420,15 +2475,18 @@
   function render(){
     try{ window.__lastRender = view && view.t; }catch(e){}
     /* a swap was held back while a test was open - do it now that we have left */
-    try{ if(view.t !== 'test' && applyPendingSelfUpdate()) return; }catch(e){}
+    try{ if(view.t !== 'test' && view.t !== 'review1' && applyPendingSelfUpdate()) return; }catch(e){}
     try{ ss('fd:builder', { custom:testCustom, exam:testExam, len:testLen, y:testSelYears, s:testSelSubjects, u:testSelUnits, c:testSelChapters }); }catch(e){}
     try{ ss('fd:view', view); }catch(e){}
     try{ clearQPal(); }catch(e){}
+    document.body.classList.toggle('launch-closed', !!(LAUNCH_CLOSED && !IS_OWNER));
+    if(LAUNCH_CLOSED && !IS_OWNER){ showClosed(); updateFab(); paintTabs(); return; }
     if(view.t === 'subject') renderSubject(view.y, view.s);
     else if(view.t === 'revise') renderRevise();
     else if(view.t === 'learn') renderLearn();
     else if(view.t === 'test') renderTest();
     else if(view.t === 'errors') renderErrors();
+    else if(view.t === 'review1') renderReview1();
     else if(view.t === 'owner') renderOwner();
     else if(view.t === 'passes') renderPasses();
 
@@ -4127,7 +4185,22 @@
     }).then(function(r){ return r.json(); });
   }
 
+  function showClosed(){
+    try{ document.body.classList.add('launch-closed'); }catch(e){}
+    var c = $('content'); if(!c) return; c.textContent = '';
+    var wrap = document.createElement('div'); wrap.className = 'card3'; wrap.style.marginTop = '18px';
+    var h = document.createElement('div'); h.className = 'big'; h.textContent = 'Connectus is not open yet'; wrap.appendChild(h);
+    var p = document.createElement('div'); p.className = 'muted'; p.style.marginTop = '8px';
+    p.textContent = 'The library is still being prepared, so it is not open to everyone yet. Thank you for your patience.';
+    wrap.appendChild(p);
+    var n = document.createElement('div'); n.className = 'muted small'; n.style.marginTop = '10px';
+    n.textContent = 'Already have access? Sign in from the profile button at the top-right.';
+    wrap.appendChild(n);
+    c.appendChild(wrap);
+  }
   function loadPublic(){
+    if(LAUNCH_OWNER_ONLY && !IS_OWNER){ LAUNCH_CLOSED = true; showClosed(); return; }
+    LAUNCH_CLOSED = false;
     setDot('');
     $('content').textContent = '';
     apiJson('?api=catalog').then(function(x){
@@ -4993,14 +5066,14 @@
              '2024: first CBT paper; clinical case-based scenarios start appearing; cut-off 65+.',
              '2025: about half the paper is clinical case-based; Medicine, Pharmacology and Radiology clearly tougher.',
              'PSM and Forensic Medicine have stayed simple and direct every year — easy marks.',
-             'RUHS publishes no official subject-wise split; this table uses past-paper trends.'],
+             'RUHS publishes no official subject-wise split; the weights here are set from a 700-question RUHS-MO past-paper analysis (2015\u20132024-25), General Knowledge excluded.'],
       mix:{'Basics&Fundamentals':0.15,'MainConcepts':0.40,'Integrated&Complex':0.45},
       diff:{easy:0.50,mod:0.38,hard:0.12}, imgShare:0.15, mtfShare:0,
-      w:[['Community Medicine',20],['General Medicine',16],['General Surgery',13],['Obstetrics & Gynaecology',11],
-         ['Pediatrics',7],['Pharmacology',6],['Forensic Medicine & Toxicology',6],['Pathology',3],['Microbiology',2],
-         ['Anatomy',2],['Physiology',2],['Biochemistry',1],['Orthopaedics',2],['ENT (Otorhinolaryngology)',2],
-         ['Ophthalmology',2],['Psychiatry',2],['Dermatology, Venereology & Leprosy',1],['Anaesthesiology',1],
-         ['Radiodiagnosis',1]] }
+      w:[['General Medicine',19],['Community Medicine',11],['Pharmacology',10],['Pathology',9],
+         ['General Surgery',6],['Obstetrics & Gynaecology',5],['Physiology',5],['Pediatrics',5],
+         ['Biochemistry',4],['Anatomy',4],['ENT (Otorhinolaryngology)',4],['Radiodiagnosis',4],
+         ['Orthopaedics',3],['Ophthalmology',3],['Forensic Medicine & Toxicology',3],['Microbiology',2],
+         ['Dermatology, Venereology & Leprosy',1],['Psychiatry',1],['Anaesthesiology',1]] }
   ];
   function examOf(k){ for(var i=0;i<EXAMS.length;i++){ if(EXAMS[i].k === k) return EXAMS[i]; } return EXAMS[0]; }
   function blueprintPlan(len, pool, W){
@@ -6179,12 +6252,19 @@
                       + ' \u00b7 ' + pct.length + ' papers';
         tr.appendChild(tx); hc.appendChild(tr);
       })();
+      var _papers = ls('fd:testpapers', {}); if(!_papers || typeof _papers !== 'object' || Array.isArray(_papers)) _papers = {};
       hist.slice(0, 6).forEach(function(t){
-        var r = document.createElement('div'); r.className = 'thist';
+        var has = !!_papers[String(t.ts)];
+        var r = document.createElement('button'); r.type = 'button';
+        r.className = 'thist thist-btn' + (has ? '' : ' thist-off');
+        if(!has) r.disabled = true;
         var a = document.createElement('span'); a.className = 'thist-d'; a.textContent = new Date(t.ts).toLocaleDateString();
         var b = document.createElement('span'); b.className = 'thist-s'; b.textContent = t.right + '/' + t.n + '  (' + Math.round(t.right / (t.n||1) * 100) + '%)';
         var c = document.createElement('span'); c.className = 'thist-t'; c.textContent = (t.scope && t.scope !== 'all' ? t.scope : 'All subjects') + ' \u00b7 ' + fmtClock(t.secs||0);
-        r.appendChild(a); r.appendChild(b); r.appendChild(c); hc.appendChild(r);
+        r.appendChild(a); r.appendChild(b); r.appendChild(c);
+        if(has){ var rv = document.createElement('span'); rv.className = 'thist-rev'; rv.textContent = 'Review'; r.appendChild(rv); }
+        if(has) r.onclick = function(){ openPastTest(t.ts); };
+        hc.appendChild(r);
       });
       wrap.appendChild(hc);
     }
@@ -6686,12 +6766,368 @@
     try{ var h = ls('fd:tests', []); if(!Array.isArray(h)) h = [];
       h.unshift({ ts:res.ts, n:res.n, right:res.right, score:res.score, max:res.max, secs:res.secs, scope:res.scope });
       ss('fd:tests', h.slice(0, 30)); }catch(e){}
+    try{ savePaper(res); }catch(e){}
     try{ ss('fd:testrun', null); }catch(e){}
     testRun = null;
     view.tResult = res;
     renderTestResult();
   }
 
+  /* ================= Question & explanation images (review / result) =================
+     Same idea as a card's images, but for a question you are reviewing: 1 image on
+     the question, up to 3 on its explanation. Stored per user under settings
+     'qimgs:<deck_key>' and merged by the newest _u, exactly like the deck images. */
+  var QIMG_PREFIX = 'qimgs:';
+  var qimgStore = {};
+  try{ qimgStore = ls('fd:qimgs', {}); }catch(e){ qimgStore = {}; }
+  if(!qimgStore || typeof qimgStore !== 'object' || Array.isArray(qimgStore)) qimgStore = {};
+  function qimgSaveLocal(){ ss('fd:qimgs', qimgStore); }
+  function qimgOf(dk){ if(!qimgStore[dk]) qimgStore[dk] = {}; return qimgStore[dk]; }
+  function qimgList(dk, qid, side){ var o = qimgOf(dk)[qid]; if(!o) return []; var v = o[side]; if(!v) return []; return Array.isArray(v) ? v : [v]; }
+  function qimgLimit(side){ return side === 'e' ? 3 : 1; }   /* question 1, explanation 3 */
+  function qimgPush(dk){
+    if(!session || !session.user) return;
+    try{
+      var val = qimgStore[dk] || {};
+      post('/rest/v1/settings?on_conflict=user_id,key',
+        { user_id: session.user.id, key: QIMG_PREFIX + dk, value: JSON.stringify(val), updated_at: new Date().toISOString() }).catch(function(){});
+    }catch(e){}
+  }
+  function qimgSet(dk, qid, side, arr){
+    var o = qimgOf(dk), rec = o[qid] || (o[qid] = {});
+    if(arr && arr.length) rec[side] = arr; else delete rec[side];
+    rec._u = Date.now();
+    if(!rec.q && !rec.e) delete o[qid];
+    if(!Object.keys(o).length) delete qimgStore[dk];
+    qimgSaveLocal(); qimgPush(dk);
+  }
+  function qimgAdd(dk, qid, side, data){
+    if(!data) return false;
+    var arr = qimgList(dk, qid, side).slice();
+    if(arr.length >= qimgLimit(side)) return false;
+    arr.push(data); qimgSet(dk, qid, side, arr); return true;
+  }
+  function qimgDel(dk, qid, side, idx){
+    var arr = qimgList(dk, qid, side).slice(); arr.splice(idx, 1); qimgSet(dk, qid, side, arr);
+  }
+  function qimgLoad(){
+    try{ var loc = ls('fd:qimgs', {}); if(loc && typeof loc === 'object' && !Array.isArray(loc)) qimgStore = loc; }catch(e){}
+    try{
+      if(!session) return;
+      var uid = session.user.id;
+      get('/rest/v1/settings?select=key,value&key=like.' + encodeURIComponent(QIMG_PREFIX + '%') + '&user_id=eq.' + uid).then(function(rows){
+        var ch = false;
+        (rows || []).forEach(function(r){
+          var dk = String(r.key || '').slice(QIMG_PREFIX.length); if(!dk) return;
+          var v = {}; try{ v = JSON.parse(r.value || '{}'); }catch(e){ v = {}; }
+          var cur = qimgStore[dk] || (qimgStore[dk] = {});
+          Object.keys(v || {}).forEach(function(qid){
+            var b = v[qid]; if(!b) return;
+            var a = cur[qid];
+            if(!a || (b._u || 0) >= (a._u || 0)){ if(JSON.stringify(a) !== JSON.stringify(b)){ cur[qid] = b; ch = true; } }
+          });
+        });
+        if(ch){ qimgSaveLocal(); try{ render(); }catch(e){} }
+      }).catch(function(){});
+    }catch(e){}
+  }
+  /* downscale to at most 1000px, JPEG - same as a card image */
+  function qimgShrink(file, cb){
+    var r = new FileReader();
+    r.onload = function(){
+      var im = new Image();
+      im.onload = function(){
+        var mx = 1000, w = im.width, h = im.height;
+        if(w > mx || h > mx){ var sc = Math.min(mx / w, mx / h); w = Math.round(w * sc); h = Math.round(h * sc); }
+        var cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+        cv.getContext('2d').drawImage(im, 0, 0, w, h);
+        try{ cb(cv.toDataURL('image/jpeg', 0.72)); }catch(e){ cb(null); }
+      };
+      im.onerror = function(){ cb(null); };
+      im.src = r.result;
+    };
+    r.onerror = function(){ cb(null); };
+    r.readAsDataURL(file);
+  }
+  function qimgClipPick(cb){
+    if(!(navigator.clipboard && navigator.clipboard.read)){ toast('This browser cannot read clipboard images \u2014 save the image and use Add image.'); return; }
+    navigator.clipboard.read().then(function(items){
+      var jobs = [];
+      (items || []).forEach(function(it){ (it.types || []).forEach(function(t){ if(t.indexOf('image') === 0){ jobs.push(it.getType(t).catch(function(){ return null; })); } }); });
+      return Promise.all(jobs);
+    }).then(function(blobs){
+      blobs = (blobs || []).filter(Boolean);
+      if(!blobs.length){ toast('No image on the clipboard. Copy an image first.'); return; }
+      if(blobs.length === 1){ qimgShrink(blobs[0], function(d){ if(d) cb(d); else toast('Could not read that image.'); }); return; }
+      qimgClipOverlay(blobs, cb);
+    }).catch(function(){ toast('Could not read the clipboard \u2014 allow access, or use Add image.'); });
+  }
+  function qimgClipOverlay(blobs, cb){
+    var ov = document.createElement('div'); ov.className = 'clipov';
+    var box = document.createElement('div'); box.className = 'clipov-box';
+    var hh = document.createElement('div'); hh.className = 'clipov-h'; hh.textContent = 'Pick an image'; box.appendChild(hh);
+    var g = document.createElement('div'); g.className = 'clipov-grid';
+    function close(){ try{ document.body.style.overflow = ''; }catch(e){} if(ov.parentNode) ov.parentNode.removeChild(ov); }
+    blobs.forEach(function(b){
+      var im = document.createElement('img'); im.src = URL.createObjectURL(b); im.title = 'Tap to attach';
+      im.onclick = function(){ qimgShrink(b, function(d){ try{ URL.revokeObjectURL(im.src); }catch(e){} close(); if(d) cb(d); }); };
+      g.appendChild(im);
+    });
+    box.appendChild(g);
+    var cancel = document.createElement('button'); cancel.type = 'button'; cancel.className = 'btn'; cancel.textContent = 'Cancel';
+    cancel.onclick = close; box.appendChild(cancel);
+    ov.appendChild(box); document.body.appendChild(ov);
+    try{ document.body.style.overflow = 'hidden'; }catch(e){}
+  }
+  /* display + attach control, used on the result review and the one-by-one review */
+  function qimgBlock(dk, qid, side, label, host, refresh){
+    var box = document.createElement('div'); box.className = 'qimgbox';
+    var cap = document.createElement('div'); cap.className = 'qimgcap'; cap.textContent = label; box.appendChild(cap);
+    var arr = qimgList(dk, qid, side), lim = qimgLimit(side);
+    if(arr.length){
+      var th = document.createElement('div'); th.className = 'qimgthumbs';
+      arr.forEach(function(src, idx){
+        var t = document.createElement('span'); t.className = 'qimgthumb';
+        var im = document.createElement('img'); im.src = src; im.alt = label; im.loading = 'lazy'; t.appendChild(im);
+        var rm = document.createElement('button'); rm.type = 'button'; rm.className = 'rm'; rm.textContent = '\u00d7'; rm.title = 'Remove';
+        rm.onclick = function(e){ e.stopPropagation(); qimgDel(dk, qid, side, idx); if(refresh) refresh(); };
+        t.appendChild(rm); th.appendChild(t);
+      });
+      box.appendChild(th);
+    }
+    if(arr.length < lim){
+      var row = document.createElement('div'); row.className = 'qimgrow';
+      var add = document.createElement('button'); add.type = 'button'; add.className = 'btn sm'; add.textContent = 'Add image';
+      var inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*'; inp.className = 'hidden';
+      add.onclick = function(e){ e.stopPropagation(); inp.click(); };
+      inp.onchange = function(){ var f = this.files && this.files[0]; this.value = ''; if(!f) return; qimgShrink(f, function(d){ if(d){ qimgAdd(dk, qid, side, d); if(refresh) refresh(); } else toast('Could not read that image.'); }); };
+      var pst = document.createElement('button'); pst.type = 'button'; pst.className = 'btn sm'; pst.textContent = 'Paste from clipboard';
+      pst.onclick = function(e){ e.stopPropagation(); qimgClipPick(function(d){ if(d){ qimgAdd(dk, qid, side, d); if(refresh) refresh(); } }); };
+      row.appendChild(add); row.appendChild(pst); box.appendChild(row); box.appendChild(inp);
+    }
+    host.appendChild(box);
+  }
+  function qimgRefreshResult(){ var y = 0; try{ y = window.scrollY || 0; }catch(e){} try{ renderTestResult(); }catch(e){} try{ window.scrollTo(0, y); }catch(e){} }
+
+  /* ---------- past papers: keep the paper itself so it can be re-opened ---------- */
+  function savePaper(res){
+    try{
+      var papers = ls('fd:testpapers', {});
+      if(!papers || typeof papers !== 'object' || Array.isArray(papers)) papers = {};
+      papers[String(res.ts)] = {
+        ts: res.ts, seed: res.seed, exam: res.exam, n: res.n, scope: res.scope,
+        right: res.right, wrong: res.wrong, skipped: res.skipped, score: res.score, max: res.max, secs: res.secs,
+        perSubject: res.perSubject,
+        items: (res.review || []).map(function(it){ return { k: it.q.k, id: it.q.id, picked: it.picked, mark: !!it.mark }; })
+      };
+      var ks = Object.keys(papers).sort(function(a, b){ return Number(b) - Number(a); });
+      ks.slice(12).forEach(function(k){ delete papers[k]; });
+      ss('fd:testpapers', papers);
+    }catch(e){}
+  }
+  function paperFor(ts){
+    var papers = ls('fd:testpapers', {}); if(!papers || typeof papers !== 'object' || Array.isArray(papers)) papers = {};
+    return papers[String(ts)] || null;
+  }
+  function openPastTest(ts){
+    var p = paperFor(ts);
+    if(!p){ toast('This paper was taken before the update \u2014 its questions were not stored, so it cannot be re-opened.'); return; }
+    ensureCards(function(){
+      var review = [], wrongList = [];
+      (p.items || []).forEach(function(it){
+        var q = findMcqItem(it.k, it.id);
+        if(!q) return;
+        review.push({ q: q, picked: it.picked, mark: !!it.mark });
+        if(it.picked !== q.answer) wrongList.push(q);
+      });
+      if(!review.length){ toast('Those questions are not in the library any more.'); return; }
+      var res = { ts: p.ts, n: p.n, right: p.right, wrong: p.wrong, skipped: p.skipped, score: p.score, max: p.max,
+                  secs: p.secs, scope: p.scope, perSubject: p.perSubject, exam: p.exam, seed: p.seed,
+                  wrongList: wrongList, review: review, past: true };
+      view = { t: 'test', tResult: res };
+      renderTestResult(); window.scrollTo(0, 0);
+    });
+  }
+
+  /* ---------- one-by-one review (reveal-gated) ---------- */
+  function renderReview1(){
+    var res = view.tResult;
+    if(!res || !res.review || !res.review.length){ renderTestResult(); return; }
+    var r1 = view.r1 || (view.r1 = { i: 0, revealed: {} });
+    if(r1.i < 0) r1.i = 0;
+    if(r1.i > res.review.length - 1) r1.i = res.review.length - 1;
+    document.body.classList.remove('testrun');
+    try{ clearQPal(); }catch(e){}
+    var box = $('content'); box.textContent = '';
+    var wrap = document.createElement('div'); wrap.className = 'twrap';
+    var top = document.createElement('div'); top.className = 'tbar';
+    var back = document.createElement('button'); back.type = 'button'; back.className = 'tend'; back.textContent = '\u2039 Result';
+    back.onclick = function(){ view = { t: 'test', tResult: res }; renderTestResult(); window.scrollTo(0, 0); };
+    top.appendChild(back);
+    var qn = document.createElement('span'); qn.className = 'tqn'; qn.textContent = 'Review ' + (r1.i + 1) + ' / ' + res.review.length; top.appendChild(qn);
+    wrap.appendChild(top);
+    var pb = document.createElement('div'); pb.className = 'tprog';
+    var pi = document.createElement('i'); pi.style.width = Math.round((r1.i + 1) / res.review.length * 100) + '%'; pb.appendChild(pi); wrap.appendChild(pb);
+
+    var item = res.review[r1.i], q = item.q, ok = (item.picked === q.answer);
+    var revealed = !!r1.revealed[r1.i];
+    var qc = document.createElement('div'); qc.className = 'tq';
+    var meta = document.createElement('div'); meta.className = 'tqmeta'; meta.textContent = [q.s, q.u, q.t].filter(Boolean).join(' \u00b7 '); qc.appendChild(meta);
+    var qt = document.createElement('div'); qt.className = 'tqtext'; qt.textContent = q.q; qc.appendChild(qt);
+    var qimgHost = document.createElement('div'); qc.appendChild(qimgHost);
+    qimgBlock(q.k, q.id, 'q', 'Question image', qimgHost, renderReview1);
+    var opts = document.createElement('div'); opts.className = 'tqopts';
+    (q.options || []).forEach(function(o, k){
+      var row = document.createElement('div'); row.className = 'rvopt' + (k === q.answer ? ' correct' : (k === item.picked ? ' picked' : ''));
+      row.textContent = String.fromCharCode(65 + k) + ') ' + o + (k === q.answer ? '  \u2713' : (k === item.picked ? '  (your answer)' : ''));
+      opts.appendChild(row);
+    });
+    qc.appendChild(opts);
+    var _sl = srcLine(q); if(_sl) qc.appendChild(_sl);
+    wrap.appendChild(qc);
+
+    if(!revealed){
+      var gb = document.createElement('button'); gb.type = 'button'; gb.className = 'tstart wide';
+      gb.textContent = 'Show answer & explanation';
+      gb.onclick = function(){ r1.revealed[r1.i] = 1; renderReview1(); };
+      wrap.appendChild(gb);
+      var hint = document.createElement('div'); hint.className = 'tsub small';
+      hint.textContent = 'Reveal it first, then move on \u2014 the gate keeps the review honest.';
+      wrap.appendChild(hint);
+    } else {
+      var verdict = document.createElement('div'); verdict.className = 'tsub';
+      verdict.textContent = ok ? 'You got this right.' : (item.picked == null ? 'You left this unanswered.' : 'You got this wrong.');
+      wrap.appendChild(verdict);
+      if(q.explain){ var exd = document.createElement('div'); exd.className = 'rvexp'; exd.textContent = q.explain; wrap.appendChild(exd); }
+      var eimgHost = document.createElement('div'); wrap.appendChild(eimgHost);
+      qimgBlock(q.k, q.id, 'e', 'Explanation images', eimgHost, renderReview1);
+      errNoteRow(q.k, q.id, wrap);
+    }
+
+    var nav = document.createElement('div'); nav.className = 'tnav';
+    var prev = document.createElement('button'); prev.type = 'button'; prev.className = 'tend'; prev.textContent = '\u2039 Prev';
+    prev.disabled = r1.i <= 0;
+    prev.onclick = function(){ if(r1.i > 0){ r1.i--; renderReview1(); window.scrollTo(0, 0); } };
+    nav.appendChild(prev);
+    var last = r1.i >= res.review.length - 1;
+    var nxt = document.createElement('button'); nxt.type = 'button'; nxt.className = 'tstart'; nxt.style.flex = '1';
+    nxt.textContent = last ? 'Back to result' : 'Next \u203a';
+    if(!revealed){ nxt.disabled = true; nxt.style.opacity = '.5'; }
+    nxt.onclick = function(){
+      if(!revealed) return;
+      if(last){ view = { t: 'test', tResult: res }; renderTestResult(); window.scrollTo(0, 0); }
+      else { r1.i++; renderReview1(); window.scrollTo(0, 0); }
+    };
+    nav.appendChild(nxt); wrap.appendChild(nav);
+    box.appendChild(wrap);
+  }
+
+  /* ---------- mistake-analysis engine ---------- */
+  function qidCardIndex(){
+    var m = {};
+    (decksData || []).forEach(function(d){
+      if(!d || !Array.isArray(d.cards)) return;
+      d.cards.forEach(function(c){ if(c && c.id && !m[c.id]) m[c.id] = { c: c, dk: d.deck_key }; });
+    });
+    return m;
+  }
+  function mistakeAnalysis(){
+    var qs = normQStats(), ids = Object.keys(qs);
+    if(!ids.length) return null;
+    var idx = qidCardIndex();
+    var tot = 0, wr = 0, nq = 0;
+    var byTag = {}, byPat = {}, bySub = {}, byChap = {}, worst = [];
+    function add(o, key, a, w){ if(!key) key = '(untagged)'; var r = o[key] || (o[key] = { a: 0, w: 0, n: 0 }); r.a += a; r.w += w; r.n++; }
+    ids.forEach(function(qid){
+      var st = qs[qid]; if(!st) return;
+      var dk = qidDeck(qid, st);
+      if(!IS_OWNER && !UNLOCKED && lockedKeys[dk]) return;
+      var a = st.a || 0, w = st.w || 0; if(!a) return;
+      tot += a; wr += w; nq++;
+      var rec = idx[qid], q = rec ? rec.c : null;
+      var tag = (q && q.tag) ? q.tag : '';
+      var pat = q ? (q.img ? 'image' : (q.qt === 'mtf' ? 'MTF' : 'single')) : 'single';
+      var loc = deckLoc[dk] || {};
+      add(byTag, tag, a, w); add(byPat, pat, a, w);
+      add(bySub, loc.s || 'Other', a, w); add(byChap, CHAP[dk], a, w);
+      if(w > 0) worst.push({ qid: qid, dk: dk, q: q, rate: w / a, w: w, a: a, t: st.t || 0 });
+    });
+    if(!tot) return null;
+    worst.sort(function(x, y){ return (y.rate - x.rate) || (y.w - x.w) || (y.t - x.t); });
+
+    var card = document.createElement('div'); card.className = 'card3';
+    var head = document.createElement('div'); head.className = 'an-head';
+    var hl = document.createElement('div'); hl.className = 'tlabel'; hl.textContent = 'Analysis'; head.appendChild(hl);
+    var hb = document.createElement('div'); hb.className = 'an-big'; hb.textContent = Math.round(wr / tot * 100) + '%'; head.appendChild(hb);
+    card.appendChild(head);
+    var sub = document.createElement('div'); sub.className = 'muted small'; sub.style.margin = '0 0 8px';
+    sub.textContent = 'Your wrong rate across ' + nq + ' question' + (nq === 1 ? '' : 's') + ' you have attempted (' + wr + ' wrong of ' + tot + ').';
+    card.appendChild(sub);
+
+    function bars(title, obj, limit){
+      var keys = Object.keys(obj).filter(function(k){ return obj[k].a > 0; });
+      if(!keys.length) return;
+      keys.sort(function(x, y){ return (obj[y].w / Math.max(1, obj[y].a)) - (obj[x].w / Math.max(1, obj[x].a)); });
+      var lb = document.createElement('div'); lb.className = 'tlabel'; lb.style.marginTop = '10px'; lb.textContent = title; card.appendChild(lb);
+      keys.slice(0, limit || 6).forEach(function(k){
+        var r = obj[k], pct = Math.round(r.w / Math.max(1, r.a) * 100);
+        var row = document.createElement('div'); row.className = 'an-row';
+        var lab = document.createElement('span'); lab.className = 'an-lab'; lab.textContent = k; row.appendChild(lab);
+        var bar = document.createElement('span'); bar.className = 'an-bar'; var i = document.createElement('i'); i.style.width = Math.min(100, pct) + '%'; bar.appendChild(i); row.appendChild(bar);
+        var pc = document.createElement('span'); pc.className = 'an-pct'; pc.textContent = pct + '%'; row.appendChild(pc);
+        card.appendChild(row);
+      });
+    }
+    bars('By type (hashtag)', byTag, 3);
+    bars('By pattern', byPat, 4);
+    bars('By subject', bySub, 5);
+    bars('By chapter', byChap, 5);
+
+    if(worst.length){
+      var wl = document.createElement('div'); wl.className = 'tlabel'; wl.style.marginTop = '12px'; wl.textContent = 'Worst first'; card.appendChild(wl);
+      worst.slice(0, 8).forEach(function(x){
+        var b = document.createElement('div'); b.className = 'an-worst';
+        var loc = deckLoc[x.dk] || {};
+        var mm = document.createElement('div'); mm.className = 'an-worst-m';
+        mm.textContent = Math.round(x.rate * 100) + '% wrong (' + x.w + '/' + x.a + ') \u00b7 ' + [loc.s, loc.u, CHAP[x.dk]].filter(Boolean).join(' \u00b7 ');
+        b.appendChild(mm);
+        var qq = document.createElement('div'); qq.className = 'an-worst-q';
+        qq.textContent = x.q ? x.q.q : (x.dk + ' \u00b7 ' + x.qid);
+        b.appendChild(qq);
+        card.appendChild(b);
+      });
+      var pb = document.createElement('button'); pb.type = 'button'; pb.className = 'btn primary wide';
+      pb.textContent = 'Practise these ' + Math.min(40, worst.length) + ' first';
+      pb.onclick = function(){
+        var keys = worst.slice(0, 40).map(function(x){ return x.dk + '|' + x.qid; });
+        testPriority = keys; testCustom = true; testSelYears = []; testSelSubjects = []; testSelUnits = []; testSelChapters = [];
+        testScope = 'all'; testDeck = ''; testLen = Math.min(50, keys.length);
+        view = { t: 'test' };
+        testStart();
+      };
+      card.appendChild(pb);
+    }
+
+    var tagKeys = Object.keys(byTag).filter(function(k){ return byTag[k].a >= 3 && byTag[k].w > 0; });
+    var subKeys = Object.keys(bySub).filter(function(k){ return bySub[k].w > 0; });
+    var strat = '';
+    if(tagKeys.length){
+      tagKeys.sort(function(x, y){ return (byTag[y].w / byTag[y].a) - (byTag[x].w / byTag[x].a); });
+      var tk = tagKeys[0], tp = Math.round(byTag[tk].w / byTag[tk].a * 100);
+      strat = tk + ' me ' + tp + '% galat';
+      if(subKeys.length){
+        subKeys.sort(function(x, y){ return bySub[y].w - bySub[x].w; });
+        strat += ', ' + subKeys[0] + ' me sabse zyada (' + bySub[subKeys[0]].w + ') \u2014 inhe pehle karo.';
+      } else strat += ' \u2014 inhe pehle karo.';
+    } else if(subKeys.length){
+      subKeys.sort(function(x, y){ return bySub[y].w - bySub[x].w; });
+      strat = subKeys[0] + ' me sabse zyada galat (' + bySub[subKeys[0]].w + ') \u2014 ye pehle karo.';
+    }
+    if(strat){
+      var st = document.createElement('div'); st.className = 'an-strategy'; st.textContent = strat; card.appendChild(st);
+    }
+    return card;
+  }
   /* ---------- result ---------- */
   function renderTestResult(){
     var res = view.tResult; if(!res){ renderTest(); return; }
@@ -6733,12 +7169,14 @@
         m.textContent = 'Q' + (i+1) + ' \u00b7 ' + (q.id || '') + ' \u00b7 ' + [q.s, q.t].filter(Boolean).join(' \u00b7 ') + ' \u00b7 ' + (item.picked==null ? 'not attempted' : (ok ? 'correct' : 'wrong'));
         eb.appendChild(m);
         var qq = document.createElement('div'); qq.className = 'terr-q'; qq.textContent = q.q; eb.appendChild(qq);
+        qimgBlock(q.k, q.id, 'q', 'Question image', eb, qimgRefreshResult);
         (q.options||[]).forEach(function(o,k){
           var row = document.createElement('div'); row.className = 'rvopt' + (k===q.answer ? ' correct' : (k===item.picked ? ' picked' : ''));
           row.textContent = String.fromCharCode(65+k) + ') ' + o + (k===q.answer ? '  \u2713' : (k===item.picked ? '  (your answer)' : ''));
           eb.appendChild(row);
         });
         if(q.explain){ var ex = document.createElement('div'); ex.className = 'rvexp'; ex.textContent = q.explain; eb.appendChild(ex); }
+        qimgBlock(q.k, q.id, 'e', 'Explanation images', eb, qimgRefreshResult);
         var _sl1 = srcLine(q); if(_sl1) eb.appendChild(_sl1);
         if(!ok || item.mark){ errNoteRow(q.k, q.id, eb); }
         rv.appendChild(eb);
@@ -6746,12 +7184,17 @@
       wrap.appendChild(rv);
     }
 
-    if(res.wrongList && res.wrongList.length){
+    var _mm = (res.review || []).filter(function(it){ return it.mark || it.picked !== it.q.answer; });
+    if(_mm.length){
       var pr = document.createElement('button'); pr.type = 'button'; pr.className = 'tstart';
-      pr.textContent = 'Practise the ' + res.wrongList.length + ' you missed';
-      pr.onclick = function(){ view.tResult = null; testStart(res.wrongList); };
+      pr.textContent = 'Practise marked + missed (' + _mm.length + ')';
+      pr.onclick = function(){ view.tResult = null; testStart(_mm.map(function(it){ return it.q; })); };
       wrap.appendChild(pr);
     }
+    var rb = document.createElement('button'); rb.type = 'button'; rb.className = 'tstart ghost';
+    rb.textContent = 'Review one by one';
+    rb.onclick = function(){ view = { t: 'review1', tResult: res, r1: { i: 0, revealed: {} } }; render(); window.scrollTo(0, 0); };
+    wrap.appendChild(rb);
 
     var nt = document.createElement('button'); nt.type = 'button'; nt.className = 'tstart ghost';
     nt.textContent = 'New paper';
@@ -7012,6 +7455,7 @@
     head.appendChild(back);
     var tt = document.createElement('div'); tt.className = 'vhead'; tt.textContent = 'Error log'; head.appendChild(tt);
     c.appendChild(head);
+    var _an = mistakeAnalysis(); if(_an) c.appendChild(_an);
 
     var noted = notedList(), un = unNotedMistakes();
 

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-16 12:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-16 14:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -827,9 +827,14 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-16 12:00';
-  var BUILD_NOTE = 'The library is owner-only for now, while it is still being prepared - guests and customers see a short not-open-yet notice, and the owner keeps everything.';
+  var APP_BUILD = '2026-10-16 14:00';
+  var BUILD_NOTE = 'RUHS-MO paper blueprint rebalanced to the real past-paper weightage - Medicine is now the heaviest subject.';
   var CHANGELOG = [
+    { build:'2026-10-16 14:00', title:'RUHS-MO blueprint now matches the real paper', items:[
+      'The RUHS-MO subject weights were rebuilt from a 700-question RUHS-MO past-paper analysis (2015\u20132024-25, General Knowledge excluded).',
+      'Medicine is now the heaviest subject (19), ahead of Community Medicine (11) - previously Community Medicine led at 20. Pharmacology, Pathology, Surgery and every other subject now follow their real share of the paper.',
+      'Only the RUHS-MO pattern changed; the NEET-PG and INI-CET weights are untouched.',
+    ]},
     { build:'2026-10-16 12:00', title:'Not open to everyone yet', items:[
       'The library is owner-only while it is still being prepared: signing out, or signing in with an account that is not the owner, now shows a short "not open yet" notice instead of the catalogue. Nothing is offered to free or paid visitors until it is opened.',
       'The owner is unaffected - the full library, tests, review, error log and analysis all work exactly as before. Opening the app to everyone is a one-line change.',
@@ -5061,14 +5066,14 @@
              '2024: first CBT paper; clinical case-based scenarios start appearing; cut-off 65+.',
              '2025: about half the paper is clinical case-based; Medicine, Pharmacology and Radiology clearly tougher.',
              'PSM and Forensic Medicine have stayed simple and direct every year — easy marks.',
-             'RUHS publishes no official subject-wise split; this table uses past-paper trends.'],
+             'RUHS publishes no official subject-wise split; the weights here are set from a 700-question RUHS-MO past-paper analysis (2015\u20132024-25), General Knowledge excluded.'],
       mix:{'Basics&Fundamentals':0.15,'MainConcepts':0.40,'Integrated&Complex':0.45},
       diff:{easy:0.50,mod:0.38,hard:0.12}, imgShare:0.15, mtfShare:0,
-      w:[['Community Medicine',20],['General Medicine',16],['General Surgery',13],['Obstetrics & Gynaecology',11],
-         ['Pediatrics',7],['Pharmacology',6],['Forensic Medicine & Toxicology',6],['Pathology',3],['Microbiology',2],
-         ['Anatomy',2],['Physiology',2],['Biochemistry',1],['Orthopaedics',2],['ENT (Otorhinolaryngology)',2],
-         ['Ophthalmology',2],['Psychiatry',2],['Dermatology, Venereology & Leprosy',1],['Anaesthesiology',1],
-         ['Radiodiagnosis',1]] }
+      w:[['General Medicine',19],['Community Medicine',11],['Pharmacology',10],['Pathology',9],
+         ['General Surgery',6],['Obstetrics & Gynaecology',5],['Physiology',5],['Pediatrics',5],
+         ['Biochemistry',4],['Anatomy',4],['ENT (Otorhinolaryngology)',4],['Radiodiagnosis',4],
+         ['Orthopaedics',3],['Ophthalmology',3],['Forensic Medicine & Toxicology',3],['Microbiology',2],
+         ['Dermatology, Venereology & Leprosy',1],['Psychiatry',1],['Anaesthesiology',1]] }
   ];
   function examOf(k){ for(var i=0;i<EXAMS.length;i++){ if(EXAMS[i].k === k) return EXAMS[i]; } return EXAMS[0]; }
   function blueprintPlan(len, pool, W){
