@@ -120,3 +120,13 @@ Then tell the user to reload. A rollback is a publish — it always moves **forw
 - **Never** put an API key, token or secret in the app, a settings row, a file, or chat.
 - A card's `id` is its progress key — never renumber or delete-and-recreate a card.
 - Only `select`/`insert`/`update` on `public.decks`, `public.subjects`, `public.settings`. Never `delete`/`drop`/`alter`/`truncate`, and never touch `auth` or `deck_state`.
+
+## 8. The backend edge function (`medcircuit`)
+
+The one edge function serves the public link, the guest/customer catalogue, deck content, the app file itself, and payments. Its source lives in the repo at **`functions/medcircuit/index.ts`** (kept in step with what is deployed), with the previously deployed version beside it as `index.prev-v13.ts`.
+
+- **Deploy:** `supabase_deploy_edge_function` with `name: medcircuit`, `entrypoint_path: index.ts`, and **`verify_jwt: false`** — guests and the Razorpay webhook depend on that, so never set it to true.
+- **Roll back:** redeploy `index.prev-v13.ts` (or any earlier file) the same way.
+- **Careful:** the same function serves the app file on the default route, so a broken deploy takes the public link, the catalogue and payments down together. Read the diff before deploying, and confirm the deployed source byte-for-byte afterwards.
+
+**Security rule learned the hard way (v14):** a webhook that cannot be verified must never be trusted. `?api=webhook` used to process the payload even with no `RAZORPAY_WEBHOOK_SECRET` set, which would have let a signed-in account mint an order and forge the webhook for it to be granted a pass with no payment. It now returns **503 `webhook_not_configured`**, and compares the signature in constant time. The rule for anything like this: **if the secret that proves authenticity is missing, refuse — never fall through to "trust it".**
