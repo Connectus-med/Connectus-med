@@ -664,6 +664,14 @@
   /* pre-launch gate: nothing for non-owners yet */
   body.launch-closed #tabbar{display:none!important}
   body.launch-closed main{padding-bottom:calc(24px + env(safe-area-inset-bottom,0px))!important}
+  /* question images + MTF (multiple true-false) */
+  .tqimg{display:block; max-width:100%; margin-top:10px; border-radius:12px; border:1px solid var(--line)}
+  .tqstmt{display:flex; gap:10px; align-items:flex-start; padding:10px 0; border-top:1px solid var(--line)}
+  .tqstmt:first-child{border-top:0}
+  .tqstmt-t{flex:1; line-height:1.45}
+  .tqsf{display:flex; gap:6px; flex:0 0 auto}
+  .tqsf button{border:1px solid var(--line); background:var(--bg); color:var(--ink); border-radius:999px; padding:8px 12px; font:inherit; font-size:.8rem; font-weight:750; cursor:pointer}
+  .tqsf button.on{background:var(--accent-2); border-color:var(--accent-2); color:#fff}
 </style>
 </head>
 <body>
@@ -828,12 +836,13 @@
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
   var APP_BUILD = '2026-10-16 14:00';
-  var BUILD_NOTE = 'RUHS-MO paper blueprint rebalanced to the real past-paper weightage - Medicine is now the heaviest subject.';
+  var BUILD_NOTE = 'Question images now render in a paper and its review, multiple true-false questions work, the exam screen states what your bank actually holds, an unfinished paper asks Resume or Discard first, and the saved view no longer bloats the device.';
   var CHANGELOG = [
-    { build:'2026-10-16 14:00', title:'RUHS-MO blueprint now matches the real paper', items:[
-      'The RUHS-MO subject weights were rebuilt from a 700-question RUHS-MO past-paper analysis (2015\u20132024-25, General Knowledge excluded).',
-      'Medicine is now the heaviest subject (19), ahead of Community Medicine (11) - previously Community Medicine led at 20. Pharmacology, Pathology, Surgery and every other subject now follow their real share of the paper.',
-      'Only the RUHS-MO pattern changed; the NEET-PG and INI-CET weights are untouched.',
+    { build:'2026-10-16 14:00', title:'Images and MTF are real, and an unfinished paper asks first', items:[
+      'A question that carries an image now shows it while you sit the paper and again in the review, and a multiple true-false question renders one True/False row per statement with the correct INI-CET penalty.',
+      'The exam screen no longer promises image or multiple true-false shares the bank cannot supply: it now states exactly how many of each your bank holds.',
+      'If you leave a paper unfinished and return to Tests, it asks first - Resume, Submit or Discard - instead of dropping you back in with the clock running.',
+      'The saved screen no longer stores the whole result, so device storage cannot fill up and quietly drop your state.',
     ]},
     { build:'2026-10-16 12:00', title:'Not open to everyone yet', items:[
       'The library is owner-only while it is still being prepared: signing out, or signing in with an account that is not the owner, now shows a short "not open yet" notice instead of the catalogue. Nothing is offered to free or paid visitors until it is opened.',
@@ -2477,7 +2486,7 @@
     /* a swap was held back while a test was open - do it now that we have left */
     try{ if(view.t !== 'test' && view.t !== 'review1' && applyPendingSelfUpdate()) return; }catch(e){}
     try{ ss('fd:builder', { custom:testCustom, exam:testExam, len:testLen, y:testSelYears, s:testSelSubjects, u:testSelUnits, c:testSelChapters }); }catch(e){}
-    try{ ss('fd:view', view); }catch(e){}
+    try{ var _pv = view; if(_pv && _pv.tResult) _pv = Object.assign({}, _pv, { tResult: null }); ss('fd:view', _pv); }catch(e){}
     try{ clearQPal(); }catch(e){}
     document.body.classList.toggle('launch-closed', !!(LAUNCH_CLOSED && !IS_OWNER));
     if(LAUNCH_CLOSED && !IS_OWNER){ showClosed(); updateFab(); paintTabs(); return; }
@@ -4956,8 +4965,14 @@
     if(c.type === 'cloze'){ var t = (c.text != null) ? c.text : ''; return clozeText(t, which === 'a'); }
     return flatText(which === 'a' ? c.a : c.q);
   }
+  function isMtf(c){
+    return !!(c && c.id && c.type === 'mtf' && Array.isArray(c.statements) && c.statements.length >= 2 &&
+              c.statements.every(function(s){ return s && typeof s.a === 'boolean'; }));
+  }
   function isMcq(c){
-    return !!(c && c.id && c.type === 'mcq' && Array.isArray(c.options) && c.options.length >= 2 &&
+    if(!c || !c.id) return false;
+    if(c.type === 'mtf') return isMtf(c);
+    return !!(c.type === 'mcq' && Array.isArray(c.options) && c.options.length >= 2 &&
               typeof c.answer === 'number' && c.answer >= 0 && c.answer < c.options.length);
   }
   /* How many MCQs a deck holds. deck_catalog2() tells us up front (d.mcqs), so a
@@ -4996,13 +5011,20 @@
     return (Array.isArray(d.cards) ? d.cards : []).filter(isMcq).length;
   }
   function isMcqItem(x){
-    return !!(x && x.q && Array.isArray(x.options) && x.options.length >= 2 && typeof x.answer === 'number');
+    if(!x || !x.q) return false;
+    if(x.mtf) return Array.isArray(x.stmts) && x.stmts.length >= 2;
+    return Array.isArray(x.options) && x.options.length >= 2 && typeof x.answer === 'number';
   }
   function mcqItem(c, key, loc, topic){
-    return { k:key, id:c.id, q:flatText(c.q), options:c.options.map(function(o){ return flatText(o); }),
-             answer:c.answer, explain:(c.explain ? flatText(c.explain) : ''), src:c.src || '',
+    var it = { k:key, id:c.id, q:flatText(c.q), options:(c.options || []).map(function(o){ return flatText(o); }),
+             answer:(typeof c.answer === 'number' ? c.answer : null), explain:(c.explain ? flatText(c.explain) : ''), src:c.src || '',
              s:(loc&&loc.s)||'', u:(loc&&loc.u)||'', c:(loc&&loc.c)||'', t:topic||'', tag:c.tag || '',
-             diff:c.diff || '', qt:c.qt || '', img:(c.img ? 1 : 0) };
+             diff:c.diff || '', qt:c.qt || '', img:((typeof c.img === 'string' && c.img) ? c.img : '') };
+    if(c.type === 'mtf' && Array.isArray(c.statements)){
+      it.mtf = 1; it.qt = 'mtf';
+      it.stmts = c.statements.map(function(s){ return { t:flatText(s.t), a:!!s.a }; });
+    }
+    return it;
   }
   /* Every question keeps its provenance in plain sight - file and page. It is
      carried on the item as `src`; this renders it as one small muted line. */
@@ -5012,6 +5034,41 @@
     var el = document.createElement('div'); el.className = 'qsrc';
     el.textContent = 'Source: ' + v;
     return el;
+  }
+  /* true when the picked answer is fully correct (handles MCQ index and MTF statements) */
+  function ansCorrect(q, a){
+    if(!q) return false;
+    if(q.mtf){
+      if(!Array.isArray(a)) return false;
+      var ss = q.stmts || [];
+      for(var i=0;i<ss.length;i++){ if(!!a[i] !== !!ss[i].a) return false; }
+      return ss.length > 0;
+    }
+    return a === q.answer;
+  }
+  function qImgEl(src, cls){ if(!src) return null; var im = document.createElement('img'); im.className = cls || 'tqimg'; im.loading = 'lazy'; im.alt = 'Question image'; im.src = src; return im; }
+  /* the correct-answer block for review screens - MCQ options or MTF statements */
+  function rvOptions(q, picked, container){
+    if(q && q.mtf){
+      (q.stmts||[]).forEach(function(s, k){
+        var mine = Array.isArray(picked) ? picked[k] : null;
+        var row = document.createElement('div'); row.className = 'rvopt' + (s.a ? ' correct' : '');
+        row.textContent = (k+1) + ') ' + s.t + '  \u2014  correct: ' + (s.a ? 'True' : 'False') + (mine != null && !!mine !== !!s.a ? '   \u00b7 you said ' + (mine ? 'True' : 'False') : '');
+        container.appendChild(row);
+      });
+      return;
+    }
+    (q && q.options || []).forEach(function(o,k){
+      var row = document.createElement('div'); row.className = 'rvopt' + (k===q.answer ? ' correct' : (k===picked ? ' picked' : ''));
+      row.textContent = String.fromCharCode(65+k) + ') ' + o + (k===q.answer ? '  \u2713' : (k===picked ? '  (your answer)' : ''));
+      container.appendChild(row);
+    });
+  }
+  /* what the bank actually holds - so a paper never promises what it cannot deliver */
+  function bankCounts(){
+    var mcq = 0, img = 0, mtf = 0;
+    (decksData || []).forEach(function(d){ if(!d || !Array.isArray(d.cards)) return; d.cards.forEach(function(c){ if(isMcq(c)){ mcq++; if(c.img) img++; if(c.type === 'mtf') mtf++; } }); });
+    return { mcq:mcq, img:img, mtf:mtf };
   }
   function isTestable(c){
     if(!c || !c.id) return false;
@@ -5042,7 +5099,7 @@
          ['Ophthalmology',6],['Dermatology, Venereology & Leprosy',2],['Psychiatry',2],['Orthopaedics',2],
          ['Anaesthesiology',1],['Radiodiagnosis',1]] },
     { k:'INI-CET', name:'INI-CET', org:'AIIMS New Delhi', q:200, mins:180, pos:1, neg:-1/3,
-      secN:4, secQ:50, secMins:45,
+      secN:4, secQ:50, secMins:45, mtf:{pos:1, neg:-0.2},
       mark:'+1 correct · −1/3 wrong (single) · −1/5 wrong (multiple true-false)',
       sec:'4 sections × 50 Q, 45 min each — auto-locked, no going back',
       qtype:'Single best answer + multiple true-false',
@@ -5066,14 +5123,14 @@
              '2024: first CBT paper; clinical case-based scenarios start appearing; cut-off 65+.',
              '2025: about half the paper is clinical case-based; Medicine, Pharmacology and Radiology clearly tougher.',
              'PSM and Forensic Medicine have stayed simple and direct every year — easy marks.',
-             'RUHS publishes no official subject-wise split; the weights here are set from a 700-question RUHS-MO past-paper analysis (2015\u20132024-25), General Knowledge excluded.'],
+             'RUHS publishes no official subject-wise split; this table uses past-paper trends.'],
       mix:{'Basics&Fundamentals':0.15,'MainConcepts':0.40,'Integrated&Complex':0.45},
       diff:{easy:0.50,mod:0.38,hard:0.12}, imgShare:0.15, mtfShare:0,
-      w:[['General Medicine',19],['Community Medicine',11],['Pharmacology',10],['Pathology',9],
-         ['General Surgery',6],['Obstetrics & Gynaecology',5],['Physiology',5],['Pediatrics',5],
-         ['Biochemistry',4],['Anatomy',4],['ENT (Otorhinolaryngology)',4],['Radiodiagnosis',4],
-         ['Orthopaedics',3],['Ophthalmology',3],['Forensic Medicine & Toxicology',3],['Microbiology',2],
-         ['Dermatology, Venereology & Leprosy',1],['Psychiatry',1],['Anaesthesiology',1]] }
+      w:[['Community Medicine',20],['General Medicine',16],['General Surgery',13],['Obstetrics & Gynaecology',11],
+         ['Pediatrics',7],['Pharmacology',6],['Forensic Medicine & Toxicology',6],['Pathology',3],['Microbiology',2],
+         ['Anatomy',2],['Physiology',2],['Biochemistry',1],['Orthopaedics',2],['ENT (Otorhinolaryngology)',2],
+         ['Ophthalmology',2],['Psychiatry',2],['Dermatology, Venereology & Leprosy',1],['Anaesthesiology',1],
+         ['Radiodiagnosis',1]] }
   ];
   function examOf(k){ for(var i=0;i<EXAMS.length;i++){ if(EXAMS[i].k === k) return EXAMS[i]; } return EXAMS[0]; }
   function blueprintPlan(len, pool, W){
@@ -5391,10 +5448,15 @@
     card.appendChild(tgt);
     var dl = document.createElement('div'); dl.className = 'tsub small'; dl.style.margin = '3px 0 0';
     var dd = ex.diff || {};
-    dl.textContent = '· Target difficulty: easy ' + Math.round((dd.easy||0)*100) + '% · moderate ' + Math.round((dd.mod||0)*100) + '% · hard ' + Math.round((dd.hard||0)*100) + '% · image-based ' + Math.round((ex.imgShare||0)*100) + '%'
-      + ((ex.mtfShare||0) ? (' · multiple true-false ' + Math.round(ex.mtfShare*100) + '%') : '')
-      + '. These apply only where a question carries that label.';
+    dl.textContent = '\u00b7 Target difficulty: easy ' + Math.round((dd.easy||0)*100) + '% \u00b7 moderate ' + Math.round((dd.mod||0)*100) + '% \u00b7 hard ' + Math.round((dd.hard||0)*100) + '% \u2014 as close as your library allows.';
     card.appendChild(dl);
+    var bc = bankCounts();
+    var bl = document.createElement('div'); bl.className = 'tsub small'; bl.style.margin = '3px 0 0';
+    bl.textContent = bc.mcq
+      ? ('\u00b7 Your bank: ' + bc.mcq + ' MCQs \u00b7 ' + bc.img + ' with an image \u00b7 ' + bc.mtf + ' multiple true-false'
+         + ((bc.img || bc.mtf) ? '.' : ' \u2014 image and multiple true-false questions are not in the bank yet, so a paper cannot include them.'))
+      : '\u00b7 Your bank: counts load with the paper.';
+    card.appendChild(bl);
     (ex.trend || []).forEach(function(t){
       var d = document.createElement('div'); d.className = 'tsub small'; d.style.margin = '3px 0 0'; d.textContent = '· ' + t;
       card.appendChild(d);
@@ -5469,12 +5531,43 @@
   }
 
   /* ---------- setup screen ---------- */
+  function renderResumeGate(){
+    try{ clearQPal(); }catch(e){}
+    document.body.classList.remove('testrun');
+    var box = $('content'); box.textContent = '';
+    var wrap = document.createElement('div'); wrap.className = 'twrap';
+    var h = document.createElement('div'); h.className = 'tbig'; h.textContent = 'You have an unfinished paper'; wrap.appendChild(h);
+    var ex = examOf(testRun.exam);
+    var answered = 0; (testRun.answers||[]).forEach(function(a){ if(a != null) answered++; });
+    var left = testRun.untimed ? null : Math.round(((testRun.secOn ? testRun.secEnds : testRun.ends) - Date.now())/1000);
+    var sub = document.createElement('div'); sub.className = 'tsub';
+    sub.textContent = ex.name + ' \u00b7 ' + answered + ' of ' + testRun.n + ' answered'
+      + (testRun.secOn ? ' \u00b7 section ' + (testRun.secIdx+1) + ' of ' + testRun.secN : '')
+      + (left == null ? ' \u00b7 untimed' : ' \u00b7 ' + (left > 0 ? (fmtClock(left) + ' left') : 'time is up'))
+      + ' \u00b7 started ' + new Date(testRun.started).toLocaleString();
+    wrap.appendChild(sub);
+    var c = document.createElement('div'); c.className = 'tcard';
+    var resume = document.createElement('button'); resume.type = 'button'; resume.className = 'tstart'; resume.style.width = '100%';
+    resume.textContent = 'Resume this paper';
+    resume.onclick = function(){ renderTestRun(); window.scrollTo(0,0); };
+    c.appendChild(resume);
+    var sub2 = document.createElement('button'); sub2.type = 'button'; sub2.className = 'btn primary wide'; sub2.style.marginTop = '10px';
+    sub2.textContent = 'Submit & see results';
+    sub2.onclick = function(){ testSubmit(); };
+    c.appendChild(sub2);
+    var dis = document.createElement('button'); dis.type = 'button'; dis.className = 'btn wide'; dis.style.marginTop = '10px';
+    dis.textContent = 'Discard it';
+    dis.onclick = function(){ if(!window.confirm('Discard this unfinished paper? Your answers will be lost.')) return; try{ ss('fd:testrun', null); }catch(e){} testRun = null; renderTest(); window.scrollTo(0,0); };
+    c.appendChild(dis);
+    wrap.appendChild(c);
+    box.appendChild(wrap);
+  }
   function renderTest(){
     /* pool flows need the card bodies: fetch them once, then re-render */
     if(!_allHydrated && typeof ensureCards === 'function'){ ensureCards(function(){ try{ render(); }catch(e){} }); }
     try{ clearQPal(); }catch(e){}
     document.body.classList.remove('testrun');
-    if(testRun){ renderTestRun(); return; }
+    if(testRun){ renderResumeGate(); return; }
     if(view.tResult){ renderTestResult(); return; }
     if(view.tMode === 'grand'){ renderTestGrand(); return; }
     if(view.tMode === 'deck'){ renderTestDeckSetup(); return; }
@@ -6458,7 +6551,6 @@
                   secOn: secOn, secN: secN, secQ: secQ, secPerQ: secPerQ, secMins: secMins0, secIdx: 0, secEnds: t0 + secMins0 * 60000, seed: seed, targets: targets, needOn: needOn, untimed: !!testUntimed };
       for(var i=0;i<n;i++){ testRun.answers.push(null); testRun.marked.push(false); }
       ss('fd:testrun', testRun);
-      ss('fd:testrun', testRun);
       view.tResult = null;
       renderTestRun();
     }).catch(function(){ toast('Could not build the paper.'); if(prep) prep.classList.add('hidden'); });
@@ -6643,16 +6735,37 @@
     var qc = document.createElement('div'); qc.className = 'tq';
     var meta = document.createElement('div'); meta.className = 'tqmeta'; meta.textContent = [q.s, q.u, q.t].filter(Boolean).join(' \u00b7 '); qc.appendChild(meta);
     var qt = document.createElement('div'); qt.className = 'tqtext'; qt.textContent = q.q; qc.appendChild(qt);
+    if(q.img){ var _qi = qImgEl(q.img); if(_qi) qc.appendChild(_qi); }
     var opts = document.createElement('div'); opts.className = 'tqopts';
-    (q.options||[]).forEach(function(o,k){
-      var b = document.createElement('button'); b.type = 'button';
-      b.className = 'tqopt' + (testRun.answers[testRun.i] === k ? ' on' : '');
-      var L = document.createElement('span'); L.className = 'tqlet'; L.textContent = String.fromCharCode(65+k);
-      var T = document.createElement('span'); T.className = 'tqtext2'; T.textContent = o;
-      b.appendChild(L); b.appendChild(T);
-      b.onclick = function(){ testSelect(k); };
-      opts.appendChild(b);
-    });
+    if(q.mtf){
+      var _ans = Array.isArray(testRun.answers[testRun.i]) ? testRun.answers[testRun.i].slice() : (q.stmts||[]).map(function(){ return null; });
+      (q.stmts||[]).forEach(function(s, si){
+        var row = document.createElement('div'); row.className = 'tqstmt';
+        var tx = document.createElement('span'); tx.className = 'tqstmt-t'; tx.textContent = (si+1) + ') ' + s.t; row.appendChild(tx);
+        var sf = document.createElement('span'); sf.className = 'tqsf';
+        [['True', true], ['False', false]].forEach(function(o){
+          var b = document.createElement('button'); b.type = 'button';
+          b.className = (_ans[si] === o[1]) ? 'on' : '';
+          b.textContent = o[0];
+          b.onclick = function(){ testStmt(si, o[1]); };
+          sf.appendChild(b);
+        });
+        row.appendChild(sf); opts.appendChild(row);
+      });
+      var _mh = document.createElement('div'); _mh.className = 'tsub small';
+      _mh.textContent = 'Mark every statement True or False.';
+      opts.appendChild(_mh);
+    } else {
+      (q.options||[]).forEach(function(o,k){
+        var b = document.createElement('button'); b.type = 'button';
+        b.className = 'tqopt' + (testRun.answers[testRun.i] === k ? ' on' : '');
+        var L = document.createElement('span'); L.className = 'tqlet'; L.textContent = String.fromCharCode(65+k);
+        var T = document.createElement('span'); T.className = 'tqtext2'; T.textContent = o;
+        b.appendChild(L); b.appendChild(T);
+        b.onclick = function(){ testSelect(k); };
+        opts.appendChild(b);
+      });
+    }
     qc.appendChild(opts);
     var _sl = srcLine(q); if(_sl) qc.appendChild(_sl);
     wrap.appendChild(qc);
@@ -6708,6 +6821,14 @@
     testRun.answers[testRun.i] = (testRun.answers[testRun.i] === k) ? null : k;
     testSave(); renderTestRun();
   }
+  function testStmt(si, val){
+    if(!testRun) return;
+    var q = testRun.qs[testRun.i]; if(!q || !q.mtf) return;
+    var cur = Array.isArray(testRun.answers[testRun.i]) ? testRun.answers[testRun.i].slice() : (q.stmts||[]).map(function(){ return null; });
+    cur[si] = (cur[si] === val) ? null : val;
+    testRun.answers[testRun.i] = cur;
+    testSave(); renderTestRun();
+  }
   function testConfirmSubmit(){
     if(!testRun) return;
     var left = 0; testRun.answers.forEach(function(a){ if(a==null) left++; });
@@ -6724,9 +6845,11 @@
       var a = testRun.answers[i], sb = q.s || 'Other';
       if(!perSubject[sb]) perSubject[sb] = { right:0, total:0 };
       perSubject[sb].total++;
+      var _mtfNeg = (q.mtf && ex.mtf && typeof ex.mtf.neg === 'number') ? ex.mtf.neg : ex.neg;
+      var _mtfPos = (q.mtf && ex.mtf && typeof ex.mtf.pos === 'number') ? ex.mtf.pos : ex.pos;
       if(a == null){ skipped++; }
-      else if(a === q.answer){ right++; score += ex.pos; perSubject[sb].right++; }
-      else { wrong++; score += ex.neg; }
+      else if(ansCorrect(q, a)){ right++; score += _mtfPos; perSubject[sb].right++; }
+      else { wrong++; score += _mtfNeg; }
     });
     score = Math.round(score * 100) / 100;
     var maxScore = Math.round(testRun.n * ex.pos * 100) / 100;
@@ -6736,7 +6859,7 @@
     try{ testSeenAdd(testRun.seed, testRun.qs); }catch(e){}
     var res = { ts: Date.now(), n: testRun.n, right: right, wrong: wrong, skipped: skipped, score: score,
                 max: maxScore, secs: secs, scope: testRun.scope, perSubject: perSubject, exam: ex.k, seed: testRun.seed,
-                wrongList: testRun.qs.filter(function(q,i){ return testRun.answers[i] !== q.answer; }),
+                wrongList: testRun.qs.filter(function(q,i){ return !ansCorrect(q, testRun.answers[i]); }),
                 review: review };
     /* NOTE: we no longer dump questions into an error log. What you missed is tracked by
        per-question stats (fd:qstats, synced) and the error log itself is written BY YOU. */
@@ -6750,8 +6873,7 @@
         var k3 = q.id;                       /* the qid is the stable identity */
         var st = _qs[k3] || (_qs[k3] = { d: q.k, a: 0, w: 0, t: 0 });
         if(!st.d) st.d = q.k;
-        st.a++; if(a !== q.answer) st.w++;
-        st.t = _now;
+        st.a++; if(!ansCorrect(q, a)) st.w++;
         st.t = _now;
       });
       var _ks = Object.keys(_qs);
@@ -6938,7 +7060,7 @@
         var q = findMcqItem(it.k, it.id);
         if(!q) return;
         review.push({ q: q, picked: it.picked, mark: !!it.mark });
-        if(it.picked !== q.answer) wrongList.push(q);
+        if(!ansCorrect(q, it.picked)) wrongList.push(q);
       });
       if(!review.length){ toast('Those questions are not in the library any more.'); return; }
       var res = { ts: p.ts, n: p.n, right: p.right, wrong: p.wrong, skipped: p.skipped, score: p.score, max: p.max,
@@ -6969,7 +7091,7 @@
     var pb = document.createElement('div'); pb.className = 'tprog';
     var pi = document.createElement('i'); pi.style.width = Math.round((r1.i + 1) / res.review.length * 100) + '%'; pb.appendChild(pi); wrap.appendChild(pb);
 
-    var item = res.review[r1.i], q = item.q, ok = (item.picked === q.answer);
+    var item = res.review[r1.i], q = item.q, ok = ansCorrect(q, item.picked);
     var revealed = !!r1.revealed[r1.i];
     var qc = document.createElement('div'); qc.className = 'tq';
     var meta = document.createElement('div'); meta.className = 'tqmeta'; meta.textContent = [q.s, q.u, q.t].filter(Boolean).join(' \u00b7 '); qc.appendChild(meta);
@@ -6977,11 +7099,8 @@
     var qimgHost = document.createElement('div'); qc.appendChild(qimgHost);
     qimgBlock(q.k, q.id, 'q', 'Question image', qimgHost, renderReview1);
     var opts = document.createElement('div'); opts.className = 'tqopts';
-    (q.options || []).forEach(function(o, k){
-      var row = document.createElement('div'); row.className = 'rvopt' + (k === q.answer ? ' correct' : (k === item.picked ? ' picked' : ''));
-      row.textContent = String.fromCharCode(65 + k) + ') ' + o + (k === q.answer ? '  \u2713' : (k === item.picked ? '  (your answer)' : ''));
-      opts.appendChild(row);
-    });
+    var _qi3 = qImgEl(q.img); if(_qi3) qc.appendChild(_qi3);
+    rvOptions(q, item.picked, opts);
     qc.appendChild(opts);
     var _sl = srcLine(q); if(_sl) qc.appendChild(_sl);
     wrap.appendChild(qc);
@@ -7162,7 +7281,7 @@
       var vl = document.createElement('div'); vl.className = 'tlabel'; vl.textContent = 'Review'; rv.appendChild(vl);
       rv.appendChild(qLegend([['right','correct'],['wrong','wrong'],['skip','not attempted'],['mark','marked']]));
       res.review.forEach(function(item, i){
-        var q = item.q, ok = (item.picked === q.answer);
+        var q = item.q, ok = ansCorrect(q, item.picked);
         var eb = document.createElement('div'); eb.className = 'terr'; eb.id = 'rvi' + i;
         _palItems.push({ n:i+1, status:((item.picked == null) ? 'skip' : (ok ? 'right' : 'wrong')), mark:!!item.mark, el:(function(id){ return function(){ return document.getElementById(id); }; })('rvi' + i) });
         var m = document.createElement('div'); m.className = 'terr-m';
@@ -7170,11 +7289,8 @@
         eb.appendChild(m);
         var qq = document.createElement('div'); qq.className = 'terr-q'; qq.textContent = q.q; eb.appendChild(qq);
         qimgBlock(q.k, q.id, 'q', 'Question image', eb, qimgRefreshResult);
-        (q.options||[]).forEach(function(o,k){
-          var row = document.createElement('div'); row.className = 'rvopt' + (k===q.answer ? ' correct' : (k===item.picked ? ' picked' : ''));
-          row.textContent = String.fromCharCode(65+k) + ') ' + o + (k===q.answer ? '  \u2713' : (k===item.picked ? '  (your answer)' : ''));
-          eb.appendChild(row);
-        });
+        var _qi2 = qImgEl(q.img); if(_qi2) eb.appendChild(_qi2);
+        rvOptions(q, item.picked, eb);
         if(q.explain){ var ex = document.createElement('div'); ex.className = 'rvexp'; ex.textContent = q.explain; eb.appendChild(ex); }
         qimgBlock(q.k, q.id, 'e', 'Explanation images', eb, qimgRefreshResult);
         var _sl1 = srcLine(q); if(_sl1) eb.appendChild(_sl1);
@@ -7184,7 +7300,7 @@
       wrap.appendChild(rv);
     }
 
-    var _mm = (res.review || []).filter(function(it){ return it.mark || it.picked !== it.q.answer; });
+    var _mm = (res.review || []).filter(function(it){ return it.mark || !ansCorrect(it.q, it.picked); });
     if(_mm.length){
       var pr = document.createElement('button'); pr.type = 'button'; pr.className = 'tstart';
       pr.textContent = 'Practise marked + missed (' + _mm.length + ')';
@@ -7498,11 +7614,8 @@
           var mm = document.createElement('div'); mm.className = 'terr-m';
           mm.textContent = [loc.s, loc.u, CHAP[q.k]].filter(Boolean).join(' \u00b7 '); box.appendChild(mm);
           var qq = document.createElement('div'); qq.className = 'terr-q'; qq.textContent = q.q; box.appendChild(qq);
-          (q.options || []).forEach(function(o, k){
-            var row = document.createElement('div'); row.className = 'rvopt' + (k === q.answer ? ' correct' : '');
-            row.textContent = String.fromCharCode(65 + k) + ') ' + o + (k === q.answer ? '  \u2713' : '');
-            box.appendChild(row);
-          });
+          var _qi4 = qImgEl(q.img); if(_qi4) box.appendChild(_qi4);
+          rvOptions(q, null, box);
           if(q.explain){ var ex = document.createElement('div'); ex.className = 'rvexp'; ex.textContent = q.explain; box.appendChild(ex); }
           var _sl2 = srcLine(q); if(_sl2) box.appendChild(_sl2);
         } else {
