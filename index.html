@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-16 22:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-17 08:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -840,9 +840,15 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-16 22:00';
-  var BUILD_NOTE = 'The Strategy engine is now intelligent: it reads your own papers - pace, whether you rush or fade late, whether marking and crossing out options actually help you - and returns a ranked plan with each move priced in marks.';
+  var APP_BUILD = '2026-10-17 08:00';
+  var BUILD_NOTE = 'NEET-PG 2026 pattern updated: 180 questions (was 200) for 720 marks, five sections of 36 questions with 42 minutes each, +4 / -1 - about 70 seconds a question now.';
   var CHANGELOG = [
+    { build:'2026-10-17 08:00', title:'NEET-PG 2026 pattern: 180 questions', items:[
+      'NEET-PG in the app now matches the NBEMS Information Bulletin for 2026: 180 questions (cut from 200) for 720 marks, still 3 hours 30 minutes, +4 / -1 / 0.',
+      'The paper is five sections of 36 questions, 42 minutes each, auto-locked - so a Real Exam Grand Test now builds 180 questions in 5 x 36, and the strategy pace reads about 70 seconds a question (it was 63).',
+      'The subject weight table is rescaled from 200 to 180, and NEET-PG no longer lists multiple true-false (the paper is single best answer).',
+      'INI-CET and RUHS-MO are unchanged.',
+    ]},
     { build:'2026-10-16 22:00', title:'Strategy now learns from your papers', items:[
       'Strategy is now a ranked plan, not fixed tips: each move is priced in marks and sorted, so the top line is the single highest-leverage change for you right now.',
       'It reads your behaviour from your papers: how fast you answer against your own median, which wrong answers were rushed (carelessness) and which were slow (a real gap), whether your accuracy fades late, and whether marking or crossing out options actually helps you.',
@@ -5128,21 +5134,21 @@
   }
   /* ---------- the three real exam patterns (latest cycle) ---------- */
   var EXAMS = [
-    { k:'NEET-PG', name:'NEET-PG', org:'NBEMS (NBE)', q:200, mins:210, pos:4, neg:-1, cutoffPct:[45,60],
-      secN:5, secQ:40, secMins:42,
+    { k:'NEET-PG', name:'NEET-PG', org:'NBEMS (NBE)', q:180, mins:210, pos:4, neg:-1, cutoffPct:[45,60],
+      secN:5, secQ:36, secMins:42,
       mark:'+4 correct · −1 wrong · 0 unattempted',
-      sec:'5 sections × 40 Q, 42 min each — auto-locked, no going back',
+      sec:'5 sections × 36 Q, 42 min each — auto-locked, no going back',
       qtype:'Single best answer',
       trend:['2021–23: one paper, 200 Q, 3 h 30 min, +4 / −1.',
              '2024: first two-shift paper with normalisation, and time-bound sections introduced.',
              '2025: back to a single shift; sections kept; far more integrated clinical vignettes.',
-             '2026: identical to 2025 — 200 Q, 5 × 40, 42 min a section, +4 / −1.'],
+             '2026: 180 Q for 720 marks (cut from 200), 5 × 36 Q, 42 min a section, +4 / −1, single shift.'],
       mix:{'Basics&Fundamentals':0.10,'MainConcepts':0.30,'Integrated&Complex':0.60},
-      diff:{easy:0.35,mod:0.45,hard:0.20}, imgShare:0.30, mtfShare:0.10,
-      w:[['General Medicine',26],['General Surgery',26],['Obstetrics & Gynaecology',20],['Pathology',17],
-         ['Community Medicine',17],['Pharmacology',13],['Microbiology',13],['Anatomy',11],['Physiology',11],
-         ['Biochemistry',11],['Forensic Medicine & Toxicology',7],['Pediatrics',7],['ENT (Otorhinolaryngology)',7],
-         ['Ophthalmology',6],['Dermatology, Venereology & Leprosy',2],['Psychiatry',2],['Orthopaedics',2],
+      diff:{easy:0.35,mod:0.45,hard:0.20}, imgShare:0.30, mtfShare:0,
+      w:[['General Medicine',24],['General Surgery',23],['Obstetrics & Gynaecology',18],['Pathology',15],
+         ['Community Medicine',15],['Pharmacology',12],['Microbiology',12],['Anatomy',10],['Physiology',10],
+         ['Biochemistry',10],['Forensic Medicine & Toxicology',6],['Pediatrics',6],['ENT (Otorhinolaryngology)',6],
+         ['Ophthalmology',5],['Dermatology, Venereology & Leprosy',2],['Psychiatry',2],['Orthopaedics',2],
          ['Anaesthesiology',1],['Radiodiagnosis',1]] },
     { k:'INI-CET', name:'INI-CET', org:'AIIMS New Delhi', q:200, mins:180, pos:1, neg:-1/3, cutoffPct:[50,65],
       secN:4, secQ:50, secMins:45, mtf:{pos:1, neg:-0.2},
