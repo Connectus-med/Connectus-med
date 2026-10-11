@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-14 23:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-15 00:30' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -787,8 +787,14 @@
   var testPriority = null;   /* deck|id keys the paper must include (weak-areas paper) */
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var APP_BUILD = '2026-10-14 09:00';
-  var BUILD_NOTE = 'The question counts are back: every screen now knows how many MCQs a deck holds from the catalogue itself, instead of waiting for the card bodies to arrive.';
+  var BUILD_NOTE = 'Question counts are back, and the verify chip now sits at the bottom of a card, right under Prev / Flip / Next.';
   var CHANGELOG = [
+    { build:'2026-10-15 00:30', title:'The verify chip moves down', items:[
+      'On every card, the Verified / Unverified chip has moved out of the card\u2019s top row to a row of its own at the bottom, just under Prev / Flip / Next.',
+      'The top row of a card is clean again - just the Question or Answer label and the hashtag.',
+      'There is now one chip instead of a separate one on each face, and it stays put whichever side you are looking at. In landscape it sits centred under the Flip button rather than being pushed into the left column.',
+      'This build also carries the question-count fix from 23:00: the Qbank tree, test builder and PYQ papers know how many MCQs each deck holds straight away.',
+    ]},
     { build:'2026-10-14 23:00', title:'The question counts are back', items:[
       'Every screen that lists questions - the Qbank tree, the test builder, the PYQ papers, a deck\u2019s own setup - now knows how many MCQs a deck holds straight from the catalogue, instead of counting the card bodies.',
       'That was the real bug behind \u201c0 Q\u201d everywhere: the deck list deliberately stopped shipping card bodies (2.6 MB down to 57 KB), and these screens were still counting them - so until the cards finished arriving in the background, they read zero. Some screens never recovered at all.',
