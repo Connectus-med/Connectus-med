@@ -69,7 +69,49 @@
   function show(h){
     rendered = true;
     try{ sessionStorage.setItem("fd:selfupdate", buildOf(h)); }catch(e){}
-    document.open(); document.write(h); document.close();
+    var wrote = false;
+    /* document.write() called from an inline script APPENDS to the body - it does
+       NOT replace the page. So the "Opening…" card stayed on top of the app for
+       ever, over a stale snapshot, with no way out: exactly what was reported.
+       Set the markup directly instead, then re-run the app's scripts, because
+       innerHTML inserts <script> elements inert. */
+    try{
+      document.documentElement.innerHTML = h;
+      Array.prototype.forEach.call(document.querySelectorAll('script'), function(o){
+        if(o.getAttribute('data-fd-live')) return;
+        var sc = document.createElement('script');
+        sc.setAttribute('data-fd-live', '1');
+        if(o.src){ sc.src = o.src; } else { sc.textContent = o.textContent; }
+        (document.body || document.documentElement).appendChild(sc);
+      });
+      wrote = true;
+    }catch(e){}
+    /* Watchdog. document.write() is how we hand over to the app, but a browser
+       may silently refuse it (a restored PWA, a background tab, a memory-short
+       device) - and then this card sits on "Opening…" for ever, over a stale
+       snapshot of the app, with no way out. So: shortly after the handover,
+       check that the app is really there. If it is not, stop pretending and
+       offer the way forward. */
+    setTimeout(function(){
+      try{
+        if(document.getElementById('content')) return;      /* the app took over - done */
+        if(!document.getElementById('card')) return;        /* not our page any more - leave it */
+        if(!wrote){
+          /* the handover was refused: try the direct route once more */
+          try{
+            document.documentElement.innerHTML = h;
+            Array.prototype.forEach.call(document.querySelectorAll('script'), function(o){
+              if(o.getAttribute('data-fd-live')) return;
+              var sc = document.createElement('script'); sc.setAttribute('data-fd-live', '1');
+              if(o.src){ sc.src = o.src; } else { sc.textContent = o.textContent; }
+              (document.body || document.documentElement).appendChild(sc);
+            });
+            return;
+          }catch(e){}
+        }
+        stuck();                                            /* say it plainly, and offer Try again */
+      }catch(e){}
+    }, 4000);
   }
   function getCached(){ try{ var c = localStorage.getItem(CACHE); return (c && ok(c)) ? c : null; }catch(e){ return null; } }
   function put(h){ try{ localStorage.setItem(CACHE, h); }catch(e){ /* quota / private mode */ } }
@@ -92,6 +134,19 @@
     err.style.display = "block";
     err.textContent = "Could not load the app. Check your connection and tap Try again.";
     retry.style.display = "block";
+  }
+
+  /* The card is still on screen, so this page is still ours: say it plainly and
+     give a real way out. `fail()` cannot be used here - it goes quiet once we
+     have "rendered", which is exactly the trap we are escaping. */
+  function stuck(){
+    try{
+      spin.style.display = "none";
+      msg.style.display = "none";
+      err.style.display = "block";
+      err.textContent = "Could not open the app. Check your connection and tap Try again.";
+      retry.style.display = "block";
+    }catch(e){}
   }
 
   function refresh(){
@@ -133,6 +188,14 @@
   var c0 = getCached();
   if(c0){ msg.textContent = "Opening…"; show(c0); refresh(); }
   else { msg.textContent = "Loading the latest version…"; refresh(); }
+
+  /* Last line of defence: whatever happened, this page must not be a dead end.
+     If we are still the loader nine seconds in, the user gets a real button. */
+  setTimeout(function(){
+    try{
+      if(document.getElementById('card')) stuck();
+    }catch(e){}
+  }, 9000);
 
   retry.onclick = function(){
     err.style.display = "none"; retry.style.display = "none"; spin.style.display = "block"; msg.style.display = "block";
