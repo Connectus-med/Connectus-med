@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-13 23:30' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-14 00:30' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -766,9 +766,13 @@
   var viewRestored = false;
   var testPriority = null;   /* deck|id keys the paper must include (weak-areas paper) */
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
-  var APP_BUILD = '2026-10-13 23:30';
-  var BUILD_NOTE = '"Collapse all" now really collapses everything — the Qbank was quietly re-opening its years every time.';
+  var APP_BUILD = '2026-10-14 00:30';
+  var BUILD_NOTE = 'Silent failures now report themselves — if the app ever breaks on a device, it tells us anonymously instead of waiting for you to notice.';
   var CHANGELOG = [
+    { build:'2026-10-14 00:30', title:'The app now reports its own failures', items:[
+      'If something breaks on a real device, the app sends a small anonymous note (which screen, what went wrong) so we hear about it ourselves instead of finding out hours later from you.',
+      'It is anonymous: no name, no account, no email — any email in the text is stripped. At most four distinct errors per session, and it can never itself slow down or break the app.'
+    ]},
     { build:'2026-10-13 23:30', title:'Collapse all actually collapses all', items:[
       'The Qbank tree re-opened its year rows on every redraw, so the collapse-all button looked broken. It now defaults open only the very first time, and then your choice sticks — even after a reload.',
       'Collapse all also closes any row still open on screen, and the button hides itself once everything is closed.'
@@ -3847,6 +3851,28 @@
       fetch(SB_URL + '/rest/v1/events', { method:'POST', headers: authHeaders(), body: JSON.stringify(body) }).catch(function(){});
     }catch(e){}
   }
+  /* ---- anonymous error beacon --------------------------------------------
+     When something breaks on a real device we must hear about it ourselves,
+     not from the user hours later. Rules it must never break:
+       - fire-and-forget: it can never throw, block or break the app
+       - anonymous: no user id, no names, and any email in the text is scrubbed
+       - quiet: at most 4 distinct errors per session, one per signature
+     It reuses the existing public.events table, so no schema change. */
+  var _errSent = {};
+  function trackError(where, msg){
+    try{
+      var m = String(msg || '').replace(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g, '<email>').slice(0, 120);
+      if(!m) return;
+      var sig = where + '|' + m.slice(0, 50);
+      if(_errSent[sig]) return;
+      if(Object.keys(_errSent).length >= 4) return;
+      _errSent[sig] = 1;
+      fetch(SB_URL + '/rest/v1/events', {
+        method: 'POST', headers: authHeaders(),
+        body: JSON.stringify({ kind: 'error', deck_key: ('E:' + where + '|' + m).slice(0, 220) })
+      }).catch(function(){});
+    }catch(e){ /* the beacon must never itself break anything */ }
+  }
   function rpc(name, body){
     return fetch(SB_URL + '/rest/v1/rpc/' + name, {
       method: body ? 'POST' : 'GET',
@@ -3861,7 +3887,7 @@
     apiJson('?api=catalog').then(function(x){
       if(!x.ok) throw new Error('HTTP ' + x.status);
       applyPublic(x.d);
-    }).catch(function(){ toast('Could not load the catalogue. Please reload the page.'); });
+    }).catch(function(){ trackError('catalogue', 'load failed'); toast('Could not load the catalogue. Please reload the page.'); });
   }
   function applyPublic(d){
     PUB = d || {};
@@ -6554,6 +6580,7 @@
   applyBuild(); buildToast();
   /* never leave the user on a blank screen: if the first render fails, say so */
   window.addEventListener('error', function(ev){
+    try{ trackError('js', (ev && ev.message) || 'unknown'); }catch(e){}
     try{
       var c = document.getElementById('content');
       if(!c || c.textContent.trim().length > 0) return;
@@ -6573,6 +6600,7 @@
     }catch(_){}
   });
   window.addEventListener('unhandledrejection', function(ev){
+    try{ trackError('promise', (ev && ev.reason && (ev.reason.message || ev.reason)) || 'unknown'); }catch(e){}
     try{
       var c = document.getElementById('content');
       if(!c || c.textContent.trim().length > 0) return;
