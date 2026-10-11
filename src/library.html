@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-14 02:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-14 03:30' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -766,9 +766,13 @@
   var viewRestored = false;
   var testPriority = null;   /* deck|id keys the paper must include (weak-areas paper) */
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
-  var APP_BUILD = '2026-10-14 02:00';
-  var BUILD_NOTE = 'Stopped the app eating your data — the 30-second sync was re-downloading every card each time (about 2.6 MB). It now asks a 100-byte question instead.';
+  var APP_BUILD = '2026-10-14 03:30';
+  var BUILD_NOTE = 'Every automatic refresh now asks a 100-byte question instead of re-downloading every card — the timer, the tab switch and reconnecting are all covered.';
   var CHANGELOG = [
+    { build:'2026-10-14 03:30', title:'The rest of the data leaks closed', items:[
+      'The 30-second timer was one leak; coming back to the tab and reconnecting were two more — each pulled the whole deck list again.',
+      'All three now ask the same ~100-byte question first and only download when something actually changed.'
+    ]},
     { build:'2026-10-14 02:00', title:'Your data is safe again', items:[
       'Found it: a 30-second background timer was re-downloading the ENTIRE deck list with every card body — about 2.6 MB each time, roughly 300 MB an hour on a phone.',
       'It now asks a ~100-byte question ("has anything changed?") and only downloads when the answer is yes. Same freshness, about 26,000x less traffic.',
@@ -1800,7 +1804,7 @@
     if(autoSyncTimer){ clearInterval(autoSyncTimer); autoSyncTimer = null; }
     var m = autoMins();
     if(m > 0 && session){
-      autoSyncTimer = setInterval(function(){ if(!document.hidden && session){ try{ selfUpdate(); }catch(e){} load(); } }, m * 60000);
+      autoSyncTimer = setInterval(function(){ if(!document.hidden && session){ try{ selfUpdate(); }catch(e){} pollChanged(); } }, m * 60000);
     }
     renderAutoSync();
   }
@@ -6595,9 +6599,9 @@
       }).catch(function(){});
   }
   setInterval(function(){ if(session && !document.hidden){ try{ qFlush(); }catch(e){} pollChanged(); } }, 30000);
-  document.addEventListener('visibilitychange', function(){ if(!document.hidden){ selfUpdate(); if(session && autoAllowed() && (Date.now() - lastLoadAt > 30000)) load(); else quietRender(); } });
-  window.addEventListener('online', function(){ if(session){ try{ qFlush(); }catch(e){} load(); } });
-  window.addEventListener('focus', function(){ selfUpdate(); if(session && autoAllowed() && (Date.now() - lastLoadAt > 30000)) load(); else quietRender(); });
+  document.addEventListener('visibilitychange', function(){ if(!document.hidden){ selfUpdate(); if(session && autoAllowed() && (Date.now() - lastLoadAt > 30000)) pollChanged(); else quietRender(); } });
+  window.addEventListener('online', function(){ if(session){ try{ qFlush(); }catch(e){} pollChanged(); } });
+  window.addEventListener('focus', function(){ selfUpdate(); if(session && autoAllowed() && (Date.now() - lastLoadAt > 30000)) pollChanged(); else quietRender(); });
 
   try{ var _d = new Date(), _hh = _d.getHours(), _mm = ('0'+_d.getMinutes()).slice(-2); sessionStorage.setItem('fd:loaded', ('0'+_hh).slice(-2) + ':' + _mm); }catch(e){}
   applyBuild(); buildToast();
