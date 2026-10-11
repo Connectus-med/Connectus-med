@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-15 06:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-15 08:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -467,6 +467,7 @@
   .rvopt{font-size:.85rem; line-height:1.4; padding:4px 0; color:var(--muted)}
   .rvopt.correct{color:#0f766e; font-weight:800}
   .rvopt.picked{color:#c81e1e; font-weight:700}
+  .qsrc{margin-top:7px; color:var(--muted); font-size:.74rem; line-height:1.35}
   .rvexp{margin-top:8px; padding:9px 11px; border-left:3px solid var(--accent-2); background:var(--accent-soft); border-radius:9px; font-size:.85rem; line-height:1.5}
   /* ---- right-edge question palette (review / error log) ---- */
   .qpal{position:fixed; right:0; top:calc(70px + env(safe-area-inset-top,0px)); bottom:calc(90px + env(safe-area-inset-bottom,0px));
@@ -787,8 +788,13 @@
   var testPriority = null;   /* deck|id keys the paper must include (weak-areas paper) */
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var APP_BUILD = '2026-10-14 09:00';
-  var BUILD_NOTE = 'A test is never interrupted again: an update that arrives mid-paper now waits until you leave the test, instead of rewriting the page under you.';
+  var BUILD_NOTE = 'Every question now shows where it came from: a small Source line under the question, in the paper, the review, the error log and the search.';
   var CHANGELOG = [
+    { build:'2026-10-15 08:00', title:'Every question shows its source', items:[
+      'A question now carries its provenance in plain sight: a small muted \u201cSource: file \u00b7 page \u00b7 question\u201d line right under it.',
+      'It appears while you are sitting a paper, on the result review after you submit, in the error log, and in Find a question results. The deck viewer already showed it.',
+      'Nothing is invented: the line is exactly the source reference stored with the question when the deck was built.',
+    ]},
     { build:'2026-10-15 06:00', title:'Your test is never interrupted again', items:[
       'Fixed: while you were sitting a paper, an update could arrive and rewrite the page under you - you would be thrown out of the test, sometimes to Home, sometimes to What\u2019s New.',
       'The update is now held back while a test is open (or its results are on screen) and applied the moment you leave the test. Nothing you were answering is lost.',
@@ -4884,6 +4890,15 @@
              s:(loc&&loc.s)||'', u:(loc&&loc.u)||'', c:(loc&&loc.c)||'', t:topic||'', tag:c.tag || '',
              diff:c.diff || '', qt:c.qt || '', img:(c.img ? 1 : 0) };
   }
+  /* Every question keeps its provenance in plain sight - file and page. It is
+     carried on the item as `src`; this renders it as one small muted line. */
+  function srcLine(q){
+    var v = q && q.src ? String(q.src).trim() : '';
+    if(!v) return null;
+    var el = document.createElement('div'); el.className = 'qsrc';
+    el.textContent = 'Source: ' + v;
+    return el;
+  }
   function isTestable(c){
     if(!c || !c.id) return false;
     if(c.type === 'image' || c.img || c.type === 'imageocclusion') return false;
@@ -5758,6 +5773,7 @@
         var b = document.createElement('div'); b.className = 'tfm';
         b.textContent = (it.s || '') + (it.t ? ' \u00b7 ' + it.t : '') + (it.tag ? ' \u00b7 ' + it.tag : '');
         row.appendChild(a); row.appendChild(b);
+        var _sl4 = srcLine(it); if(_sl4) row.appendChild(_sl4);
         row.onclick = function(){ inp.value = it.q || ''; run(); };
         res.appendChild(row);
       });
@@ -6517,6 +6533,7 @@
       opts.appendChild(b);
     });
     qc.appendChild(opts);
+    var _sl = srcLine(q); if(_sl) qc.appendChild(_sl);
     wrap.appendChild(qc);
 
     var nav = document.createElement('div'); nav.className = 'tnav';
@@ -6681,6 +6698,7 @@
           eb.appendChild(row);
         });
         if(q.explain){ var ex = document.createElement('div'); ex.className = 'rvexp'; ex.textContent = q.explain; eb.appendChild(ex); }
+        var _sl1 = srcLine(q); if(_sl1) eb.appendChild(_sl1);
         if(!ok || item.mark){ errNoteRow(q.k, q.id, eb); }
         rv.appendChild(eb);
       });
@@ -7001,6 +7019,7 @@
             box.appendChild(row);
           });
           if(q.explain){ var ex = document.createElement('div'); ex.className = 'rvexp'; ex.textContent = q.explain; box.appendChild(ex); }
+          var _sl2 = srcLine(q); if(_sl2) box.appendChild(_sl2);
         } else {
           var nq = document.createElement('div'); nq.className = 'muted small'; nq.textContent = e.k; box.appendChild(nq);
         }
@@ -7026,6 +7045,7 @@
         mm.textContent = [loc.s, loc.u, CHAP[k]].filter(Boolean).join(' \u00b7 ') + '  \u00b7  ' + x.w + ' of ' + Math.max(1, x.a) + ' wrong';
         box.appendChild(mm);
         var qq = document.createElement('div'); qq.className = 'terr-q'; qq.textContent = q ? q.q : (k + ' \u00b7 ' + id); box.appendChild(qq);
+        var _sl3 = srcLine(q); if(_sl3) box.appendChild(_sl3);
         errNoteRow(k, id, box);
         l2.appendChild(box);
       });
