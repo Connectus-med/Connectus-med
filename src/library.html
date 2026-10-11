@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-15 04:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-15 06:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -787,8 +787,13 @@
   var testPriority = null;   /* deck|id keys the paper must include (weak-areas paper) */
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var APP_BUILD = '2026-10-14 09:00';
-  var BUILD_NOTE = 'PYQ questions are counted and labelled: every paper shows how many past-year questions are in it, and a switch keeps them in or out.';
+  var BUILD_NOTE = 'A test is never interrupted again: an update that arrives mid-paper now waits until you leave the test, instead of rewriting the page under you.';
   var CHANGELOG = [
+    { build:'2026-10-15 06:00', title:'Your test is never interrupted again', items:[
+      'Fixed: while you were sitting a paper, an update could arrive and rewrite the page under you - you would be thrown out of the test, sometimes to Home, sometimes to What\u2019s New.',
+      'The update is now held back while a test is open (or its results are on screen) and applied the moment you leave the test. Nothing you were answering is lost.',
+      'This happened because the app quietly checks for a new build on a timer, when you switch back to it, and when the network returns - so switching apps mid-test was enough to trigger it.',
+    ]},
     { build:'2026-10-15 04:00', title:'PYQ questions, counted and switchable', items:[
       'Every pre-start paper now says how much of it is past-year material, in plain numbers: \u201cPYQ: 6 of these 50 come from past-year papers \u00b7 64 PYQ questions in the bank\u201d.',
       'A new Question bank switch sits with that line on every mode \u2014 Start a test, Subject test, Real Exam Grand Test, Weak areas and Find a question. Include PYQ questions (the default) or Topic decks only.',
@@ -2385,6 +2390,8 @@
   }
   function render(){
     try{ window.__lastRender = view && view.t; }catch(e){}
+    /* a swap was held back while a test was open - do it now that we have left */
+    try{ if(view.t !== 'test' && applyPendingSelfUpdate()) return; }catch(e){}
     try{ ss('fd:builder', { custom:testCustom, exam:testExam, len:testLen, y:testSelYears, s:testSelSubjects, u:testSelUnits, c:testSelChapters }); }catch(e){}
     try{ ss('fd:view', view); }catch(e){}
     try{ clearQPal(); }catch(e){}
@@ -3909,6 +3916,18 @@
   }
   var DECK_TPL = null;
   function vnum(s){ return parseInt(String(s || '').replace(/[^0-9]/g, ''), 10) || 0; }
+  /* A test in flight (or its results on screen) must never be interrupted by a
+     page swap - that was the bug: switch apps mid-test, come back, a new build
+     arrives and the page is rewritten under the test, dumping you on Home or
+     whatever view happened to restore. Defer, then apply when you leave. */
+  function testRunning(){ try{ return !!testRun || !!view.tResult; }catch(e){ return false; } }
+  function applyPendingSelfUpdate(){
+    if(!pendingSelfUpdate) return false;
+    var h = pendingSelfUpdate; pendingSelfUpdate = null;
+    try{ sessionStorage.setItem('fd:selfupdate', APP_BUILD); }catch(e){}
+    try{ document.open(); document.write(h); document.close(); }catch(e){}
+    return true;
+  }
   function selfUpdate(force){
     var swaps = 0;
     try{ if(!force && sessionStorage.getItem('fd:selfupdate') === APP_BUILD) return; swaps = parseInt(sessionStorage.getItem('fd:selfupdate_n') || '0', 10) || 0; }catch(e){}
@@ -3923,7 +3942,7 @@
             if(html.indexOf('id="content"') < 0 || html.indexOf('collapseFab') < 0 || html.indexOf('</html>') < 0) return;
             /* safeguard: the fetched build must match the advertised version, else reject (never swap a wrong/partial build) */
             if(html.indexOf("APP_BUILD = '" + v.ui_version + "'") < 0) return;
-            if(viewerOpen()){ pendingSelfUpdate = html; return; }
+            if(viewerOpen() || testRunning()){ pendingSelfUpdate = html; return; }
             try{ sessionStorage.setItem('fd:selfupdate', APP_BUILD); sessionStorage.setItem('fd:selfupdate_n', String(swaps + 1)); }catch(e){}
             document.open(); document.write(html); document.close();
           });
@@ -4740,7 +4759,7 @@
   $('lockPrimary').onclick = function(){ $('lockModal').classList.add('hidden'); if(session) openPasses(); else openProfile(); };
   $('lockClose').onclick = function(){ $('lockModal').classList.add('hidden'); };
   $('back').onclick = function(){ viewDeckKey=''; updateCatBtn(); $('viewer').classList.add('hidden'); document.body.classList.remove('deckopen'); dropBackGuard(); $('frame').srcdoc = '';
-    if(pendingSelfUpdate){ var _h = pendingSelfUpdate; pendingSelfUpdate = null; try{ sessionStorage.setItem('fd:selfupdate', APP_BUILD); }catch(e){} try{ document.open(); document.write(_h); document.close(); }catch(e){} return; }
+    if(applyPendingSelfUpdate()) return;
     deferRender = false; quietRender();
     if(IS_OWNER && session) setTimeout(load, 350); };
   $('deckThemeBtn').onclick = function(){ try{ var f=$('frame'); if(f && f.contentWindow) f.contentWindow.postMessage({fd:'theme'}, '*'); }catch(e){} };
