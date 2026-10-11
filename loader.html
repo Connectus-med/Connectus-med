@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f97316">
+<title>Connectus - Flashcards</title>
+<style>
+  :root{--accent:#f97316;--accent-2:#ea580c;--bg:#f7f4f1;--panel:#fff;--ink:#20160f;--muted:#7a6a5d;--line:#ecdfd3}
+  body.dark{--bg:#0c0b0a;--panel:#161412;--ink:#f6efe9;--muted:#a99a8d;--line:#2b2622}
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+       display:flex;align-items:center;justify-content:center;padding:24px}
+  .card{width:min(420px,100%);background:var(--panel);border:1px solid var(--line);border-radius:20px;
+        box-shadow:0 24px 60px -30px rgba(120,60,10,.5);padding:22px;text-align:center}
+  .brand{font-size:1.4rem;font-weight:900;letter-spacing:-.025em;margin:0 0 4px}
+  .q{color:var(--muted);font-size:.85rem;margin:0 0 16px}
+  .spin{width:30px;height:30px;margin:6px auto 14px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--accent-2);animation:sp .8s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  button{width:100%;padding:13px;border-radius:999px;border:0;background:var(--accent-2);color:#fff;font:inherit;font-weight:800;cursor:pointer}
+  button:active{transform:translateY(1px)}
+  .err{color:var(--muted);font-size:.85rem;line-height:1.5;margin:0 0 14px}
+  .tiny{color:var(--muted);font-size:.7rem;margin-top:12px;opacity:.8}
+</style>
+</head>
+<body>
+<div class="card" id="card">
+  <div class="spin" id="spin"></div>
+  <h1 class="brand">Connectus</h1>
+  <p class="q">Loading the latest version…</p>
+  <p class="err" id="err" style="display:none"></p>
+  <button id="retry" style="display:none">Try again</button>
+  <div class="tiny" id="tiny"></div>
+</div>
+<script>
+/* Connectus loader — the deployed page never goes stale.
+   It fetches the LIVE build from the cloud and renders it, so the site is
+   always current no matter how old this file is. Nothing else lives here. */
+(function(){
+  var SB = "https://vcsfjzlelpwditxdbaea.supabase.co";
+  var KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZjc2ZqemxlbHB3ZGl0eGRiYWVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE0NTg2NTEsImV4cCI6MjEwNzAzNDY1MX0.Sx9wB-78a4DEfdA67kSZpAA2qIIkxPBSH84chU_0RPc";
+  var FN = SB + "/functions/v1/medcircuit";
+  var spin = document.getElementById("spin"), err = document.getElementById("err");
+  var retry = document.getElementById("retry"), tiny = document.getElementById("tiny");
+  try{ var th = localStorage.getItem("fd:theme"); if(th === "dark") document.body.classList.add("dark"); }catch(e){}
+  function fail(msg){
+    spin.style.display = "none";
+    err.style.display = "block";
+    err.textContent = msg || "Could not reach the server. Check your connection and try again.";
+    retry.style.display = "block";
+  }
+  function load(){
+    err.style.display = "none"; retry.style.display = "none"; spin.style.display = "block";
+    fetch(FN + "?_=" + Date.now(), { headers: { "apikey": KEY }, cache: "no-store" })
+      .then(function(r){ if(!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
+      .then(function(html){
+        if(html.indexOf('id="content"') < 0 || html.indexOf("collapseFab") < 0 || html.indexOf("</html>") < 0){
+          throw new Error("bad build");
+        }
+        var m = html.match(/var APP_BUILD = '([^']+)'/);
+        try{ sessionStorage.setItem("fd:selfupdate", m ? m[1] : ""); }catch(e){}
+        document.open(); document.write(html); document.close();
+      })
+      .catch(function(){ fail(); });
+  }
+  retry.onclick = load;
+  load();
+})();
+</script>
+</body>
+</html>
