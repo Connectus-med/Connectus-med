@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-14 03:30' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-14 05:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -766,9 +766,14 @@
   var viewRestored = false;
   var testPriority = null;   /* deck|id keys the paper must include (weak-areas paper) */
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
-  var APP_BUILD = '2026-10-14 03:30';
-  var BUILD_NOTE = 'Every automatic refresh now asks a 100-byte question instead of re-downloading every card — the timer, the tab switch and reconnecting are all covered.';
+  var APP_BUILD = '2026-10-14 05:00';
+  var BUILD_NOTE = 'Groundwork for the next data cut: deck counts now come from a number, and cards can be loaded per-deck on demand.';
   var CHANGELOG = [
+    { build:'2026-10-14 05:00', title:'Groundwork for the big data cut', items:[
+      'Deck counts now come from a stored number instead of counting every card body, and the app can fetch one deck\u2019s cards on demand.',
+      'No behaviour change yet — this is the groundwork so the deck list can stop shipping every card on every load.',
+      'Also cleaned up some duplicated lines that had built up in the loader function.'
+    ]},
     { build:'2026-10-14 03:30', title:'The rest of the data leaks closed', items:[
       'The 30-second timer was one leak; coming back to the tab and reconnecting were two more — each pulled the whole deck list again.',
       'All three now ask the same ~100-byte question first and only download when something actually changed.'
@@ -2076,6 +2081,39 @@
   var lastLoadAt = 0;
   var lastStamp = null;   /* last decks.updated_at we actually loaded */
   var loadRetries = 0;
+  /* ---- lazy card loading -------------------------------------------------
+     The deck list no longer carries every card body (that was 2.6 MB on every
+     load). The library works off the counts in d.n; the real cards are fetched
+     only for the decks a screen actually needs — on demand, and once. */
+  var _hydrating = {};
+  function hydrateDecks(keys, done){
+    var need = (keys || []).filter(function(k){
+      var d = (decksData || []).filter(function(x){ return x.deck_key === k; })[0];
+      return d && !(Array.isArray(d.cards) && d.cards.length) && !_hydrating[k];
+    });
+    if(!need.length){ if(done) done(); return Promise.resolve(); }
+    need.forEach(function(k){ _hydrating[k] = 1; });
+    var uid = session.user.id;
+    var q = need.map(function(k){ return encodeURIComponent(k); }).join(',');
+    return get('/rest/v1/decks?select=deck_key,cards&user_id=eq.' + uid + '&deck_key=in.(' + q + ')')
+      .then(function(rows){
+        (rows || []).forEach(function(r){
+          (decksData || []).forEach(function(d){ if(d.deck_key === r.deck_key){ d.cards = r.cards || []; if(!d.n && Array.isArray(r.cards)) d.n = r.cards.length; } });
+          delete _hydrating[r.deck_key];
+        });
+        if(done) done();
+      }).catch(function(){ need.forEach(function(k){ delete _hydrating[k]; }); if(done) done(); });
+  }
+  function hydrateAll(done){
+    var keys = (decksData || []).filter(function(d){ return !(Array.isArray(d.cards) && d.cards.length); }).map(function(d){ return d.deck_key; });
+    if(!keys.length){ if(done) done(); return Promise.resolve(); }
+    /* chunk it so one request never becomes huge again */
+    var chunks = [], i = 0;
+    while(i < keys.length){ chunks.push(keys.slice(i, i + 40)); i += 40; }
+    var p = Promise.resolve();
+    chunks.forEach(function(ch){ p = p.then(function(){ return hydrateDecks(ch); }); });
+    return p.then(function(){ if(done) done(); });
+  }
   function load(){
     lastLoadAt = Date.now();
     setDot('on');
@@ -2099,11 +2137,8 @@
     tax = taxRows || [];
     CHAP = {};
     try{
-      var _sp = null;
       var _sp = null, _tx = null, _qt = null, _en = null, _pq = null;
       (spineRows || []).forEach(function(r){ if(!r) return; if(r.key === 'deck_paths') _sp = r; if(r.key === 'taxonomy') _tx = r; if(r.key === 'qstats') _qt = r; if(r.key === 'errnotes') _en = r; if(r.key === 'pyq_index') _pq = r; });
-      (spineRows || []).forEach(function(r){ if(!r) return; if(r.key === 'deck_paths') _sp = r; if(r.key === 'taxonomy') _tx = r; if(r.key === 'qstats') _qt = r; });
-      (spineRows || []).forEach(function(r){ if(!r) return; if(r.key === 'deck_paths') _sp = r; if(r.key === 'taxonomy') _tx = r; });
       if(!_sp && spineRows && spineRows.length && spineRows[0] && spineRows[0].value) _sp = spineRows[0];
       if(_sp && _sp.value){
         var _dp = JSON.parse(_sp.value);
@@ -2214,7 +2249,7 @@
       loadImgMap();
       if(view.t === 'subject' && !(tree[view.y] && tree[view.y][view.s])) view = { t:'home' };
       var _sig;
-      try{ _sig = JSON.stringify(states) + '|' + (decks||[]).map(function(d){ return d.deck_key + ':' + (Array.isArray(d.cards) ? d.cards.length : (d.n||0)) + ':' + (d.updated_at||'') + ':' + (d.subject||'') + ':' + (d.unit||'') + ':' + (d.category||'') + ':' + (d.set_no||1); }).join(',') + '|' + JSON.stringify(roundsMap) + '|' + (taxRows||[]).length + '|' + view.t; }
+      try{ _sig = JSON.stringify(states) + '|' + (decks||[]).map(function(d){ return d.deck_key + ':' + ((typeof d.n === 'number') ? d.n : (Array.isArray(d.cards) ? d.cards.length : 0)) + ':' + (d.updated_at||'') + ':' + (d.subject||'') + ':' + (d.unit||'') + ':' + (d.category||'') + ':' + (d.set_no||1); }).join(',') + '|' + JSON.stringify(roundsMap) + '|' + (taxRows||[]).length + '|' + view.t; }
       catch(e){ _sig = String(Math.random()); }
       var _changed = (_sig !== lastSig); lastSig = _sig;
       if(viewerOpen()){ if(_changed) deferRender = true; }
@@ -2674,7 +2709,7 @@
         var dk = (tmap[u][cg] || []).map(function(d){ return d.deck_key; });
         if(!dk.length) return;
         var topics = (tmap[u][cg] || []).slice().sort(function(a,b){ return topicOf(a).toLowerCase() < topicOf(b).toLowerCase() ? -1 : 1; })
-          .map(function(d){ var n = (Array.isArray(d.cards) ? d.cards.length : 0);
+          .map(function(d){ var n = (typeof d.n === 'number') ? d.n : (Array.isArray(d.cards) ? d.cards.length : 0);
             return { label: topicOf(d), decks: [d.deck_key], cards: n, badge: n + (n === 1 ? ' card' : ' cards') }; });
         cats.push({ label: cg, decks: dk, children: topics, badge: topics.length + (topics.length === 1 ? ' deck' : ' decks') });
       });
@@ -4231,7 +4266,7 @@
         Object.keys(treeData[y][sb] || {}).forEach(function(u){
           Object.keys(treeData[y][sb][u] || {}).forEach(function(cg){
             (treeData[y][sb][u][cg] || []).forEach(function(d){
-              n++; c += (Array.isArray(d.cards) ? d.cards.length : 0);
+              n++; c += (typeof d.n === 'number') ? d.n : (Array.isArray(d.cards) ? d.cards.length : 0);
             });
           });
         });
