@@ -791,7 +791,7 @@
   var viewRestored = false;
   var testPriority = null;   /* deck|id keys the paper must include (weak-areas paper) */
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
-  var APP_BUILD = '2026-10-15 13:00';
+  var APP_BUILD = '2026-10-14 09:00';
   var BUILD_NOTE = 'The result review now shows one question at a time, with the filmstrip along the top to jump anywhere.';
   var CHANGELOG = [
     { build:'2026-10-15 14:00', title:'The review, one question at a time', items:[
@@ -800,10 +800,6 @@
       'The source line and your note box stay with the question you are looking at.',
     ],
 
-    { build:'2026-10-15 13:00', title:'Source paper stays out of the live paper', items:[
-      'The small "Source: ..." line on a past-year (PYQ) question no longer shows while you are sitting the paper, so the exam screen stays clean.',
-      'It still shows in the results review, the Find-a-question list and the error log.',
-    ]},
     { build:'2026-10-15 12:00', title:'Owner status holds, and the navigator moved up top', items:[
       'Fixed: the owner was sometimes shown as an ordinary customer - the profile menu offered \u201cOwner access\u201d and asked for a recovery code, while the owner was already signed in. Ownership was being decided by a single settings read, and any network hiccup or a token refresh in flight made that read fail. A failed read now keeps the last known answer, and the answer is remembered on the device.',
       'The question navigator on the result review is now a single row across the top of the screen, scrolled sideways - instead of a scrollbar column down the right edge.',
@@ -6585,6 +6581,7 @@
       opts.appendChild(b);
     });
     qc.appendChild(opts);
+    var _sl = srcLine(q); if(_sl) qc.appendChild(_sl);
     wrap.appendChild(qc);
 
     var nav = document.createElement('div'); nav.className = 'tnav';
