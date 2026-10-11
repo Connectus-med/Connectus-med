@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-15 08:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-15 10:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -664,7 +664,6 @@
     <button id="themeBtn" class="btn wide">Theme: Light</button>
     <div style="height:10px"></div>
   </div>
-  <button id="checkUpdateBtn" class="btn wide">Check for update</button>
   <button id="whatsNewBtn" class="btn wide hidden">What&#39;s New</button>
   <button id="installBtn" class="btn wide hidden">Install the app</button>
   <button id="legalBtn" class="btn wide">Terms, refund &amp; privacy</button>
@@ -788,8 +787,12 @@
   var testPriority = null;   /* deck|id keys the paper must include (weak-areas paper) */
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var APP_BUILD = '2026-10-14 09:00';
-  var BUILD_NOTE = 'Every question now shows where it came from: a small Source line under the question, in the paper, the review, the error log and the search.';
+  var BUILD_NOTE = 'Stray HTML codes in question text are cleaned up everywhere, and Check for update now sits at the top of What\u2019s New.';
   var CHANGELOG = [
+    { build:'2026-10-15 10:00', title:'Clean text, and Check for update moved', items:[
+      'Some questions showed stray HTML codes instead of the real symbol - \u201c&lt;\u201d where a less-than sign belonged, and a few \u201c&amp;\u201d. The stored questions were cleaned (125 + 134 + 37 of them), and the app now decodes those codes on the way to the screen as well, so nothing slips through even from an older copy.',
+      'Check for update has moved: it is no longer in the profile menu. It now sits at the top of What\u2019s New, right under the build line - so after you read what changed, the button is right there.',
+    ]},
     { build:'2026-10-15 08:00', title:'Every question shows its source', items:[
       'A question now carries its provenance in plain sight: a small muted \u201cSource: file \u00b7 page \u00b7 question\u201d line right under it.',
       'It appears while you are sitting a paper, on the result review after you submit, in the error log, and in Find a question results. The deck viewer already showed it.',
@@ -4275,6 +4278,13 @@
     var intro = document.createElement('div'); intro.className = 'muted small'; intro.style.margin = '0 2px 12px';
     intro.textContent = 'Everything that changed, newest first. Current build: ' + APP_BUILD + '.';
     c.appendChild(intro);
+    /* Check for update lives here now - at the top of What's New, where you would
+       look right after reading that something changed. */
+    var upd = document.createElement('button'); upd.type = 'button'; upd.className = 'btn wide';
+    upd.textContent = 'Check for update';
+    upd.style.margin = '0 0 12px';
+    upd.onclick = function(){ checkUpdate(); };
+    c.appendChild(upd);
     CHANGELOG.forEach(function(e, i){
       var card = document.createElement('div'); card.className = 'card3';
       var h = document.createElement('div'); h.className = 'chead'; h.textContent = 'Build ' + e.build + (i === 0 ? ' \u00b7 current' : '');
@@ -4707,7 +4717,6 @@
   $('passBtn').onclick = function(){ closeProfile(); closeDrawer(); openPasses(); };
   $('insightBtn').onclick = function(){ closeProfile(); closeDrawer(); view = { t:'insights' }; render(); window.scrollTo(0,0); };
   $('whatsNewBtn').onclick = function(){ closeProfile(); closeDrawer(); view = { t:'whatsnew' }; render(); window.scrollTo(0,0); };
-  $('checkUpdateBtn').onclick = function(){ closeProfile(); checkUpdate(); };
   $('legalBtn').onclick = function(){ window.open('terms.html', '_blank'); };
   $('doSignUp').onclick = function(){
     var em = $('email').value.trim(), pw = $('pass').value;
@@ -4821,9 +4830,21 @@
      error log, and you can re-practise just those. */
   var testRun = null, testTimerId = null, testScope = 'all', testLen = 200, testDeck = '', testExam = 'NEET-PG', testSections = true, testSeed = 0, testUntimed = false, testWithPyq = true, testCustom = false, testSelSubjects = [], testSelUnits = [], testSelChapters = [], testSelYears = [];
 
+  /* Extraction sometimes left HTML entities in the text (\&lt; for <, \&gt; for >,
+     \&amp; for &). They must never reach the screen, so every string that flows
+     through here is decoded first. The stored cards were cleaned as well - this
+     is the belt-and-braces pass for anything already cached on a device. */
+  function decodeEnt(t){
+    return String(t)
+      .replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"').replace(/&#0*39;/g, "'").replace(/&apos;/g, "'")
+      .replace(/&nbsp;/g, ' ').replace(/&hellip;/g, '\u2026')
+      .replace(/&ndash;/g, '\u2013').replace(/&mdash;/g, '\u2014')
+      .replace(/&amp;/g, '&');
+  }
   function flatText(v){
     if(v == null) return '';
-    if(typeof v === 'string') return v.replace(/\s+/g,' ').trim();
+    if(typeof v === 'string') return decodeEnt(v).replace(/\s+/g,' ').trim();
     if(typeof v === 'number') return String(v);
     if(Array.isArray(v)) return v.map(flatText).filter(Boolean).join(' \u00b7 ');
     if(typeof v === 'object'){
