@@ -23,3 +23,5 @@ jobs:
           echo "chromium at: $CHROME_BIN" 
       - name: Run the regression suite
         run: node tests/regression.js src/library.html
+      - name: Check the performance / data budget
+        run: node tests/perf_budget.js src/library.html
