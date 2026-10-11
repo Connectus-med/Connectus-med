@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-13 19:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-13 20:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -50,6 +50,8 @@
   .lastsync{border:0; background:none; color:var(--muted); font:inherit; font-size:.7rem; font-weight:650;
     cursor:pointer; padding:4px 2px; white-space:nowrap; border-radius:8px}
   .lastsync:active{transform:translateY(1px)}
+  .buildchip{border:1px solid var(--line); background:var(--panel); color:var(--muted); font:inherit; font-size:.62rem; font-weight:750; padding:4px 7px; border-radius:999px; cursor:pointer; white-space:nowrap; flex:none}
+  .buildchip:active{transform:translateY(1px)}
   @media (max-width:400px){ .lastsync{display:none} }
   .avatar{width:42px; height:42px; flex:none; border-radius:50%; border:0; cursor:pointer;
     background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:#fff;
@@ -607,6 +609,7 @@
 
 <header class="appbar">
   <div class="brand" id="appTitle"><span class="logomark" role="img" aria-label="Connectus"></span><span class="brandcol"><span class="brandname" id="appTitleTxt">Connectus</span><span class="brandquote">Know what you know · Fix what you don’t</span></span></div>
+  <button id="buildChip" class="buildchip" title="Check for updates">v</button>
   <button id="lastSync" class="lastsync" aria-label="Sync now">—</button>
   <span id="syncDot" class="dot on"></span>
   <button id="profileBtn" class="avatar" aria-label="Profile">L</button>
@@ -763,9 +766,13 @@
   var viewRestored = false;
   var testPriority = null;   /* deck|id keys the paper must include (weak-areas paper) */
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
-  var APP_BUILD = '2026-10-13 19:00';
-  var BUILD_NOTE = 'If a screen ever fails to draw, the app now says so and offers a Reload — no more blank page.';
+  var APP_BUILD = '2026-10-13 20:00';
+  var BUILD_NOTE = 'The build you are running now shows in the header — tap it to check for updates.';
   var CHANGELOG = [
+    { build:'2026-10-13 20:00', title:'You can always see which build you are on', items:[
+      'The current build now shows in the header as a small chip (e.g. v2026-10-13 20:00).',
+      'Tap the chip to check for updates on the spot — useful if the app ever looks older than it should.'
+    ]},
     { build:'2026-10-13 19:00', title:'No more blank screen', items:[
       'If the app ever fails to draw a screen, it now shows what went wrong and a Reload button instead of leaving the page empty.',
       'Housekeeping: the file header comment had grown very long across builds; it is back to a single line.'
@@ -3682,9 +3689,9 @@
   }
   var DECK_TPL = null;
   function vnum(s){ return parseInt(String(s || '').replace(/[^0-9]/g, ''), 10) || 0; }
-  function selfUpdate(){
+  function selfUpdate(force){
     var swaps = 0;
-    try{ if(sessionStorage.getItem('fd:selfupdate') === APP_BUILD) return; swaps = parseInt(sessionStorage.getItem('fd:selfupdate_n') || '0', 10) || 0; }catch(e){}
+    try{ if(!force && sessionStorage.getItem('fd:selfupdate') === APP_BUILD) return; swaps = parseInt(sessionStorage.getItem('fd:selfupdate_n') || '0', 10) || 0; }catch(e){}
     fetch(SB_URL + '/functions/v1/medcircuit?api=version&_=' + Date.now(), { headers: { 'apikey': SB_KEY }, cache: 'no-store' })
       .then(function(r){ return r.ok ? r.json() : null; })
       .then(function(v){
@@ -6502,6 +6509,13 @@
   window.addEventListener('online', function(){ if(session){ try{ qFlush(); }catch(e){} load(); } });
   window.addEventListener('focus', function(){ selfUpdate(); if(session && autoAllowed() && (Date.now() - lastLoadAt > 30000)) load(); else quietRender(); });
 
+  try{
+    var _bc = $('buildChip');
+    if(_bc){
+      _bc.textContent = 'v' + APP_BUILD;
+      _bc.onclick = function(){ _bc.textContent = 'checking…'; selfUpdate(true); setTimeout(function(){ _bc.textContent = 'v' + APP_BUILD; }, 4000); };
+    }
+  }catch(e){}
   applyBuild(); buildToast();
   /* never leave the user on a blank screen: if the first render fails, say so */
   window.addEventListener('error', function(ev){
