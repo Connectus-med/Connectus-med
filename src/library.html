@@ -2358,8 +2358,6 @@
     return b;
   }
   function testBtn(fn){
-    /* pool flows need the card bodies: fetch them once, then re-render */
-    if(!_allHydrated && typeof ensureCards === 'function'){ ensureCards(function(){ try{ render(); }catch(e){} }); }
     var b = document.createElement('button'); b.type = 'button'; b.className = 'testbtn';
     b.setAttribute('aria-label','Test this'); b.title = 'Test this';
     b.innerHTML = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6a1 1 0 0 1 1 1v1H8V4a1 1 0 0 1 1-1z"/><path d="M8 5H6.5A1.5 1.5 0 0 0 5 6.5v13A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5v-13A1.5 1.5 0 0 0 17.5 5H16"/><path d="M8.5 11.5l1.8 1.8 3.6-3.6"/></svg>';
@@ -2684,7 +2682,8 @@
     return true;
   }
   function collectCards(f){
-    /* pool flows need the card bodies: fetch them once, then re-render */
+    /* still a sync function: it must return an array, so trigger the load and
+       let the re-render bring the real cards in. */
     if(!_allHydrated && typeof ensureCards === 'function'){ ensureCards(function(){ try{ render(); }catch(e){} }); }
     f = f || {};
     var now = Date.now(), out = [];
@@ -3851,8 +3850,6 @@
     return ((PUB && PUB.decks) || []).map(function(d){ return { deck_key: d.key, topic: d.topic, subject: d.subject, set_no: d.set_no }; });
   }
   function wireSearchInto(inp, res){
-    /* pool flows need the card bodies: fetch them once, then re-render */
-    if(!_allHydrated && typeof ensureCards === 'function'){ ensureCards(function(){ try{ render(); }catch(e){} }); }
     if(!inp || !res) return;
     inp.addEventListener('input', function(){
       var q = String(inp.value || '').trim().toLowerCase();
