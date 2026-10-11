@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-15 10:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-15 12:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -470,10 +470,15 @@
   .qsrc{margin-top:7px; color:var(--muted); font-size:.74rem; line-height:1.35}
   .rvexp{margin-top:8px; padding:9px 11px; border-left:3px solid var(--accent-2); background:var(--accent-soft); border-radius:9px; font-size:.85rem; line-height:1.5}
   /* ---- right-edge question palette (review / error log) ---- */
-  .qpal{position:fixed; right:0; top:calc(70px + env(safe-area-inset-top,0px)); bottom:calc(90px + env(safe-area-inset-bottom,0px));
-    width:34px; z-index:27; overflow-y:auto; overflow-x:hidden; overscroll-behavior:contain;
-    display:flex; flex-direction:column; align-items:center; gap:5px; padding:6px 3px}
-  .qpal::-webkit-scrollbar{width:0; height:0}
+  /* The question navigator used to be a fixed column down the right edge. It is
+     now a single row across the top, scrolled sideways - so it reads like a
+     filmstrip of the paper instead of a scrollbar beside it. */
+  .qpal{position:fixed; left:0; right:0; top:calc(56px + env(safe-area-inset-top,0px));
+    z-index:27; overflow-x:auto; overflow-y:hidden; overscroll-behavior:contain;
+    -webkit-overflow-scrolling:touch;
+    display:flex; flex-direction:row; align-items:center; gap:6px; padding:6px 10px;
+    background:var(--panel); border-bottom:1px solid var(--line)}
+  .qpal::-webkit-scrollbar{height:0}
   .qpalcell{width:27px; height:27px; flex:none; border-radius:8px; border:2px solid var(--line); background:var(--panel); color:var(--ink);
     font:inherit; font-size:.65rem; font-weight:800; cursor:pointer; padding:0; display:flex; align-items:center; justify-content:center; line-height:1}
   .qpalcell.right{background:#16a34a; border-color:#16a34a; color:#fff}
@@ -481,7 +486,7 @@
   .qpalcell.skip{background:transparent; border-color:#b9b9bd; color:var(--muted)}
   .qpalcell.mark{border-color:#7c3aed; box-shadow:0 0 0 2px rgba(124,58,237,.35)}
   .qpalcell.cur{outline:2px solid var(--accent-2); outline-offset:2px}
-  body.qpal-on main{padding-right:48px}
+  body.qpal-on main{padding-top:46px}
   .qlegend{display:flex; flex-wrap:wrap; gap:10px 14px; align-items:center; margin:2px 0 4px; font-size:.72rem; color:var(--muted)}
   .qlegend span{display:inline-flex; align-items:center; gap:5px}
   .qlegend i{width:14px; height:14px; border-radius:5px; border:2px solid var(--line); display:inline-block; flex:none}
@@ -787,8 +792,12 @@
   var testPriority = null;   /* deck|id keys the paper must include (weak-areas paper) */
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var APP_BUILD = '2026-10-14 09:00';
-  var BUILD_NOTE = 'Stray HTML codes in question text are cleaned up everywhere, and Check for update now sits at the top of What\u2019s New.';
+  var BUILD_NOTE = 'Owner status no longer drops out on a network blip, and the result navigator is a strip across the top instead of a column down the side.';
   var CHANGELOG = [
+    { build:'2026-10-15 12:00', title:'Owner status holds, and the navigator moved up top', items:[
+      'Fixed: the owner was sometimes shown as an ordinary customer - the profile menu offered \u201cOwner access\u201d and asked for a recovery code, while the owner was already signed in. Ownership was being decided by a single settings read, and any network hiccup or a token refresh in flight made that read fail. A failed read now keeps the last known answer, and the answer is remembered on the device.',
+      'The question navigator on the result review is now a single row across the top of the screen, scrolled sideways - instead of a scrollbar column down the right edge.',
+    ]},
     { build:'2026-10-15 10:00', title:'Clean text, and Check for update moved', items:[
       'Some questions showed stray HTML codes instead of the real symbol - \u201c&lt;\u201d where a less-than sign belonged, and a few \u201c&amp;\u201d. The stored questions were cleaned (125 + 134 + 37 of them), and the app now decodes those codes on the way to the screen as well, so nothing slips through even from an older copy.',
       'Check for update has moved: it is no longer in the profile menu. It now sits at the top of What\u2019s New, right under the build line - so after you read what changed, the button is right there.',
@@ -2068,11 +2077,22 @@
 
   function loadTitle(){
     if(!session) return Promise.resolve(false);
+    /* Owner or not is decided by whether this account has a settings row. That is
+       a fragile thing to hang ownership on: one network hiccup, or a token
+       refresh in flight, made the query fail - and the owner was quietly demoted
+       to a customer, with "Owner access" and a recovery-code prompt in the menu.
+       A failed read now keeps the last known answer instead of flipping it off,
+       and the answer is remembered on the device. */
     return get('/rest/v1/settings?select=value&key=eq.title&user_id=eq.' + session.user.id).then(function(rows){
-      if(rows && rows.length && rows[0].value){ appTitle = rows[0].value; ss('fd:title', appTitle); }
+      var ok = !!(rows && rows.length);
+      if(ok && rows[0].value){ appTitle = rows[0].value; ss('fd:title', appTitle); }
+      try{ ss('fd:owner', ok); }catch(e){}
       applyTitle();
-      return !!(rows && rows.length);
-    }).catch(function(){ return false; });
+      return ok;
+    }).catch(function(){
+      try{ var cached = ls('fd:owner', null); if(cached === true) return true; }catch(e){}
+      return IS_OWNER;
+    });
   }
 
   function lockIcon(){
