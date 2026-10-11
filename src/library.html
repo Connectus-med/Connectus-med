@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-14 18:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-14 21:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -787,8 +787,13 @@
   var testPriority = null;   /* deck|id keys the paper must include (weak-areas paper) */
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var APP_BUILD = '2026-10-14 09:00';
-  var BUILD_NOTE = 'Batch 5: a score trend on past tests, untimed practice, and a Find-a-question search that turns matches into a paper.';
+  var BUILD_NOTE = 'Questions load reliably again: the bank is fetched in smaller batches, a failed batch no longer hides the rest, and the flags that could wedge a deck out of loading for ever are cleared.';
   var CHANGELOG = [
+    { build:'2026-10-14 21:00', title:'Questions load reliably again', items:[
+      'The bank is fetched in smaller batches (25 decks, not 40), so a single response stays small enough to survive a weak connection. At 40, the whole bank meant multi-megabyte responses.',
+      'A batch that fails is now counted and told to you, instead of quietly swallowing every batch after it - which is how a screen could end up reading 0 questions with nothing on screen to explain it.',
+      'A deck could be marked as \u201calready being fetched\u201d and then never actually fetched, because the sign-in check sat outside the fetch. It now sits inside, and the mark is cleared on every path - so no deck is ever wedged out of loading for ever.',
+    ]},
     { build:'2026-10-14 18:00', title:'See your progress, and study on your own clock', items:[
       'Past tests now open with a score trend \u2014 a small line of your recent papers, the last-3 average, and how far it moved against the three before (green up, red down).',
       'Untimed practice: the test builder has a Timing choice. Pick Untimed and the clock counts up instead of down, sections never lock, and the paper never auto-submits \u2014 your time is still recorded for the trend.',
@@ -2130,17 +2135,25 @@
       return d && !(Array.isArray(d.cards) && d.cards.length) && !_hydrating[k];
     });
     if(!need.length){ if(done) done(); return Promise.resolve(); }
+    /* Never leave a deck marked as "being fetched" if the fetch never starts.
+       `session.user.id` used to be read OUTSIDE the promise chain, so a missing
+       session threw straight past the cleanup, the deck stayed in _hydrating for
+       ever, and every later attempt skipped it - the whole bank then read as
+       0 questions. Read it inside the chain, and clear the flags on every exit. */
+    if(!session || !session.user || !session.user.id){ if(done) done(); return Promise.resolve(); }
     need.forEach(function(k){ _hydrating[k] = 1; });
-    var uid = session.user.id;
-    var q = need.map(function(k){ return encodeURIComponent(k); }).join(',');
-    return get('/rest/v1/decks?select=deck_key,cards&user_id=eq.' + uid + '&deck_key=in.(' + q + ')')
-      .then(function(rows){
-        (rows || []).forEach(function(r){
-          (decksData || []).forEach(function(d){ if(d.deck_key === r.deck_key){ d.cards = r.cards || []; if(!d.n && Array.isArray(r.cards)) d.n = r.cards.length; } });
-          delete _hydrating[r.deck_key];
-        });
-        if(done) done();
-      }).catch(function(){ need.forEach(function(k){ delete _hydrating[k]; }); if(done) done(); });
+    var clear = function(){ need.forEach(function(k){ delete _hydrating[k]; }); };
+    return Promise.resolve().then(function(){
+      var uid = session.user.id;
+      var q = need.map(function(k){ return encodeURIComponent(k); }).join(',');
+      return get('/rest/v1/decks?select=deck_key,cards&user_id=eq.' + uid + '&deck_key=in.(' + q + ')');
+    }).then(function(rows){
+      (rows || []).forEach(function(r){
+        (decksData || []).forEach(function(d){ if(d.deck_key === r.deck_key){ d.cards = r.cards || []; if(!d.n && Array.isArray(r.cards)) d.n = r.cards.length; } });
+        delete _hydrating[r.deck_key];
+      });
+      clear(); if(done) done();
+    }).catch(function(){ clear(); if(done) done(); });
   }
   var _allHydrated = false;
   function ensureCards(done){
@@ -2152,12 +2165,20 @@
   function hydrateAll(done){
     var keys = (decksData || []).filter(function(d){ return !(Array.isArray(d.cards) && d.cards.length); }).map(function(d){ return d.deck_key; });
     if(!keys.length){ if(done) done(); return Promise.resolve(); }
-    /* chunk it so one request never becomes huge again */
+    /* Chunk it so one request never becomes huge. 25 decks at a time keeps a
+       single response small enough to survive a phone on a weak connection -
+       at 40 the whole bank (~423 decks) meant multi-MB responses, and one slow
+       or failed chunk left every pool screen reading 0 questions. Failures are
+       counted and surfaced instead of silently swallowing the rest. */
     var chunks = [], i = 0;
-    while(i < keys.length){ chunks.push(keys.slice(i, i + 40)); i += 40; }
+    while(i < keys.length){ chunks.push(keys.slice(i, i + 25)); i += 25; }
+    var failed = 0;
     var p = Promise.resolve();
-    chunks.forEach(function(ch){ p = p.then(function(){ return hydrateDecks(ch); }); });
-    return p.then(function(){ if(done) done(); });
+    chunks.forEach(function(ch){ p = p.then(function(){ return hydrateDecks(ch).catch(function(){ failed++; }); }); });
+    return p.then(function(){
+      if(failed){ try{ toast(failed + ' batch' + (failed === 1 ? '' : 'es') + ' of questions could not load \u2014 open a deck to fetch it.'); }catch(e){} }
+      if(done) done();
+    });
   }
   function load(){
     lastLoadAt = Date.now();
