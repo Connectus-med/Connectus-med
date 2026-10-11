@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-16 20:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-17 18:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -677,6 +677,11 @@
   .tqx{margin-left:auto; color:var(--muted); font-weight:800; padding:0 4px; cursor:pointer; flex:none}
   .tqopt.struck .tqtext2{text-decoration:line-through; opacity:.5}
   .tqopt.struck .tqlet{opacity:.5}
+  /* update-ready pill: the app never reloads itself any more */
+  .updpill{position:fixed; left:50%; transform:translateX(-50%); bottom:calc(92px + env(safe-area-inset-bottom,0px));
+    z-index:60; border:0; background:var(--accent-2); color:#fff; border-radius:999px; padding:11px 18px;
+    font:inherit; font-size:.85rem; font-weight:800; cursor:pointer; box-shadow:0 14px 34px -12px rgba(120,60,10,.6)}
+  .updpill:active{transform:translateX(-50%) translateY(1px)}
 </style>
 </head>
 <body>
@@ -745,6 +750,8 @@
   <button class="tab" data-tab="test" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h8l4 4v14H7z"/><path d="M9 9h6"/><path d="M9 13h6"/><path d="M9 17h4"/></svg><span class="tlabel">Test</span></button>
   <button class="tab hidden" id="ownerTab" data-tab="owner" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v5H4z"/><path d="M4 14h16v5H4z"/><path d="M8 7.5h.01"/><path d="M8 16.5h.01"/></svg><span class="tlabel">Owner</span></button>
 </nav>
+
+<button id="updBtn" class="updpill hidden" type="button">Update ready - tap to update</button>
 
 <div id="viewer" class="hidden">
   <div class="vbar"><button id="back" class="btn">← Back</button><span id="vtitle" style="display:none"></span><div style="margin-left:auto; display:flex; gap:8px; align-items:center"><button id="catBtn" class="btn hidden">Category</button><button id="deckThemeBtn" class="btn" aria-label="Theme" title="Theme" style="display:inline-flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" style="display:block"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"></circle><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"></path></svg></button></div></div>
@@ -840,15 +847,47 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-16 20:00';
-  var BUILD_NOTE = 'The RUHS-MO paper is rebuilt on the real past-paper weightage and can pick high-yield questions - past-year and core-concept ones first - from the NEET PYQ papers and Qbank.';
+  var APP_BUILD = '2026-10-17 18:00';
+  var BUILD_NOTE = 'Removed a Netlify-injected third-party script that was baked into the app, and stopped the whole screen re-rendering every time you return to the app - the last source of the blink.';
   var CHANGELOG = [
-    { build:'2026-10-16 20:00', title:'RUHS-MO: real weights, and high-yield picking', items:[
-      'The RUHS-MO subject weights were rebuilt from a 700-question RUHS-MO past-paper analysis (2015\u20132024-25, General Knowledge excluded): Medicine is now the heaviest subject (19), ahead of Community Medicine (11); Pharmacology, Pathology, Surgery and the rest follow their real share.',
-      'The RUHS-MO paper now treats the NEET past-year papers and the Qbank decks as one pool and, within each subject, takes the highest-yield questions first - a real past-year question, then a core-concept (MainConcepts) one.',
-      'A High-yield first / Spread evenly switch sits on the RUHS-MO pre-start screen. It is on by default; turn it off for a plain spread. Your choice is remembered on the device.',
-      'A new paper still avoids the questions you saw in the last five, so high-yield only decides among fresh questions.',
-      'Only the RUHS-MO paper changed; NEET-PG and INI-CET are untouched.',
+    { build:'2026-10-17 18:00', title:'Removed the 3rd-party script; no re-render on return', items:[
+      'Found and removed a Netlify script that had been baked into the app file - a third-party script that had no business being inside the app.',
+      'Fixed the last source of the blink: the app re-drew the whole screen every time you returned to it. It now only refreshes the sync label, and re-draws only when the data actually changed.',
+      'The app still never reloads itself - a newer version waits behind the Update ready pill.',
+    ]},
+    { build:'2026-10-17 16:00', title:'No more self-reload; a calm sync label', items:[
+      'Fixed the flash/blink: the app used to reload itself whenever a newer version was published, which fired on every focus and looked like a blink. It never reloads itself now.',
+      'A newer version instead shows a small Update ready - tap to update pill. Tap it when you are not mid-paper or mid-deck and it switches over; if you are in a paper or a deck it waits and tells you so.',
+      'The sync label is calm now: syncing while your writes are queued, then a steady synced, and only a number when it has genuinely been a while.',
+      'Verified: the cloud and the GitHub repo both already carry this build, so the update itself was never failing.',
+    ]},
+    { build:'2026-10-17 14:00', title:'Fixed: the synced label', items:[
+      'Fixed the synced label - it could read synced 36m one moment and synced now the next. It was only updated on a full library load, so it grew stale while the app was syncing your progress every few seconds.',
+      'It now updates on every successful round-trip with the cloud - a load, a progress write, or the 30-second check - so it reads now or a few seconds, and only grows when you are actually offline.',
+    ]},
+    { build:'2026-10-17 12:00', title:'Fixed: screens jumping on their own', items:[
+      'Fixed the bug where the app sometimes moved to another screen by itself - most often back to Test while you were on What is New. The restore-last-screen step could fire on any later background sync (the 30-second check, or when you returned to the app), not only at startup.',
+      'It now runs exactly once, at startup, and only if you have not already chosen a screen - so a background sync can never move you again.',
+      'Also fixed: the Insights button (owner) opened Home instead of the owner screen.',
+      'Resuming the screen you were on when you reopen the app still works.',
+    ]},
+    { build:'2026-10-17 08:00', title:'NEET-PG 2026 pattern: 180 questions', items:[
+      'NEET-PG in the app now matches the NBEMS Information Bulletin for 2026: 180 questions (cut from 200) for 720 marks, still 3 hours 30 minutes, +4 / -1 / 0.',
+      'The paper is five sections of 36 questions, 42 minutes each, auto-locked - so a Real Exam Grand Test now builds 180 questions in 5 x 36, and the strategy pace reads about 70 seconds a question (it was 63).',
+      'The subject weight table is rescaled from 200 to 180, and NEET-PG no longer lists multiple true-false (the paper is single best answer).',
+      'INI-CET and RUHS-MO are unchanged.',
+    ]},
+    { build:'2026-10-16 22:00', title:'Strategy now learns from your papers', items:[
+      'Strategy is now a ranked plan, not fixed tips: each move is priced in marks and sorted, so the top line is the single highest-leverage change for you right now.',
+      'It reads your behaviour from your papers: how fast you answer against your own median, which wrong answers were rushed (carelessness) and which were slow (a real gap), whether your accuracy fades late, and whether marking or crossing out options actually helps you.',
+      'Every paper now records each question outcome and how many options you crossed out, so this analysis sharpens with every paper you sit.',
+      'Each move you can act on carries a button - practise your weak questions, start a paper for your weakest subject, or sit one and attempt everything.',
+    ]},
+    { build:'2026-10-16 20:00', title:'A strategy engine that tells you how to score higher', items:[
+      'Tests now has a Strategy tab. It derives the attempt rule from the marking itself: with +4/-1 a blind guess is worth +0.25 so never leave a blank, while with INI-CET a blind guess is neutral so eliminate one option first.',
+      'It compares the pace the paper allows (seconds per question) against your own recent pace, and says whether speed or care is your bigger lever.',
+      'It ranks where your marks leak - subjects by exam weight against your accuracy - and shows what your skipped questions have actually cost you across your papers.',
+      'It ends with a short plan for the next paper and a one-tap button to start that exam paper, and the Grand Test setup links straight to it.',
     ]},
     { build:'2026-10-16 18:00', title:'A tidier Tests tab, a smarter review, and Today lists your mistakes', items:[
       'The Tests tab no longer greets you with one long page - it is split into Paper, Qbank, PYQ and History.',
@@ -1877,6 +1916,24 @@
   var view = { t: 'home' };
   /* read the saved screen ONCE, before anything can overwrite it */
   var BOOT_VIEW = (function(){ try{ var v = ls('fd:view', null); return (v && typeof v === 'object' && v.t) ? v : null; }catch(e){ return null; } })();
+  var BOOT_AT = Date.now();
+  /* Restore the screen the user was on - ONLY once, at boot, and only if nothing
+     else has chosen a screen yet. The guard used to stay open while a test was
+     open, so a later background load (the 30s poll, a focus, a data change) could
+     fire it and yank the user back to the boot-time screen. */
+  function restoreBootView(){
+    if(viewRestored) return;
+    viewRestored = true;
+    try{
+      var _rv2 = BOOT_VIEW;
+      if(!testRun && view.t === 'home' && (Date.now() - BOOT_AT) < 20000 &&
+         _rv2 && typeof _rv2 === 'object' && _rv2.t &&
+         ['home','learn','revise','test','errors','owner','insights','passes','whatsnew','search','account','subject'].indexOf(_rv2.t) >= 0){
+        view = _rv2;
+        try{ render(); }catch(e9){}
+      }
+    }catch(e8){}
+  }
   /* the test scope you had chosen also comes back */
   try{
     var _bd = ls('fd:builder', null);
@@ -1954,10 +2011,14 @@
   var lastSyncAt = 0;
   function renderLastSync(){
     var el = $('lastSync'); if(!el) return;
+    /* a steady state, not a stopwatch: "syncing…" while writes are queued, then a
+       plain "synced" until it has genuinely been a while (only then a number). */
+    var q = 0; try{ q = qLoad().length; }catch(e){}
+    if(q){ el.textContent = 'syncing\u2026'; return; }
     if(!lastSyncAt){ el.textContent = ''; return; }
     var s = Math.floor((Date.now() - lastSyncAt) / 1000);
-    var t = s < 10 ? 'now' : (s < 60 ? s + 's' : (s < 3600 ? Math.floor(s/60) + 'm' : Math.floor(s/3600) + 'h'));
-    el.textContent = 'synced ' + t;
+    if(s < 90){ el.textContent = 'synced'; return; }
+    el.textContent = 'synced ' + (s < 3600 ? Math.floor(s/60) + 'm' : Math.floor(s/3600) + 'h');
   }
   function setLastSync(ts){ lastSyncAt = ts; renderLastSync(); }
   /* ---------- Sync: manual + auto (frequency presets / Always) ---------- */
@@ -2004,7 +2065,7 @@
     if(session && session.access_token) h['Authorization'] = 'Bearer ' + session.access_token;
     return h;
   }
-  function get(path){ return fetch(SB_URL + path, { headers: headers() }).then(function(r){ if(!r.ok) return r.text().then(function(t){ throw new Error(t); }); return r.json(); }); }
+  function get(path){ return fetch(SB_URL + path, { headers: headers() }).then(function(r){ if(!r.ok) return r.text().then(function(t){ throw new Error(t); }); return r.json().then(function(j){ try{ setLastSync(Date.now()); }catch(e){} return j; }); }); }
   /* ---------- durable write queue: a write is retried until it lands ---------- */
   var QK = 'fd:q:lib';
   function qLoad(){ try{ var q=JSON.parse(localStorage.getItem(QK)||'[]'); return Array.isArray(q)?q:[]; }catch(e){ return []; } }
@@ -2013,7 +2074,7 @@
   function qSend(path, method, body){
     var opts = { method: method, headers: Object.assign({}, headers(), { 'Prefer': method==='POST' ? 'resolution=merge-duplicates,return=minimal' : 'return=minimal' }), body: JSON.stringify(body) };
     return fetch(SB_URL + path, opts)
-      .then(function(r){ if(!r.ok) return r.text().then(function(t){ throw new Error(t); }); return true; })
+      .then(function(r){ if(!r.ok) return r.text().then(function(t){ throw new Error(t); }); try{ setLastSync(Date.now()); }catch(e){} return true; })
       .catch(function(e){ qAdd({ path:path, method:method, body:body, t:Date.now() }); throw e; });
   }
   function post(path, body){ return qSend(path, 'POST', body); }
@@ -2028,7 +2089,7 @@
         var opts = { method:e.method, headers: Object.assign({}, headers(), { 'Prefer': e.method==='POST' ? 'resolution=merge-duplicates,return=minimal' : 'return=minimal' }), body: JSON.stringify(e.body) };
         return fetch(SB_URL + e.path, opts).then(function(r){ if(!r.ok) throw new Error('q'); }, function(){ failed.push(e); });
       });
-    }, Promise.resolve()).then(function(){ if(failed.length) qSave(failed.concat(qLoad())); });
+    }, Promise.resolve()).then(function(){ if(failed.length) qSave(failed.concat(qLoad())); else { try{ setLastSync(Date.now()); }catch(e){} } });
   }
   function ensureAuth(){
     if(!session) return Promise.reject(new Error('not signed in'));
@@ -2301,6 +2362,7 @@
       clear(); if(done) done();
     }).catch(function(){ clear(); if(done) done(); });
   }
+  try{ var _tp = ls('fd:testpyq', null); if(_tp === true || _tp === false) testWithPyq = _tp; }catch(e){}
   var _allHydrated = false;
   function ensureCards(done){
     if(_allHydrated || (decksData || []).every(function(d){ return Array.isArray(d.cards) && d.cards.length; })){
@@ -2381,14 +2443,7 @@
       /* weak-areas stats: merge the cloud copy with this device (max attempts / wrongs, newest time) */
       if(_qt && _qt.value){ try{ if(mergeQStats(JSON.parse(_qt.value))) pushQStats(); }catch(e3){} }
       /* re-apply the saved screen once the data is in — the first paint can race the load */
-      if(!viewRestored && !testRun){
-        viewRestored = true;
-        try{
-          var _rv2 = BOOT_VIEW;
-          if(_rv2 && typeof _rv2 === 'object' && _rv2.t && ['home','learn','revise','test','errors','owner','passes','whatsnew','search','account','subject'].indexOf(_rv2.t) >= 0) view = _rv2;
-          try{ render(); }catch(e9){}
-        }catch(e8){}
-      }
+      restoreBootView();
       try{ normQStats(); }catch(e6){}
       if(_en && _en.value){ try{ if(mergeErrNotes(JSON.parse(_en.value))) pushErrNotes(); }catch(e4){} }
       PYQ_INDEX = {};
@@ -2509,8 +2564,6 @@
   }
   function render(){
     try{ window.__lastRender = view && view.t; }catch(e){}
-    /* a swap was held back while a test was open - do it now that we have left */
-    try{ if(view.t !== 'test' && view.t !== 'review1' && applyPendingSelfUpdate()) return; }catch(e){}
     try{ ss('fd:builder', { custom:testCustom, exam:testExam, len:testLen, y:testSelYears, s:testSelSubjects, u:testSelUnits, c:testSelChapters }); }catch(e){}
     try{ var _pv = view; if(_pv && _pv.tResult) _pv = Object.assign({}, _pv, { tResult: null }); ss('fd:view', _pv); }catch(e){}
     try{ clearQPal(); }catch(e){}
@@ -2523,6 +2576,7 @@
     else if(view.t === 'errors') renderErrors();
     else if(view.t === 'review1') renderReview1();
     else if(view.t === 'owner') renderOwner();
+    else if(view.t === 'insights') renderOwner();
     else if(view.t === 'passes') renderPasses();
 
     else if(view.t === 'whatsnew') renderWhatsNew();
@@ -4076,9 +4130,12 @@
             if(html.indexOf('id="content"') < 0 || html.indexOf('collapseFab') < 0 || html.indexOf('</html>') < 0) return;
             /* safeguard: the fetched build must match the advertised version, else reject (never swap a wrong/partial build) */
             if(html.indexOf("APP_BUILD = '" + v.ui_version + "'") < 0) return;
-            if(viewerOpen() || testRunning()){ pendingSelfUpdate = html; return; }
+            /* NEVER reload the page under the user. Arm a pill and let them update
+               when they choose - the reload used to fire on every focus, which is
+               the flash/blink people saw. */
+            pendingSelfUpdate = html;
             try{ sessionStorage.setItem('fd:selfupdate', APP_BUILD); sessionStorage.setItem('fd:selfupdate_n', String(swaps + 1)); }catch(e){}
-            document.open(); document.write(html); document.close();
+            try{ var _ub = $('updBtn'); if(_ub) _ub.classList.remove('hidden'); }catch(e){}
           });
       }).catch(function(){});
   }
@@ -4968,9 +5025,7 @@
      MCQs in the content yet, so a question shows the card front, you reveal the
      answer, and you mark yourself right or wrong. Every wrong card goes to the
      error log, and you can re-practise just those. */
-  var testRun = null, testTimerId = null, testScope = 'all', testLen = 200, testDeck = '', testExam = 'NEET-PG', testSections = true, testSeed = 0, testUntimed = false, testWithPyq = true, testHighYield = true, testCustom = false, testSelSubjects = [], testSelUnits = [], testSelChapters = [], testSelYears = [];
-  try{ var _tp = ls('fd:testpyq', null); if(_tp === true || _tp === false) testWithPyq = _tp; }catch(e){}
-  try{ var _hy = ls('fd:testhy', null); if(_hy === true || _hy === false) testHighYield = _hy; }catch(e){}
+  var testRun = null, testTimerId = null, testScope = 'all', testLen = 200, testDeck = '', testExam = 'NEET-PG', testSections = true, testSeed = 0, testUntimed = false, testWithPyq = true, testCustom = false, testSelSubjects = [], testSelUnits = [], testSelChapters = [], testSelYears = [];
   var testPalFilter = 'all';
   var testRevFilter = 'all', testRevCompact = false, testSeg = 'paper';
 
@@ -5124,21 +5179,21 @@
   }
   /* ---------- the three real exam patterns (latest cycle) ---------- */
   var EXAMS = [
-    { k:'NEET-PG', name:'NEET-PG', org:'NBEMS (NBE)', q:200, mins:210, pos:4, neg:-1, cutoffPct:[45,60],
-      secN:5, secQ:40, secMins:42,
+    { k:'NEET-PG', name:'NEET-PG', org:'NBEMS (NBE)', q:180, mins:210, pos:4, neg:-1, cutoffPct:[45,60],
+      secN:5, secQ:36, secMins:42,
       mark:'+4 correct · −1 wrong · 0 unattempted',
-      sec:'5 sections × 40 Q, 42 min each — auto-locked, no going back',
+      sec:'5 sections × 36 Q, 42 min each — auto-locked, no going back',
       qtype:'Single best answer',
       trend:['2021–23: one paper, 200 Q, 3 h 30 min, +4 / −1.',
              '2024: first two-shift paper with normalisation, and time-bound sections introduced.',
              '2025: back to a single shift; sections kept; far more integrated clinical vignettes.',
-             '2026: identical to 2025 — 200 Q, 5 × 40, 42 min a section, +4 / −1.'],
+             '2026: 180 Q for 720 marks (cut from 200), 5 × 36 Q, 42 min a section, +4 / −1, single shift.'],
       mix:{'Basics&Fundamentals':0.10,'MainConcepts':0.30,'Integrated&Complex':0.60},
-      diff:{easy:0.35,mod:0.45,hard:0.20}, imgShare:0.30, mtfShare:0.10,
-      w:[['General Medicine',26],['General Surgery',26],['Obstetrics & Gynaecology',20],['Pathology',17],
-         ['Community Medicine',17],['Pharmacology',13],['Microbiology',13],['Anatomy',11],['Physiology',11],
-         ['Biochemistry',11],['Forensic Medicine & Toxicology',7],['Pediatrics',7],['ENT (Otorhinolaryngology)',7],
-         ['Ophthalmology',6],['Dermatology, Venereology & Leprosy',2],['Psychiatry',2],['Orthopaedics',2],
+      diff:{easy:0.35,mod:0.45,hard:0.20}, imgShare:0.30, mtfShare:0,
+      w:[['General Medicine',24],['General Surgery',23],['Obstetrics & Gynaecology',18],['Pathology',15],
+         ['Community Medicine',15],['Pharmacology',12],['Microbiology',12],['Anatomy',10],['Physiology',10],
+         ['Biochemistry',10],['Forensic Medicine & Toxicology',6],['Pediatrics',6],['ENT (Otorhinolaryngology)',6],
+         ['Ophthalmology',5],['Dermatology, Venereology & Leprosy',2],['Psychiatry',2],['Orthopaedics',2],
          ['Anaesthesiology',1],['Radiodiagnosis',1]] },
     { k:'INI-CET', name:'INI-CET', org:'AIIMS New Delhi', q:200, mins:180, pos:1, neg:-1/3, cutoffPct:[50,65],
       secN:4, secQ:50, secMins:45, mtf:{pos:1, neg:-0.2},
@@ -5156,7 +5211,7 @@
          ['Biochemistry',12],['Anatomy',10],['Physiology',10],['ENT (Otorhinolaryngology)',7],['Ophthalmology',7],
          ['Radiodiagnosis',6],['Forensic Medicine & Toxicology',4],['Psychiatry',3],
          ['Dermatology, Venereology & Leprosy',2],['Orthopaedics',1],['Anaesthesiology',1]] },
-    { k:'RUHS-MO', name:'RUHS-MO', org:'RUHS Rajasthan (MODRE)', q:100, mins:120, pos:1, neg:0, hy:true, cutoffPct:[60,75],
+    { k:'RUHS-MO', name:'RUHS-MO', org:'RUHS Rajasthan (MODRE)', q:100, mins:120, pos:1, neg:0, cutoffPct:[60,75],
       secN:1, secQ:100, secMins:120,
       mark:'+1 correct · no negative marking',
       sec:'One paper, no sections — attempt all',
@@ -5165,14 +5220,14 @@
              '2024: first CBT paper; clinical case-based scenarios start appearing; cut-off 65+.',
              '2025: about half the paper is clinical case-based; Medicine, Pharmacology and Radiology clearly tougher.',
              'PSM and Forensic Medicine have stayed simple and direct every year — easy marks.',
-             'RUHS publishes no official subject-wise split; the weights here are set from a 700-question RUHS-MO past-paper analysis (2015\u20132024-25), General Knowledge excluded.'],
+             'RUHS publishes no official subject-wise split; this table uses past-paper trends.'],
       mix:{'Basics&Fundamentals':0.15,'MainConcepts':0.40,'Integrated&Complex':0.45},
       diff:{easy:0.50,mod:0.38,hard:0.12}, imgShare:0.15, mtfShare:0,
-      w:[['General Medicine',19],['Community Medicine',11],['Pharmacology',10],['Pathology',9],
-         ['General Surgery',6],['Obstetrics & Gynaecology',5],['Physiology',5],['Pediatrics',5],
-         ['Biochemistry',4],['Anatomy',4],['ENT (Otorhinolaryngology)',4],['Radiodiagnosis',4],
-         ['Orthopaedics',3],['Ophthalmology',3],['Forensic Medicine & Toxicology',3],['Microbiology',2],
-         ['Dermatology, Venereology & Leprosy',1],['Psychiatry',1],['Anaesthesiology',1]] }
+      w:[['Community Medicine',20],['General Medicine',16],['General Surgery',13],['Obstetrics & Gynaecology',11],
+         ['Pediatrics',7],['Pharmacology',6],['Forensic Medicine & Toxicology',6],['Pathology',3],['Microbiology',2],
+         ['Anatomy',2],['Physiology',2],['Biochemistry',1],['Orthopaedics',2],['ENT (Otorhinolaryngology)',2],
+         ['Ophthalmology',2],['Psychiatry',2],['Dermatology, Venereology & Leprosy',1],['Anaesthesiology',1],
+         ['Radiodiagnosis',1]] }
   ];
   function examOf(k){ for(var i=0;i<EXAMS.length;i++){ if(EXAMS[i].k === k) return EXAMS[i]; } return EXAMS[0]; }
   function blueprintPlan(len, pool, W){
@@ -5244,45 +5299,6 @@
     shuffleSeed(f, rnd); shuffleSeed(u, rnd);
     return f.concat(u);
   }
-  /* ---------- high-yield selection (RUHS) ----------
-     Treats the NEET past-year papers and the Qbank decks as one pool, and ranks
-     a question by how likely it is to matter in the RUHS paper: a real past-year
-     question first, then a core-concept (MainConcepts) one. Used only for an
-     exam that carries hy:true (RUHS-MO); the subject split still comes from the
-     exam blueprint. Freshness stays the primary key, so a new paper still avoids
-     the last five - high-yield only breaks ties among fresh questions. */
-  function highYieldScore(x){
-    var isP = (x && x.k && x.k.indexOf('PYQ_') === 0) ? 1 : 0;
-    var tw = { 'MainConcepts':1.0, 'Basics&Fundamentals':0.6, 'Integrated&Complex':0.5 };
-    var tg = (x && tw[x.tag] != null) ? tw[x.tag] : 0.5;
-    return isP * 0.6 + tg * 0.4;
-  }
-  function hyFirst(arr, recent, rnd, hyFn){
-    var f = [], u = [];
-    arr.forEach(function(x){ if(recent && recent[x.k + '|' + x.id]) u.push(x); else f.push(x); });
-    function ord(a){ return a.map(function(x){ return { x:x, hy:hyFn(x), r:rnd() * 0.05 }; })
-                       .sort(function(p,q){ if(p.hy !== q.hy) return q.hy - p.hy; return p.r - q.r; })
-                       .map(function(o){ return o.x; }); }
-    return ord(f).concat(ord(u));
-  }
-  function highYieldSwitch(el){
-    var ex = examOf(testExam);
-    if(!ex || !ex.hy) return;
-    var wrap = document.createElement('div'); wrap.className = 'pyqsw';
-    [['on','High-yield first'],['off','Spread evenly']].forEach(function(o){
-      var b = document.createElement('button'); b.type = 'button';
-      b.className = 'tchip' + ((testHighYield ? 'on' : 'off') === o[0] ? ' on' : '');
-      b.textContent = o[1];
-      b.onclick = function(){ testHighYield = (o[0] === 'on'); try{ ss('fd:testhy', testHighYield); }catch(e){} render(); };
-      wrap.appendChild(b);
-    });
-    var note = document.createElement('div'); note.className = 'tsub small';
-    note.textContent = testHighYield
-      ? 'High-yield first: within each subject the paper takes the highest-yield questions from your NEET PYQ papers and Qbank - real past-year questions and core (MainConcepts) ones come first.'
-      : 'Spread evenly: questions are taken across your decks with no yield preference.';
-    wrap.appendChild(note);
-    el.appendChild(wrap);
-  }
   /* ---------- soft targets: difficulty, image, question type ---------- */
   var _needState = null;
   function needInit(total){ _needState = { diff:{ easy:0, mod:0, hard:0 }, img:0, mtf:0, left:(total || 0), imgCarry:0, mtfCarry:0 }; }
@@ -5315,21 +5331,12 @@
     while(used < n && rem.length){ out[rem[i % rem.length].g]++; used++; i++; }
     return out;
   }
-  function spreadTake(arr, want, recent, rnd, targets, needOn, hyFn){
+  function spreadTake(arr, want, recent, rnd, targets, needOn){
     var byDeck = {};
     arr.forEach(function(x){ var k = x.k || '?'; (byDeck[k] = byDeck[k] || []).push(x); });
-    var decks = Object.keys(byDeck), tot = 0, used = 0, rem = [], take = {}, deckW = {};
-    /* high-yield on: a deck's share of the paper follows its yield, so the
-       past-year papers and the core-concept decks carry more of the paper.
-       high-yield off: the share follows the deck's size, as before. */
+    var decks = Object.keys(byDeck), tot = arr.length || 1, used = 0, rem = [], take = {};
     decks.forEach(function(k){
-      var w = 0;
-      if(hyFn){ byDeck[k].forEach(function(x){ w += (hyFn(x) || 0.001); }); } else { w = byDeck[k].length; }
-      deckW[k] = w; tot += w;
-    });
-    tot = tot || 1;
-    decks.forEach(function(k){
-      var w2 = want * deckW[k] / tot, f = Math.floor(w2);
+      var w2 = want * byDeck[k].length / tot, f = Math.floor(w2);
       take[k] = f; used += f; rem.push({ k:k, f: w2 - f });
     });
     rem.sort(function(a,b){ return b.f - a.f; });
@@ -5348,8 +5355,8 @@
       if(needOn){
         a2 = a2.map(function(x){
           var fr = (recent && recent[x.k + '|' + x.id]) ? 0 : 1;
-          return { x:x, fr:fr, hy: (hyFn ? hyFn(x) : 0), s: needScore(x, targets) + rnd() * 0.05 };
-        }).sort(function(a,b){ if(a.fr !== b.fr) return b.fr - a.fr; if(a.hy !== b.hy) return b.hy - a.hy; return b.s - a.s; }).map(function(o){ return o.x; });
+          return { x:x, fr:fr, s: needScore(x, targets) + rnd() * 0.05 };
+        }).sort(function(a,b){ if(a.fr !== b.fr) return b.fr - a.fr; return b.s - a.s; }).map(function(o){ return o.x; });
         /* a scarce bucket must not be swallowed in the first few decks: cap this
            deck's share of it at the rate the paper still needs */
         var leftAll = Math.max(1, _needState.left);
@@ -5375,7 +5382,7 @@
         for(var z3=0; z3<spare.length && kept.length < take[k]; z3++) kept.push(spare[z3]);
         a2 = kept;
       } else {
-        a2 = hyFn ? hyFirst(a2, recent, rnd, hyFn) : freshFirst(a2, recent, rnd);
+        a2 = freshFirst(a2, recent, rnd);
         a2 = a2.slice(0, take[k]);
       }
       a2.forEach(needBump);
@@ -5386,7 +5393,7 @@
   function pickByBlueprint(pool, len, W, mix, opts){
     opts = opts || {};
     var rnd = opts.rnd || Math.random, recent = opts.recent || null;
-    var targets = opts.targets || null, needOn = !!opts.needOn, hyFn = opts.hyFn || null;
+    var targets = opts.targets || null, needOn = !!opts.needOn;
     needInit(len);
     var plan = blueprintPlan(len, pool, W);
     var bySub = {};
@@ -5400,11 +5407,11 @@
         var need = split[g] || 0; if(!need) return;
         var poolG = arr.filter(function(x){ return (x.tag || '') === g; });
         if(!poolG.length) return;
-        spreadTake(poolG, Math.min(need, poolG.length), recent, rnd, targets, needOn, hyFn).forEach(function(x){ seen[x.k + '|' + x.id] = 1; got.push(x); });
+        spreadTake(poolG, Math.min(need, poolG.length), recent, rnd, targets, needOn).forEach(function(x){ seen[x.k + '|' + x.id] = 1; got.push(x); });
       });
       if(got.length < want){
         var rest = arr.filter(function(x){ return !seen[x.k + '|' + x.id]; });
-        got = got.concat(spreadTake(rest, Math.min(want - got.length, rest.length), recent, rnd, targets, needOn, hyFn));
+        got = got.concat(spreadTake(rest, Math.min(want - got.length, rest.length), recent, rnd, targets, needOn));
       }
       out = out.concat(got.slice(0, want));
     });
@@ -5476,7 +5483,6 @@
       : 'PYQ: none in this selection.';
     card.appendChild(pyqLine);
     pyqSwitch(card);
-    highYieldSwitch(card);
     /* the hashtag split only means something when we are looking at individual
        questions (they carry a tag); a deck row does not, so skip it there */
     var anyTag = TAGS.some(function(g){ return tagAvail[g]; });
@@ -5521,7 +5527,6 @@
     var note = document.createElement('div'); note.className = 'tsub small';
     note.textContent = built + ' of ' + ex.w.length + ' subjects are in your library. A subject with no questions is skipped and its share is given to the subjects you do have, in proportion to their weight. Inside a subject the paper is spread across your decks, so one topic cannot take the whole share.';
     card.appendChild(note);
-    highYieldSwitch(card);
     return card;
   }
   function examPatternCard(ex){
@@ -5923,7 +5928,6 @@
         + '  \u00b7  paper of ' + Math.min(S.len, nQ) + '  \u00b7  ' + (S.untimed ? 'untimed' : _ex.mark);
       card.appendChild(info);
       pyqSwitch(card);
-      highYieldSwitch(card);
       /* what this paper will actually be made of */
       try{ card.appendChild(distForPool(pool, Math.min(S.len, nQ), 'How these ' + Math.min(S.len, nQ) + ' questions are chosen')); }catch(e){}
       startBtn.disabled = !nQ;
@@ -6116,7 +6120,7 @@
     sub.textContent = 'Timed, exam-style practice from your decks. Pick a mode.';
     wrap.appendChild(sub);
     var seg = document.createElement('div'); seg.className = 'tchips'; seg.style.margin = '2px 0 10px';
-    [['paper','Paper'],['qbank','Qbank'],['pyq','PYQ'],['history','History']].forEach(function(o){
+    [['paper','Paper'],['qbank','Qbank'],['pyq','PYQ'],['strategy','Strategy'],['history','History']].forEach(function(o){
       var b = document.createElement('button'); b.type = 'button'; b.className = 'tchip' + (testSeg === o[0] ? ' on' : ''); b.textContent = o[1];
       b.onclick = function(){ testSeg = o[0]; renderTest(); window.scrollTo(0,0); };
       seg.appendChild(b);
@@ -6339,6 +6343,7 @@
 
 
     if(testSeg === 'history'){ renderTestHistory(wrap); }
+    else if(testSeg === 'strategy'){ renderStrategy(wrap); }
     box.appendChild(wrap);
   }
 
@@ -6645,6 +6650,10 @@
     }
     wrap.appendChild(examPatternCard(ex));
     pyqSwitch(wrap);
+    var _stb = document.createElement('button'); _stb.type = 'button'; _stb.className = 'tstart ghost'; _stb.style.marginTop = '10px';
+    _stb.textContent = 'See your strategy for this paper';
+    _stb.onclick = function(){ testSeg = 'strategy'; view = { t:'test' }; render(); window.scrollTo(0,0); };
+    wrap.appendChild(_stb);
 
     var tg = document.createElement('div'); tg.className = 'tchips'; tg.style.margin = '8px 0';
     [['timed','Timed \u00b7 exam-like'],['untimed','Untimed \u00b7 study']].forEach(function(o){
@@ -6692,7 +6701,7 @@
       var qs;
       if(onlyErrors && onlyErrors.length){ qs = pool.slice(); shuffleSeed(qs, rnd); }
       else if(testCustom || (testScope && testScope !== 'all')){ shuffleSeed(pool, rnd); qs = pool.slice(0, want); }
-      else { qs = pickByBlueprint(pool, want, ex.w, ex.mix, { rnd:rnd, recent:recent, targets:targets, needOn:needOn, hyFn: (testHighYield && ex.hy) ? highYieldScore : null }).qs; }
+      else { qs = pickByBlueprint(pool, want, ex.w, ex.mix, { rnd:rnd, recent:recent, targets:targets, needOn:needOn }).qs; }
       if(!qs.length){ shuffleSeed(pool, rnd); qs = pool.slice(0, want); }
       if(testPriority && testPriority.length && !(onlyErrors && onlyErrors.length)){
         var _pset = {}; testPriority.forEach(function(x){ _pset[x] = 1; });
@@ -7080,6 +7089,7 @@
                 max: maxScore, secs: secs, scope: testRun.scope, perSubject: perSubject, exam: ex.k, seed: testRun.seed,
                 wrongList: testRun.qs.filter(function(q,i){ return !ansCorrect(q, testRun.answers[i]); }),
                 tq: (testRun.tq || []).slice(),
+                struck: (testRun.struck || []).map(function(a){ return (a||[]).length; }),
                 review: review };
     /* NOTE: we no longer dump questions into an error log. What you missed is tracked by
        per-question stats (fd:qstats, synced) and the error log itself is written BY YOU. */
@@ -7260,7 +7270,7 @@
         ts: res.ts, seed: res.seed, exam: res.exam, n: res.n, scope: res.scope,
         right: res.right, wrong: res.wrong, skipped: res.skipped, score: res.score, max: res.max, secs: res.secs,
         perSubject: res.perSubject,
-        items: (res.review || []).map(function(it, i){ return { k: it.q.k, id: it.q.id, picked: it.picked, mark: !!it.mark, tq: (res.tq && res.tq[i]) || 0 }; })
+        items: (res.review || []).map(function(it, i){ return { k: it.q.k, id: it.q.id, picked: it.picked, mark: !!it.mark, tq: (res.tq && res.tq[i]) || 0, ok: ansCorrect(it.q, it.picked), st: (res.struck && res.struck[i]) || 0 }; })
       };
       var ks = Object.keys(papers).sort(function(a, b){ return Number(b) - Number(a); });
       ks.slice(12).forEach(function(k){ delete papers[k]; });
@@ -7363,6 +7373,213 @@
     };
     nav.appendChild(nxt); wrap.appendChild(nav);
     box.appendChild(wrap);
+  }
+
+  /* ================= Strategy engine (intelligent) =================
+     Everything here is derived. The exam's own marking gives the attempt rule;
+     your saved papers give the behaviour - pace, where time helps or hurts,
+     whether you fade late, how well marking and elimination actually work, and
+     where the marks leak. The output is a ranked plan, each move priced in marks. */
+  function paperAgg(){
+    var papers = ls('fd:testpapers', {}); if(!papers || typeof papers !== 'object' || Array.isArray(papers)) papers = {};
+    var list = Object.keys(papers).map(function(k){ return papers[k]; }).filter(Boolean).sort(function(x,y){ return (x.ts||0) - (y.ts||0); });
+    var S=0, A=0, R=0, W=0, n=0, secs=0, q=0, bySub={}, items=[];
+    list.forEach(function(p, pi){
+      n++; S += p.skipped||0; R += p.right||0; W += p.wrong||0; A += (p.right||0)+(p.wrong||0);
+      secs += p.secs||0; q += p.n||0;
+      Object.keys(p.perSubject||{}).forEach(function(sb){
+        var v = p.perSubject[sb]; if(!v) return;
+        var r = bySub[sb] || (bySub[sb] = { total:0, right:0 }); r.total += v.total||0; r.right += v.right||0;
+      });
+      (p.items||[]).forEach(function(it){ items.push(it); });
+    });
+    return { n:n, S:S, A:A, R:R, W:W, secs:secs, q:q, bySub:bySub, items:items, list:list };
+  }
+  function strategyFor(examKey){
+    var ex = examOf(examKey || testExam);
+    var k = 4;
+    var blindEV = (1/k) * ex.pos + ((k-1)/k) * ex.neg;
+    var elim1EV = (1/(k-1)) * ex.pos + ((k-2)/(k-1)) * ex.neg;
+    var secPerQ = ex.mins * 60 / ex.q;
+    var ag = paperAgg();
+    var answered = ag.items.filter(function(it){ return it.picked != null; });
+    var known = answered.filter(function(it){ return typeof it.ok === 'boolean'; });
+    var attAcc = ag.A ? ag.R / ag.A : null;
+
+    /* pace from the median question time, not the mean */
+    var times = answered.map(function(it){ return it.tq || 0; }).filter(function(x){ return x > 0; }).sort(function(x,y){ return x - y; });
+    var mySec = times.length ? times[Math.floor(times.length/2)] / 1000 : null;
+
+    /* time x outcome quadrant - careless vs knowledge gap */
+    var quad = { fr:0, fw:0, sr:0, sw:0 };
+    if(mySec && known.length){
+      var thr = mySec * 1000;
+      known.forEach(function(it){
+        var slow = (it.tq||0) > thr, ok = !!it.ok;
+        if(!slow && ok) quad.fr++; else if(!slow && !ok) quad.fw++; else if(slow && ok) quad.sr++; else quad.sw++;
+      });
+    }
+
+    /* do you fade late? accuracy in the first vs last quarter of each paper */
+    var fR=0, fN=0, lR=0, lN=0;
+    ag.list.forEach(function(p){
+      var its = (p.items||[]).filter(function(it){ return typeof it.ok === 'boolean' && it.picked != null; });
+      var m = Math.max(1, Math.floor(its.length / 4));
+      its.slice(0, m).forEach(function(it){ fN++; if(it.ok) fR++; });
+      its.slice(-m).forEach(function(it){ lN++; if(it.ok) lR++; });
+    });
+    var decay = (fN >= 4 && lN >= 4) ? { first: fR/fN, last: lR/lN } : null;
+
+    /* marking + elimination calibration */
+    var mk = answered.filter(function(it){ return it.mark && typeof it.ok === 'boolean'; });
+    var marked = mk.length >= 3 ? { n:mk.length, acc: mk.filter(function(it){ return it.ok; }).length / mk.length } : null;
+    var stK = answered.filter(function(it){ return (it.st||0) > 0 && typeof it.ok === 'boolean'; });
+    var noK = answered.filter(function(it){ return !(it.st||0) && typeof it.ok === 'boolean'; });
+    var strike = (stK.length >= 3 && noK.length >= 3)
+      ? { n:stK.length, acc: stK.filter(function(it){ return it.ok; }).length / stK.length, base: noK.filter(function(it){ return it.ok; }).length / noK.length }
+      : null;
+
+    /* leak by exam weight x (1 - accuracy) */
+    var leak = [];
+    Object.keys(ag.bySub).forEach(function(sb){
+      var v = ag.bySub[sb]; if(!v.total) return;
+      var acc = v.right / v.total, w0 = 0; (ex.w||[]).forEach(function(p){ if(p[0] === sb) w0 = p[1]; });
+      leak.push({ s:sb, acc:acc, total:v.total, w:w0, risk:(w0 || 1) * (1 - acc) });
+    });
+    leak.sort(function(x,y){ return y.risk - x.risk; });
+
+    var skipGain = (ag.S && attAcc != null) ? ag.S * (attAcc * ex.pos + (1 - attAcc) * ex.neg) : null;
+
+    /* the ranked plan: each move priced in marks */
+    var span = (ex.pos - ex.neg) || 1;
+    var moves = [];
+    if(skipGain != null && skipGain > 2) moves.push({ t:'Attempt the borderline ones', d:'You skipped ' + ag.S + ' across your papers. At your ' + Math.round(attAcc*100) + '% accuracy, attempting them is worth about +' + skipGain.toFixed(1) + ' marks.', m:skipGain, act:'guess' });
+    if(quad.fw >= 3) moves.push({ t:'Slow down on what you rush', d: quad.fw + ' questions you answered faster than your own median and got wrong - careless errors, not gaps.', m: quad.fw * span * 0.6, act:'' });
+    if(quad.sw >= 3) moves.push({ t:'Revise where you are slow AND wrong', d: quad.sw + ' questions took longer than usual and still went wrong - that is a knowledge gap, not speed.', m: quad.sw * span * 0.5, act:'weak' });
+    if(leak.length && leak[0].acc < 0.75) moves.push({ t:'Lift ' + leak[0].s, d:'Your weakest by exam weight - ' + Math.round(leak[0].acc*100) + '% over ' + leak[0].total + ' questions' + (leak[0].w ? ', weight ' + leak[0].w + 'Q' : '') + '.', m: (leak[0].w || 10) * 0.12 * ex.pos, act:'subject:' + leak[0].s });
+    if(strike && strike.acc - strike.base > 0.12) moves.push({ t:'Eliminate before you answer', d:'When you crossed out an option you were right ' + Math.round(strike.acc*100) + '%, against ' + Math.round(strike.base*100) + '% otherwise - elimination clearly works for you.', m: 0, act:'' });
+    if(decay && (decay.first - decay.last) > 0.12) moves.push({ t:'Train for the full length', d:'You open at ' + Math.round(decay.first*100) + '% and finish at ' + Math.round(decay.last*100) + '% - accuracy falls off late. Sit full timed papers.', m: (decay.first - decay.last) * ag.q * ex.pos * 0.3, act:'' });
+    moves.sort(function(x,y){ return y.m - x.m; });
+    moves = moves.slice(0, 4);
+
+    return { ex:ex, k:k, blindEV:blindEV, elim1EV:elim1EV, secPerQ:secPerQ, ag:ag, mySec:mySec,
+             quad:quad, decay:decay, marked:marked, strike:strike, leak:leak, skipGain:skipGain, attAcc:attAcc, moves:moves };
+  }
+  function renderStrategy(wrap){
+    var st = strategyFor(testExam), ex = st.ex;
+    var h = document.createElement('div'); h.className = 'tbig'; h.textContent = 'Strategy'; wrap.appendChild(h);
+    var sub = document.createElement('div'); sub.className = 'tsub';
+    sub.textContent = 'Your plan, derived from the marking rule and your own papers - ranked by how many marks each move is worth.';
+    wrap.appendChild(sub);
+    var erow = document.createElement('div'); erow.className = 'tchips'; erow.style.margin = '6px 0 10px';
+    EXAMS.forEach(function(e){
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'tchip' + (e.k === testExam ? ' on' : ''); b.textContent = e.name;
+      b.onclick = function(){ testExam = e.k; renderTest(); window.scrollTo(0,0); };
+      erow.appendChild(b);
+    });
+    wrap.appendChild(erow);
+
+    /* the ranked plan first - the intelligent core */
+    var c0 = document.createElement('div'); c0.className = 'tcard';
+    var l0 = document.createElement('div'); l0.className = 'tlabel'; l0.textContent = 'Your highest-leverage moves'; c0.appendChild(l0);
+    if(st.moves.length){
+      st.moves.forEach(function(mv, idx){
+        var r = document.createElement('div'); r.className = 'an-worst';
+        var head = document.createElement('div'); head.className = 'an-row';
+        var t = document.createElement('span'); t.className = 'an-lab'; t.style.fontWeight = '800'; t.textContent = (idx+1) + '. ' + mv.t; head.appendChild(t);
+        if(mv.m > 1){ var pm = document.createElement('span'); pm.className = 'an-pct'; pm.textContent = '+~' + Math.round(mv.m) + ' marks'; head.appendChild(pm); }
+        r.appendChild(head);
+        var d = document.createElement('div'); d.className = 'an-worst-m'; d.textContent = mv.d; r.appendChild(d);
+        if(mv.act === 'weak' || mv.act === 'guess' || (mv.act && mv.act.indexOf('subject:') === 0)){
+          var ab = document.createElement('button'); ab.type = 'button'; ab.className = 'btn sm'; ab.style.marginTop = '6px';
+          ab.textContent = (mv.act === 'weak') ? 'Practise my weak questions' : (mv.act === 'guess' ? 'Sit a paper and attempt all' : 'Start a ' + mv.act.slice(8) + ' paper');
+          ab.onclick = (function(a){
+            return function(){
+              if(a === 'weak'){ testPriority = weakPriorityIds(60); testCustom = true; testSelYears = []; testSelSubjects = []; testSelUnits = []; testSelChapters = []; testScope = 'all'; testDeck = ''; testLen = 50; view = { t:'test' }; testStart(); }
+              else if(a === 'guess'){ view = { t:'test', tMode:'grand' }; render(); window.scrollTo(0,0); }
+              else { var sb = a.slice(8); testCustom = true; testSelYears = []; testSelSubjects = [sb]; testSelUnits = []; testSelChapters = []; testScope = 'all'; testDeck = ''; testLen = 40; view = { t:'test' }; testStart(); }
+            };
+          })(mv.act);
+          r.appendChild(ab);
+        }
+        c0.appendChild(r);
+      });
+    } else {
+      var e0 = document.createElement('div'); e0.className = 'tsub small';
+      e0.textContent = 'Sit a couple of papers and this becomes a ranked, mark-priced plan for you.';
+      c0.appendChild(e0);
+    }
+    wrap.appendChild(c0);
+
+    /* the one rule */
+    var c1 = document.createElement('div'); c1.className = 'tcard';
+    var l1 = document.createElement('div'); l1.className = 'tlabel'; l1.textContent = 'The one rule that matters most'; c1.appendChild(l1);
+    var _blind = st.blindEV, _elim = st.elim1EV, rule;
+    if(_blind > 0.01) rule = 'Attempt every question. With ' + ex.mark + ', a blind guess among 4 options is worth ' + (_blind > 0 ? '+' : '') + _blind.toFixed(2) + ' marks in expectation - so never leave a blank.';
+    else if(_elim > 0.01) rule = 'Guess only when you can rule out at least one option. A blind guess is neutral (' + _blind.toFixed(2) + '), but with one option gone it is worth +' + _elim.toFixed(2) + ' - eliminate, then answer.';
+    else rule = 'Do not guess blindly (' + _blind.toFixed(2) + '). Guess only when you can rule out options.';
+    var rp = document.createElement('div'); rp.className = 'an-strategy'; rp.textContent = rule; c1.appendChild(rp);
+    wrap.appendChild(c1);
+
+    /* pace & time */
+    var c2 = document.createElement('div'); c2.className = 'tcard';
+    var l2 = document.createElement('div'); l2.className = 'tlabel'; l2.textContent = 'Pace & time'; c2.appendChild(l2);
+    var p2 = document.createElement('div'); p2.className = 'tsub small';
+    p2.textContent = 'The paper allows ' + Math.round(st.secPerQ) + 's a question (' + ex.q + ' Q in ' + ex.mins + ' min).'
+      + (st.mySec ? ' Your median question time is ' + st.mySec.toFixed(0) + 's' + (st.mySec > st.secPerQ*1.1 ? ' - you run slow.' : (st.mySec < st.secPerQ*0.85 ? ' - you can afford to slow down and read more carefully.' : ' - right on pace.')) : ' Sit a paper and this compares against your own pace.');
+    c2.appendChild(p2);
+    if(st.mySec){
+      var q = st.quad;
+      var qr = document.createElement('div'); qr.className = 'tsub small'; qr.style.marginTop = '6px';
+      qr.textContent = 'Fast & right: ' + q.fr + '  \u00b7  fast & wrong: ' + q.fw + '  \u00b7  slow & right: ' + q.sr + '  \u00b7  slow & wrong: ' + q.sw
+        + '. ' + (q.fw > q.sw ? 'Your faster wrong answers point to carelessness.' : (q.sw > q.fw ? 'Your slower wrong answers point to knowledge gaps.' : 'Your time and accuracy look balanced.'));
+      c2.appendChild(qr);
+    }
+    wrap.appendChild(c2);
+
+    /* section plan */
+    var c3 = document.createElement('div'); c3.className = 'tcard';
+    var l3 = document.createElement('div'); l3.className = 'tlabel'; l3.textContent = 'Section plan'; c3.appendChild(l3);
+    var p3 = document.createElement('div'); p3.className = 'tsub small';
+    p3.textContent = ex.secN > 1
+      ? ('The real paper locks each section (' + ex.secN + ' x ' + ex.secQ + ' Q, ' + Math.round(ex.secMins) + ' min each). Never let a section end with a blank you could have guessed, and do not carry a hard question across a boundary.')
+      : 'One paper, no sections - attempt everything, then spend the last minutes on what you flagged.';
+    c3.appendChild(p3);
+    wrap.appendChild(c3);
+
+    /* where the marks leak */
+    var c4 = document.createElement('div'); c4.className = 'tcard';
+    var l4 = document.createElement('div'); l4.className = 'tlabel'; l4.textContent = 'Where your marks leak'; c4.appendChild(l4);
+    if(st.leak.length){
+      var n4 = document.createElement('div'); n4.className = 'tsub small'; n4.style.margin = '0 0 6px';
+      n4.textContent = 'Ranked by exam weight against your accuracy across your papers.';
+      c4.appendChild(n4);
+      st.leak.slice(0, 5).forEach(function(x){
+        var r = document.createElement('div'); r.className = 'thist';
+        var a = document.createElement('span'); a.className = 'thist-d'; a.textContent = x.s + (x.w ? '  (' + x.w + 'Q weight)' : '');
+        var b = document.createElement('span'); b.className = 'thist-s'; b.textContent = Math.round(x.acc*100) + '%';
+        var c = document.createElement('span'); c.className = 'thist-t'; c.textContent = x.total + ' Q';
+        r.appendChild(a); r.appendChild(b); r.appendChild(c); c4.appendChild(r);
+      });
+    } else { var e4 = document.createElement('div'); e4.className = 'tsub small'; e4.textContent = 'Sit a paper and your weakest subjects surface here.'; c4.appendChild(e4); }
+    wrap.appendChild(c4);
+
+    /* how you read a question */
+    var c5 = document.createElement('div'); c5.className = 'tcard';
+    var l5 = document.createElement('div'); l5.className = 'tlabel'; l5.textContent = 'How you read a question'; c5.appendChild(l5);
+    var p5 = document.createElement('div'); p5.className = 'tsub small';
+    var bits = [];
+    if(st.marked) bits.push('Of the ones you marked, you got ' + Math.round(st.marked.acc*100) + '% right' + (st.marked.acc > 0.6 ? ' - your "unsure" flag is honest; trust it.' : ' - you mark more than you need.'));
+    if(st.strike) bits.push('When you crossed out an option you were right ' + Math.round(st.strike.acc*100) + '%, against ' + Math.round(st.strike.base*100) + '% otherwise' + (st.strike.acc - st.strike.base > 0.12 ? ' - elimination works, use it more.' : '.'));
+    if(st.decay) bits.push('You open at ' + Math.round(st.decay.first*100) + '% and close at ' + Math.round(st.decay.last*100) + '%' + (st.decay.first - st.decay.last > 0.12 ? ' - you fade late; train for the full length.' : ' - steady from start to finish.'));
+    p5.textContent = bits.length ? bits.join(' ') : 'Sit a paper and this shows whether your marking and elimination actually help you.';
+    c5.appendChild(p5);
+    wrap.appendChild(c5);
+
+    var go = document.createElement('button'); go.type = 'button'; go.className = 'btn primary wide'; go.style.marginTop = '10px';
+    go.textContent = 'Start a ' + ex.name + ' paper now';
+    go.onclick = function(){ testExam = ex.k; view = { t:'test', tMode:'grand' }; render(); window.scrollTo(0,0); };
+    wrap.appendChild(go);
   }
 
   /* ---------- mistake-analysis engine ---------- */
@@ -8007,6 +8224,12 @@
     };
   }catch(e){}
   $('appTitle').onclick = function(){ view = { t:'home' }; render(); window.scrollTo(0,0); };
+  var _ubBtn = $('updBtn');
+  if(_ubBtn) _ubBtn.onclick = function(){
+    if(!pendingSelfUpdate){ _ubBtn.classList.add('hidden'); return; }
+    if(testRunning() || viewerOpen()){ try{ toast('Finish the paper or deck first, then update.'); }catch(e){} return; }
+    applyPendingSelfUpdate();
+  };
   document.body.classList.add('tabbar-on');
   try{ fitBrandQuote(); setTimeout(fitBrandQuote, 400); setTimeout(fitBrandQuote, 1200); window.addEventListener('resize', function(){ try{ fitBrandQuote(); }catch(_){} }); }catch(_){}
   try{ var _tr = ls('fd:testrun', null); if(_tr && Array.isArray(_tr.answers) && _tr.qs && _tr.qs.length && _tr.qs.every(function(x){ return isMcqItem(x); })){ if(!Array.isArray(_tr.marked) || _tr.marked.length !== _tr.qs.length) _tr.marked = _tr.qs.map(function(){ return false; }); testRun = _tr; } else if(_tr){ ss('fd:testrun', null); } }catch(e){}
@@ -8026,15 +8249,16 @@
           { headers: authHeaders() })
       .then(function(r){ return r.ok ? r.json() : null; })
       .then(function(rows){
+        try{ setLastSync(Date.now()); }catch(e){}
         var st = (rows && rows.length && rows[0].updated_at) || '';
         if(lastStamp === null){ lastStamp = st; return; }   /* first probe only records */
         if(st && st !== lastStamp){ lastStamp = st; load(); }
       }).catch(function(){});
   }
   setInterval(function(){ if(session && !document.hidden){ try{ qFlush(); }catch(e){} pollChanged(); } }, 30000);
-  document.addEventListener('visibilitychange', function(){ if(!document.hidden){ selfUpdate(); if(session && autoAllowed() && (Date.now() - lastLoadAt > 30000)) pollChanged(); else quietRender(); } });
+  document.addEventListener('visibilitychange', function(){ if(!document.hidden){ selfUpdate(); if(session && autoAllowed() && (Date.now() - lastLoadAt > 30000)) pollChanged(); else { try{ renderLastSync(); }catch(e){} } } });
   window.addEventListener('online', function(){ if(session){ try{ qFlush(); }catch(e){} pollChanged(); } });
-  window.addEventListener('focus', function(){ selfUpdate(); if(session && autoAllowed() && (Date.now() - lastLoadAt > 30000)) pollChanged(); else quietRender(); });
+  window.addEventListener('focus', function(){ selfUpdate(); if(session && autoAllowed() && (Date.now() - lastLoadAt > 30000)) pollChanged(); else { try{ renderLastSync(); }catch(e){} } });
 
   try{ var _d = new Date(), _hh = _d.getHours(), _mm = ('0'+_d.getMinutes()).slice(-2); sessionStorage.setItem('fd:loaded', ('0'+_hh).slice(-2) + ':' + _mm); }catch(e){}
   applyBuild(); buildToast();
@@ -8090,5 +8314,4 @@
 </script>
 
 
-<script async="" src="/.netlify/scripts/hud?variant=public" data-nf-variant="public" data-netlify-site-id="3304d3ae-7fc9-4190-beb8-ff3fc78420f7" data-app-host="app.netlify.com"></script>
 </body></html>
