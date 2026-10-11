@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-16 18:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-16 20:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -840,9 +840,16 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-16 18:00';
-  var BUILD_NOTE = 'The Tests tab is split into Paper, Qbank, PYQ and History; the review filters to wrong, marked or skipped and can be compact; the reveal gate stops only on the ones you got wrong or marked; the builder and Grand Test gained exam-weight and Untimed; the PYQ switch is on every pre-start screen; and Home Today lists your mistakes too.';
+  var APP_BUILD = '2026-10-16 20:00';
+  var BUILD_NOTE = 'The RUHS-MO paper is rebuilt on the real past-paper weightage and can pick high-yield questions - past-year and core-concept ones first - from the NEET PYQ papers and Qbank.';
   var CHANGELOG = [
+    { build:'2026-10-16 20:00', title:'RUHS-MO: real weights, and high-yield picking', items:[
+      'The RUHS-MO subject weights were rebuilt from a 700-question RUHS-MO past-paper analysis (2015\u20132024-25, General Knowledge excluded): Medicine is now the heaviest subject (19), ahead of Community Medicine (11); Pharmacology, Pathology, Surgery and the rest follow their real share.',
+      'The RUHS-MO paper now treats the NEET past-year papers and the Qbank decks as one pool and, within each subject, takes the highest-yield questions first - a real past-year question, then a core-concept (MainConcepts) one.',
+      'A High-yield first / Spread evenly switch sits on the RUHS-MO pre-start screen. It is on by default; turn it off for a plain spread. Your choice is remembered on the device.',
+      'A new paper still avoids the questions you saw in the last five, so high-yield only decides among fresh questions.',
+      'Only the RUHS-MO paper changed; NEET-PG and INI-CET are untouched.',
+    ]},
     { build:'2026-10-16 18:00', title:'A tidier Tests tab, a smarter review, and Today lists your mistakes', items:[
       'The Tests tab no longer greets you with one long page - it is split into Paper, Qbank, PYQ and History.',
       'The result review can be filtered to Wrong, Marked or Skipped and switched to a Compact view, so a 200-question review is quick to triage.',
@@ -2294,7 +2301,6 @@
       clear(); if(done) done();
     }).catch(function(){ clear(); if(done) done(); });
   }
-  try{ var _tp = ls('fd:testpyq', null); if(_tp === true || _tp === false) testWithPyq = _tp; }catch(e){}
   var _allHydrated = false;
   function ensureCards(done){
     if(_allHydrated || (decksData || []).every(function(d){ return Array.isArray(d.cards) && d.cards.length; })){
@@ -4962,7 +4968,9 @@
      MCQs in the content yet, so a question shows the card front, you reveal the
      answer, and you mark yourself right or wrong. Every wrong card goes to the
      error log, and you can re-practise just those. */
-  var testRun = null, testTimerId = null, testScope = 'all', testLen = 200, testDeck = '', testExam = 'NEET-PG', testSections = true, testSeed = 0, testUntimed = false, testWithPyq = true, testCustom = false, testSelSubjects = [], testSelUnits = [], testSelChapters = [], testSelYears = [];
+  var testRun = null, testTimerId = null, testScope = 'all', testLen = 200, testDeck = '', testExam = 'NEET-PG', testSections = true, testSeed = 0, testUntimed = false, testWithPyq = true, testHighYield = true, testCustom = false, testSelSubjects = [], testSelUnits = [], testSelChapters = [], testSelYears = [];
+  try{ var _tp = ls('fd:testpyq', null); if(_tp === true || _tp === false) testWithPyq = _tp; }catch(e){}
+  try{ var _hy = ls('fd:testhy', null); if(_hy === true || _hy === false) testHighYield = _hy; }catch(e){}
   var testPalFilter = 'all';
   var testRevFilter = 'all', testRevCompact = false, testSeg = 'paper';
 
@@ -5148,7 +5156,7 @@
          ['Biochemistry',12],['Anatomy',10],['Physiology',10],['ENT (Otorhinolaryngology)',7],['Ophthalmology',7],
          ['Radiodiagnosis',6],['Forensic Medicine & Toxicology',4],['Psychiatry',3],
          ['Dermatology, Venereology & Leprosy',2],['Orthopaedics',1],['Anaesthesiology',1]] },
-    { k:'RUHS-MO', name:'RUHS-MO', org:'RUHS Rajasthan (MODRE)', q:100, mins:120, pos:1, neg:0, cutoffPct:[60,75],
+    { k:'RUHS-MO', name:'RUHS-MO', org:'RUHS Rajasthan (MODRE)', q:100, mins:120, pos:1, neg:0, hy:true, cutoffPct:[60,75],
       secN:1, secQ:100, secMins:120,
       mark:'+1 correct · no negative marking',
       sec:'One paper, no sections — attempt all',
@@ -5157,14 +5165,14 @@
              '2024: first CBT paper; clinical case-based scenarios start appearing; cut-off 65+.',
              '2025: about half the paper is clinical case-based; Medicine, Pharmacology and Radiology clearly tougher.',
              'PSM and Forensic Medicine have stayed simple and direct every year — easy marks.',
-             'RUHS publishes no official subject-wise split; this table uses past-paper trends.'],
+             'RUHS publishes no official subject-wise split; the weights here are set from a 700-question RUHS-MO past-paper analysis (2015\u20132024-25), General Knowledge excluded.'],
       mix:{'Basics&Fundamentals':0.15,'MainConcepts':0.40,'Integrated&Complex':0.45},
       diff:{easy:0.50,mod:0.38,hard:0.12}, imgShare:0.15, mtfShare:0,
-      w:[['Community Medicine',20],['General Medicine',16],['General Surgery',13],['Obstetrics & Gynaecology',11],
-         ['Pediatrics',7],['Pharmacology',6],['Forensic Medicine & Toxicology',6],['Pathology',3],['Microbiology',2],
-         ['Anatomy',2],['Physiology',2],['Biochemistry',1],['Orthopaedics',2],['ENT (Otorhinolaryngology)',2],
-         ['Ophthalmology',2],['Psychiatry',2],['Dermatology, Venereology & Leprosy',1],['Anaesthesiology',1],
-         ['Radiodiagnosis',1]] }
+      w:[['General Medicine',19],['Community Medicine',11],['Pharmacology',10],['Pathology',9],
+         ['General Surgery',6],['Obstetrics & Gynaecology',5],['Physiology',5],['Pediatrics',5],
+         ['Biochemistry',4],['Anatomy',4],['ENT (Otorhinolaryngology)',4],['Radiodiagnosis',4],
+         ['Orthopaedics',3],['Ophthalmology',3],['Forensic Medicine & Toxicology',3],['Microbiology',2],
+         ['Dermatology, Venereology & Leprosy',1],['Psychiatry',1],['Anaesthesiology',1]] }
   ];
   function examOf(k){ for(var i=0;i<EXAMS.length;i++){ if(EXAMS[i].k === k) return EXAMS[i]; } return EXAMS[0]; }
   function blueprintPlan(len, pool, W){
@@ -5236,6 +5244,45 @@
     shuffleSeed(f, rnd); shuffleSeed(u, rnd);
     return f.concat(u);
   }
+  /* ---------- high-yield selection (RUHS) ----------
+     Treats the NEET past-year papers and the Qbank decks as one pool, and ranks
+     a question by how likely it is to matter in the RUHS paper: a real past-year
+     question first, then a core-concept (MainConcepts) one. Used only for an
+     exam that carries hy:true (RUHS-MO); the subject split still comes from the
+     exam blueprint. Freshness stays the primary key, so a new paper still avoids
+     the last five - high-yield only breaks ties among fresh questions. */
+  function highYieldScore(x){
+    var isP = (x && x.k && x.k.indexOf('PYQ_') === 0) ? 1 : 0;
+    var tw = { 'MainConcepts':1.0, 'Basics&Fundamentals':0.6, 'Integrated&Complex':0.5 };
+    var tg = (x && tw[x.tag] != null) ? tw[x.tag] : 0.5;
+    return isP * 0.6 + tg * 0.4;
+  }
+  function hyFirst(arr, recent, rnd, hyFn){
+    var f = [], u = [];
+    arr.forEach(function(x){ if(recent && recent[x.k + '|' + x.id]) u.push(x); else f.push(x); });
+    function ord(a){ return a.map(function(x){ return { x:x, hy:hyFn(x), r:rnd() * 0.05 }; })
+                       .sort(function(p,q){ if(p.hy !== q.hy) return q.hy - p.hy; return p.r - q.r; })
+                       .map(function(o){ return o.x; }); }
+    return ord(f).concat(ord(u));
+  }
+  function highYieldSwitch(el){
+    var ex = examOf(testExam);
+    if(!ex || !ex.hy) return;
+    var wrap = document.createElement('div'); wrap.className = 'pyqsw';
+    [['on','High-yield first'],['off','Spread evenly']].forEach(function(o){
+      var b = document.createElement('button'); b.type = 'button';
+      b.className = 'tchip' + ((testHighYield ? 'on' : 'off') === o[0] ? ' on' : '');
+      b.textContent = o[1];
+      b.onclick = function(){ testHighYield = (o[0] === 'on'); try{ ss('fd:testhy', testHighYield); }catch(e){} render(); };
+      wrap.appendChild(b);
+    });
+    var note = document.createElement('div'); note.className = 'tsub small';
+    note.textContent = testHighYield
+      ? 'High-yield first: within each subject the paper takes the highest-yield questions from your NEET PYQ papers and Qbank - real past-year questions and core (MainConcepts) ones come first.'
+      : 'Spread evenly: questions are taken across your decks with no yield preference.';
+    wrap.appendChild(note);
+    el.appendChild(wrap);
+  }
   /* ---------- soft targets: difficulty, image, question type ---------- */
   var _needState = null;
   function needInit(total){ _needState = { diff:{ easy:0, mod:0, hard:0 }, img:0, mtf:0, left:(total || 0), imgCarry:0, mtfCarry:0 }; }
@@ -5268,12 +5315,21 @@
     while(used < n && rem.length){ out[rem[i % rem.length].g]++; used++; i++; }
     return out;
   }
-  function spreadTake(arr, want, recent, rnd, targets, needOn){
+  function spreadTake(arr, want, recent, rnd, targets, needOn, hyFn){
     var byDeck = {};
     arr.forEach(function(x){ var k = x.k || '?'; (byDeck[k] = byDeck[k] || []).push(x); });
-    var decks = Object.keys(byDeck), tot = arr.length || 1, used = 0, rem = [], take = {};
+    var decks = Object.keys(byDeck), tot = 0, used = 0, rem = [], take = {}, deckW = {};
+    /* high-yield on: a deck's share of the paper follows its yield, so the
+       past-year papers and the core-concept decks carry more of the paper.
+       high-yield off: the share follows the deck's size, as before. */
     decks.forEach(function(k){
-      var w2 = want * byDeck[k].length / tot, f = Math.floor(w2);
+      var w = 0;
+      if(hyFn){ byDeck[k].forEach(function(x){ w += (hyFn(x) || 0.001); }); } else { w = byDeck[k].length; }
+      deckW[k] = w; tot += w;
+    });
+    tot = tot || 1;
+    decks.forEach(function(k){
+      var w2 = want * deckW[k] / tot, f = Math.floor(w2);
       take[k] = f; used += f; rem.push({ k:k, f: w2 - f });
     });
     rem.sort(function(a,b){ return b.f - a.f; });
@@ -5292,8 +5348,8 @@
       if(needOn){
         a2 = a2.map(function(x){
           var fr = (recent && recent[x.k + '|' + x.id]) ? 0 : 1;
-          return { x:x, fr:fr, s: needScore(x, targets) + rnd() * 0.05 };
-        }).sort(function(a,b){ if(a.fr !== b.fr) return b.fr - a.fr; return b.s - a.s; }).map(function(o){ return o.x; });
+          return { x:x, fr:fr, hy: (hyFn ? hyFn(x) : 0), s: needScore(x, targets) + rnd() * 0.05 };
+        }).sort(function(a,b){ if(a.fr !== b.fr) return b.fr - a.fr; if(a.hy !== b.hy) return b.hy - a.hy; return b.s - a.s; }).map(function(o){ return o.x; });
         /* a scarce bucket must not be swallowed in the first few decks: cap this
            deck's share of it at the rate the paper still needs */
         var leftAll = Math.max(1, _needState.left);
@@ -5319,7 +5375,7 @@
         for(var z3=0; z3<spare.length && kept.length < take[k]; z3++) kept.push(spare[z3]);
         a2 = kept;
       } else {
-        a2 = freshFirst(a2, recent, rnd);
+        a2 = hyFn ? hyFirst(a2, recent, rnd, hyFn) : freshFirst(a2, recent, rnd);
         a2 = a2.slice(0, take[k]);
       }
       a2.forEach(needBump);
@@ -5330,7 +5386,7 @@
   function pickByBlueprint(pool, len, W, mix, opts){
     opts = opts || {};
     var rnd = opts.rnd || Math.random, recent = opts.recent || null;
-    var targets = opts.targets || null, needOn = !!opts.needOn;
+    var targets = opts.targets || null, needOn = !!opts.needOn, hyFn = opts.hyFn || null;
     needInit(len);
     var plan = blueprintPlan(len, pool, W);
     var bySub = {};
@@ -5344,11 +5400,11 @@
         var need = split[g] || 0; if(!need) return;
         var poolG = arr.filter(function(x){ return (x.tag || '') === g; });
         if(!poolG.length) return;
-        spreadTake(poolG, Math.min(need, poolG.length), recent, rnd, targets, needOn).forEach(function(x){ seen[x.k + '|' + x.id] = 1; got.push(x); });
+        spreadTake(poolG, Math.min(need, poolG.length), recent, rnd, targets, needOn, hyFn).forEach(function(x){ seen[x.k + '|' + x.id] = 1; got.push(x); });
       });
       if(got.length < want){
         var rest = arr.filter(function(x){ return !seen[x.k + '|' + x.id]; });
-        got = got.concat(spreadTake(rest, Math.min(want - got.length, rest.length), recent, rnd, targets, needOn));
+        got = got.concat(spreadTake(rest, Math.min(want - got.length, rest.length), recent, rnd, targets, needOn, hyFn));
       }
       out = out.concat(got.slice(0, want));
     });
@@ -5420,6 +5476,7 @@
       : 'PYQ: none in this selection.';
     card.appendChild(pyqLine);
     pyqSwitch(card);
+    highYieldSwitch(card);
     /* the hashtag split only means something when we are looking at individual
        questions (they carry a tag); a deck row does not, so skip it there */
     var anyTag = TAGS.some(function(g){ return tagAvail[g]; });
@@ -5464,6 +5521,7 @@
     var note = document.createElement('div'); note.className = 'tsub small';
     note.textContent = built + ' of ' + ex.w.length + ' subjects are in your library. A subject with no questions is skipped and its share is given to the subjects you do have, in proportion to their weight. Inside a subject the paper is spread across your decks, so one topic cannot take the whole share.';
     card.appendChild(note);
+    highYieldSwitch(card);
     return card;
   }
   function examPatternCard(ex){
@@ -5865,6 +5923,7 @@
         + '  \u00b7  paper of ' + Math.min(S.len, nQ) + '  \u00b7  ' + (S.untimed ? 'untimed' : _ex.mark);
       card.appendChild(info);
       pyqSwitch(card);
+      highYieldSwitch(card);
       /* what this paper will actually be made of */
       try{ card.appendChild(distForPool(pool, Math.min(S.len, nQ), 'How these ' + Math.min(S.len, nQ) + ' questions are chosen')); }catch(e){}
       startBtn.disabled = !nQ;
@@ -6633,7 +6692,7 @@
       var qs;
       if(onlyErrors && onlyErrors.length){ qs = pool.slice(); shuffleSeed(qs, rnd); }
       else if(testCustom || (testScope && testScope !== 'all')){ shuffleSeed(pool, rnd); qs = pool.slice(0, want); }
-      else { qs = pickByBlueprint(pool, want, ex.w, ex.mix, { rnd:rnd, recent:recent, targets:targets, needOn:needOn }).qs; }
+      else { qs = pickByBlueprint(pool, want, ex.w, ex.mix, { rnd:rnd, recent:recent, targets:targets, needOn:needOn, hyFn: (testHighYield && ex.hy) ? highYieldScore : null }).qs; }
       if(!qs.length){ shuffleSeed(pool, rnd); qs = pool.slice(0, want); }
       if(testPriority && testPriority.length && !(onlyErrors && onlyErrors.length)){
         var _pset = {}; testPriority.forEach(function(x){ _pset[x] = 1; });

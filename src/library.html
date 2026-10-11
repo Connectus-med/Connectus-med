@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-16 14:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-16 20:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -664,6 +664,19 @@
   /* pre-launch gate: nothing for non-owners yet */
   body.launch-closed #tabbar{display:none!important}
   body.launch-closed main{padding-bottom:calc(24px + env(safe-area-inset-bottom,0px))!important}
+  /* question images + MTF (multiple true-false) */
+  .tqimg{display:block; max-width:100%; margin-top:10px; border-radius:12px; border:1px solid var(--line)}
+  .tqstmt{display:flex; gap:10px; align-items:flex-start; padding:10px 0; border-top:1px solid var(--line)}
+  .tqstmt:first-child{border-top:0}
+  .tqstmt-t{flex:1; line-height:1.45}
+  .tqsf{display:flex; gap:6px; flex:0 0 auto}
+  .tqsf button{border:1px solid var(--line); background:var(--bg); color:var(--ink); border-radius:999px; padding:8px 12px; font:inherit; font-size:.8rem; font-weight:750; cursor:pointer}
+  .tqsf button.on{background:var(--accent-2); border-color:var(--accent-2); color:#fff}
+  /* paper triage */
+  .ttri{display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-top:10px}
+  .tqx{margin-left:auto; color:var(--muted); font-weight:800; padding:0 4px; cursor:pointer; flex:none}
+  .tqopt.struck .tqtext2{text-decoration:line-through; opacity:.5}
+  .tqopt.struck .tqlet{opacity:.5}
 </style>
 </head>
 <body>
@@ -827,13 +840,36 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-16 14:00';
-  var BUILD_NOTE = 'RUHS-MO paper blueprint rebalanced to the real past-paper weightage - Medicine is now the heaviest subject.';
+  var APP_BUILD = '2026-10-16 20:00';
+  var BUILD_NOTE = 'The RUHS-MO paper is rebuilt on the real past-paper weightage and can pick high-yield questions - past-year and core-concept ones first - from the NEET PYQ papers and Qbank.';
   var CHANGELOG = [
-    { build:'2026-10-16 14:00', title:'RUHS-MO blueprint now matches the real paper', items:[
-      'The RUHS-MO subject weights were rebuilt from a 700-question RUHS-MO past-paper analysis (2015\u20132024-25, General Knowledge excluded).',
-      'Medicine is now the heaviest subject (19), ahead of Community Medicine (11) - previously Community Medicine led at 20. Pharmacology, Pathology, Surgery and every other subject now follow their real share of the paper.',
-      'Only the RUHS-MO pattern changed; the NEET-PG and INI-CET weights are untouched.',
+    { build:'2026-10-16 20:00', title:'RUHS-MO: real weights, and high-yield picking', items:[
+      'The RUHS-MO subject weights were rebuilt from a 700-question RUHS-MO past-paper analysis (2015\u20132024-25, General Knowledge excluded): Medicine is now the heaviest subject (19), ahead of Community Medicine (11); Pharmacology, Pathology, Surgery and the rest follow their real share.',
+      'The RUHS-MO paper now treats the NEET past-year papers and the Qbank decks as one pool and, within each subject, takes the highest-yield questions first - a real past-year question, then a core-concept (MainConcepts) one.',
+      'A High-yield first / Spread evenly switch sits on the RUHS-MO pre-start screen. It is on by default; turn it off for a plain spread. Your choice is remembered on the device.',
+      'A new paper still avoids the questions you saw in the last five, so high-yield only decides among fresh questions.',
+      'Only the RUHS-MO paper changed; NEET-PG and INI-CET are untouched.',
+    ]},
+    { build:'2026-10-16 18:00', title:'A tidier Tests tab, a smarter review, and Today lists your mistakes', items:[
+      'The Tests tab no longer greets you with one long page - it is split into Paper, Qbank, PYQ and History.',
+      'The result review can be filtered to Wrong, Marked or Skipped and switched to a Compact view, so a 200-question review is quick to triage.',
+      'The one-by-one review now only stops for the questions you got wrong or marked; a correct one reveals straight away, and Reveal all turns the gate off for the whole paper.',
+      'The builder offers a one-tap Use exam weight length for a subject paper, and the Grand Test now has an Untimed option.',
+      'The Question bank switch - include PYQ or topic decks only - now appears on every pre-start screen.',
+      'Home Today now also lists your unwritten mistakes, so the day starts with review, new cards, mistakes and a paper in one place.',
+    ]},
+    { build:'2026-10-16 16:00', title:'Marks feedback and a faster paper', items:[
+      'After a paper, the result now shows Where your marks went - each subject sorted by the marks it cost you, against that subject weight in the exam - plus where your score sits against an indicative cut-off band.',
+      'A new Slowest questions card shows where your time actually went, so a long question you got and a long question you missed are easy to tell apart.',
+      'While sitting a paper you can now cross out an option (the x on the right), jump straight to the next unanswered question, and filter the navigator to All, Unanswered or Marked.',
+      'Every question now records its own time, and Retake these questions rebuilds the same paper in one tap.',
+      'Past tests now show a subject trend, so a subject quietly slipping is visible before the exam.',
+    ]},
+    { build:'2026-10-16 14:00', title:'Images and MTF are real, and an unfinished paper asks first', items:[
+      'A question that carries an image now shows it while you sit the paper and again in the review, and a multiple true-false question renders one True/False row per statement with the correct INI-CET penalty.',
+      'The exam screen no longer promises image or multiple true-false shares the bank cannot supply: it now states exactly how many of each your bank holds.',
+      'If you leave a paper unfinished and return to Tests, it asks first - Resume, Submit or Discard - instead of dropping you back in with the clock running.',
+      'The saved screen no longer stores the whole result, so device storage cannot fill up and quietly drop your state.',
     ]},
     { build:'2026-10-16 12:00', title:'Not open to everyone yet', items:[
       'The library is owner-only while it is still being prepared: signing out, or signing in with an account that is not the owner, now shows a short "not open yet" notice instead of the catalogue. Nothing is offered to free or paid visitors until it is opened.',
@@ -2265,7 +2301,6 @@
       clear(); if(done) done();
     }).catch(function(){ clear(); if(done) done(); });
   }
-  try{ var _tp = ls('fd:testpyq', null); if(_tp === true || _tp === false) testWithPyq = _tp; }catch(e){}
   var _allHydrated = false;
   function ensureCards(done){
     if(_allHydrated || (decksData || []).every(function(d){ return Array.isArray(d.cards) && d.cards.length; })){
@@ -2477,7 +2512,7 @@
     /* a swap was held back while a test was open - do it now that we have left */
     try{ if(view.t !== 'test' && view.t !== 'review1' && applyPendingSelfUpdate()) return; }catch(e){}
     try{ ss('fd:builder', { custom:testCustom, exam:testExam, len:testLen, y:testSelYears, s:testSelSubjects, u:testSelUnits, c:testSelChapters }); }catch(e){}
-    try{ ss('fd:view', view); }catch(e){}
+    try{ var _pv = view; if(_pv && _pv.tResult) _pv = Object.assign({}, _pv, { tResult: null }); ss('fd:view', _pv); }catch(e){}
     try{ clearQPal(); }catch(e){}
     document.body.classList.toggle('launch-closed', !!(LAUNCH_CLOSED && !IS_OWNER));
     if(LAUNCH_CLOSED && !IS_OWNER){ showClosed(); updateFab(); paintTabs(); return; }
@@ -3254,6 +3289,18 @@
     b2.textContent = 'Or tackle my weak areas';
     b2.onclick = function(){ pendingScope = null; view = { t:'test', tMode:'build', bMode:'weak' }; render(); window.scrollTo(0,0); };
     d.appendChild(b2);
+    var _mist = 0; try{ _mist = unNotedMistakes().length; }catch(e){}
+    if(_mist){
+      var b3 = document.createElement('button'); b3.type = 'button'; b3.className = 'btn wide'; b3.style.margin = '8px 0 0';
+      b3.textContent = 'Redo ' + _mist + ' mistake' + (_mist === 1 ? '' : 's');
+      b3.onclick = function(){
+        testPriority = unNotedMistakes().slice(0, 60).map(function(x){ return x.k; });
+        testCustom = true; testSelYears = []; testSelSubjects = []; testSelUnits = []; testSelChapters = [];
+        testScope = 'all'; testDeck = ''; testLen = Math.min(50, _mist);
+        view = { t:'test' }; testStart();
+      };
+      d.appendChild(b3);
+    }
     return d;
   }
 
@@ -4921,7 +4968,11 @@
      MCQs in the content yet, so a question shows the card front, you reveal the
      answer, and you mark yourself right or wrong. Every wrong card goes to the
      error log, and you can re-practise just those. */
-  var testRun = null, testTimerId = null, testScope = 'all', testLen = 200, testDeck = '', testExam = 'NEET-PG', testSections = true, testSeed = 0, testUntimed = false, testWithPyq = true, testCustom = false, testSelSubjects = [], testSelUnits = [], testSelChapters = [], testSelYears = [];
+  var testRun = null, testTimerId = null, testScope = 'all', testLen = 200, testDeck = '', testExam = 'NEET-PG', testSections = true, testSeed = 0, testUntimed = false, testWithPyq = true, testHighYield = true, testCustom = false, testSelSubjects = [], testSelUnits = [], testSelChapters = [], testSelYears = [];
+  try{ var _tp = ls('fd:testpyq', null); if(_tp === true || _tp === false) testWithPyq = _tp; }catch(e){}
+  try{ var _hy = ls('fd:testhy', null); if(_hy === true || _hy === false) testHighYield = _hy; }catch(e){}
+  var testPalFilter = 'all';
+  var testRevFilter = 'all', testRevCompact = false, testSeg = 'paper';
 
   /* Extraction sometimes left HTML entities in the text (\&lt; for <, \&gt; for >,
      \&amp; for &). They must never reach the screen, so every string that flows
@@ -4956,8 +5007,14 @@
     if(c.type === 'cloze'){ var t = (c.text != null) ? c.text : ''; return clozeText(t, which === 'a'); }
     return flatText(which === 'a' ? c.a : c.q);
   }
+  function isMtf(c){
+    return !!(c && c.id && c.type === 'mtf' && Array.isArray(c.statements) && c.statements.length >= 2 &&
+              c.statements.every(function(s){ return s && typeof s.a === 'boolean'; }));
+  }
   function isMcq(c){
-    return !!(c && c.id && c.type === 'mcq' && Array.isArray(c.options) && c.options.length >= 2 &&
+    if(!c || !c.id) return false;
+    if(c.type === 'mtf') return isMtf(c);
+    return !!(c.type === 'mcq' && Array.isArray(c.options) && c.options.length >= 2 &&
               typeof c.answer === 'number' && c.answer >= 0 && c.answer < c.options.length);
   }
   /* How many MCQs a deck holds. deck_catalog2() tells us up front (d.mcqs), so a
@@ -4996,13 +5053,20 @@
     return (Array.isArray(d.cards) ? d.cards : []).filter(isMcq).length;
   }
   function isMcqItem(x){
-    return !!(x && x.q && Array.isArray(x.options) && x.options.length >= 2 && typeof x.answer === 'number');
+    if(!x || !x.q) return false;
+    if(x.mtf) return Array.isArray(x.stmts) && x.stmts.length >= 2;
+    return Array.isArray(x.options) && x.options.length >= 2 && typeof x.answer === 'number';
   }
   function mcqItem(c, key, loc, topic){
-    return { k:key, id:c.id, q:flatText(c.q), options:c.options.map(function(o){ return flatText(o); }),
-             answer:c.answer, explain:(c.explain ? flatText(c.explain) : ''), src:c.src || '',
+    var it = { k:key, id:c.id, q:flatText(c.q), options:(c.options || []).map(function(o){ return flatText(o); }),
+             answer:(typeof c.answer === 'number' ? c.answer : null), explain:(c.explain ? flatText(c.explain) : ''), src:c.src || '',
              s:(loc&&loc.s)||'', u:(loc&&loc.u)||'', c:(loc&&loc.c)||'', t:topic||'', tag:c.tag || '',
-             diff:c.diff || '', qt:c.qt || '', img:(c.img ? 1 : 0) };
+             diff:c.diff || '', qt:c.qt || '', img:((typeof c.img === 'string' && c.img) ? c.img : '') };
+    if(c.type === 'mtf' && Array.isArray(c.statements)){
+      it.mtf = 1; it.qt = 'mtf';
+      it.stmts = c.statements.map(function(s){ return { t:flatText(s.t), a:!!s.a }; });
+    }
+    return it;
   }
   /* Every question keeps its provenance in plain sight - file and page. It is
      carried on the item as `src`; this renders it as one small muted line. */
@@ -5012,6 +5076,41 @@
     var el = document.createElement('div'); el.className = 'qsrc';
     el.textContent = 'Source: ' + v;
     return el;
+  }
+  /* true when the picked answer is fully correct (handles MCQ index and MTF statements) */
+  function ansCorrect(q, a){
+    if(!q) return false;
+    if(q.mtf){
+      if(!Array.isArray(a)) return false;
+      var ss = q.stmts || [];
+      for(var i=0;i<ss.length;i++){ if(!!a[i] !== !!ss[i].a) return false; }
+      return ss.length > 0;
+    }
+    return a === q.answer;
+  }
+  function qImgEl(src, cls){ if(!src) return null; var im = document.createElement('img'); im.className = cls || 'tqimg'; im.loading = 'lazy'; im.alt = 'Question image'; im.src = src; return im; }
+  /* the correct-answer block for review screens - MCQ options or MTF statements */
+  function rvOptions(q, picked, container){
+    if(q && q.mtf){
+      (q.stmts||[]).forEach(function(s, k){
+        var mine = Array.isArray(picked) ? picked[k] : null;
+        var row = document.createElement('div'); row.className = 'rvopt' + (s.a ? ' correct' : '');
+        row.textContent = (k+1) + ') ' + s.t + '  \u2014  correct: ' + (s.a ? 'True' : 'False') + (mine != null && !!mine !== !!s.a ? '   \u00b7 you said ' + (mine ? 'True' : 'False') : '');
+        container.appendChild(row);
+      });
+      return;
+    }
+    (q && q.options || []).forEach(function(o,k){
+      var row = document.createElement('div'); row.className = 'rvopt' + (k===q.answer ? ' correct' : (k===picked ? ' picked' : ''));
+      row.textContent = String.fromCharCode(65+k) + ') ' + o + (k===q.answer ? '  \u2713' : (k===picked ? '  (your answer)' : ''));
+      container.appendChild(row);
+    });
+  }
+  /* what the bank actually holds - so a paper never promises what it cannot deliver */
+  function bankCounts(){
+    var mcq = 0, img = 0, mtf = 0;
+    (decksData || []).forEach(function(d){ if(!d || !Array.isArray(d.cards)) return; d.cards.forEach(function(c){ if(isMcq(c)){ mcq++; if(c.img) img++; if(c.type === 'mtf') mtf++; } }); });
+    return { mcq:mcq, img:img, mtf:mtf };
   }
   function isTestable(c){
     if(!c || !c.id) return false;
@@ -5025,7 +5124,7 @@
   }
   /* ---------- the three real exam patterns (latest cycle) ---------- */
   var EXAMS = [
-    { k:'NEET-PG', name:'NEET-PG', org:'NBEMS (NBE)', q:200, mins:210, pos:4, neg:-1,
+    { k:'NEET-PG', name:'NEET-PG', org:'NBEMS (NBE)', q:200, mins:210, pos:4, neg:-1, cutoffPct:[45,60],
       secN:5, secQ:40, secMins:42,
       mark:'+4 correct · −1 wrong · 0 unattempted',
       sec:'5 sections × 40 Q, 42 min each — auto-locked, no going back',
@@ -5041,8 +5140,8 @@
          ['Biochemistry',11],['Forensic Medicine & Toxicology',7],['Pediatrics',7],['ENT (Otorhinolaryngology)',7],
          ['Ophthalmology',6],['Dermatology, Venereology & Leprosy',2],['Psychiatry',2],['Orthopaedics',2],
          ['Anaesthesiology',1],['Radiodiagnosis',1]] },
-    { k:'INI-CET', name:'INI-CET', org:'AIIMS New Delhi', q:200, mins:180, pos:1, neg:-1/3,
-      secN:4, secQ:50, secMins:45,
+    { k:'INI-CET', name:'INI-CET', org:'AIIMS New Delhi', q:200, mins:180, pos:1, neg:-1/3, cutoffPct:[50,65],
+      secN:4, secQ:50, secMins:45, mtf:{pos:1, neg:-0.2},
       mark:'+1 correct · −1/3 wrong (single) · −1/5 wrong (multiple true-false)',
       sec:'4 sections × 50 Q, 45 min each — auto-locked, no going back',
       qtype:'Single best answer + multiple true-false',
@@ -5057,7 +5156,7 @@
          ['Biochemistry',12],['Anatomy',10],['Physiology',10],['ENT (Otorhinolaryngology)',7],['Ophthalmology',7],
          ['Radiodiagnosis',6],['Forensic Medicine & Toxicology',4],['Psychiatry',3],
          ['Dermatology, Venereology & Leprosy',2],['Orthopaedics',1],['Anaesthesiology',1]] },
-    { k:'RUHS-MO', name:'RUHS-MO', org:'RUHS Rajasthan (MODRE)', q:100, mins:120, pos:1, neg:0,
+    { k:'RUHS-MO', name:'RUHS-MO', org:'RUHS Rajasthan (MODRE)', q:100, mins:120, pos:1, neg:0, hy:true, cutoffPct:[60,75],
       secN:1, secQ:100, secMins:120,
       mark:'+1 correct · no negative marking',
       sec:'One paper, no sections — attempt all',
@@ -5145,6 +5244,45 @@
     shuffleSeed(f, rnd); shuffleSeed(u, rnd);
     return f.concat(u);
   }
+  /* ---------- high-yield selection (RUHS) ----------
+     Treats the NEET past-year papers and the Qbank decks as one pool, and ranks
+     a question by how likely it is to matter in the RUHS paper: a real past-year
+     question first, then a core-concept (MainConcepts) one. Used only for an
+     exam that carries hy:true (RUHS-MO); the subject split still comes from the
+     exam blueprint. Freshness stays the primary key, so a new paper still avoids
+     the last five - high-yield only breaks ties among fresh questions. */
+  function highYieldScore(x){
+    var isP = (x && x.k && x.k.indexOf('PYQ_') === 0) ? 1 : 0;
+    var tw = { 'MainConcepts':1.0, 'Basics&Fundamentals':0.6, 'Integrated&Complex':0.5 };
+    var tg = (x && tw[x.tag] != null) ? tw[x.tag] : 0.5;
+    return isP * 0.6 + tg * 0.4;
+  }
+  function hyFirst(arr, recent, rnd, hyFn){
+    var f = [], u = [];
+    arr.forEach(function(x){ if(recent && recent[x.k + '|' + x.id]) u.push(x); else f.push(x); });
+    function ord(a){ return a.map(function(x){ return { x:x, hy:hyFn(x), r:rnd() * 0.05 }; })
+                       .sort(function(p,q){ if(p.hy !== q.hy) return q.hy - p.hy; return p.r - q.r; })
+                       .map(function(o){ return o.x; }); }
+    return ord(f).concat(ord(u));
+  }
+  function highYieldSwitch(el){
+    var ex = examOf(testExam);
+    if(!ex || !ex.hy) return;
+    var wrap = document.createElement('div'); wrap.className = 'pyqsw';
+    [['on','High-yield first'],['off','Spread evenly']].forEach(function(o){
+      var b = document.createElement('button'); b.type = 'button';
+      b.className = 'tchip' + ((testHighYield ? 'on' : 'off') === o[0] ? ' on' : '');
+      b.textContent = o[1];
+      b.onclick = function(){ testHighYield = (o[0] === 'on'); try{ ss('fd:testhy', testHighYield); }catch(e){} render(); };
+      wrap.appendChild(b);
+    });
+    var note = document.createElement('div'); note.className = 'tsub small';
+    note.textContent = testHighYield
+      ? 'High-yield first: within each subject the paper takes the highest-yield questions from your NEET PYQ papers and Qbank - real past-year questions and core (MainConcepts) ones come first.'
+      : 'Spread evenly: questions are taken across your decks with no yield preference.';
+    wrap.appendChild(note);
+    el.appendChild(wrap);
+  }
   /* ---------- soft targets: difficulty, image, question type ---------- */
   var _needState = null;
   function needInit(total){ _needState = { diff:{ easy:0, mod:0, hard:0 }, img:0, mtf:0, left:(total || 0), imgCarry:0, mtfCarry:0 }; }
@@ -5177,12 +5315,21 @@
     while(used < n && rem.length){ out[rem[i % rem.length].g]++; used++; i++; }
     return out;
   }
-  function spreadTake(arr, want, recent, rnd, targets, needOn){
+  function spreadTake(arr, want, recent, rnd, targets, needOn, hyFn){
     var byDeck = {};
     arr.forEach(function(x){ var k = x.k || '?'; (byDeck[k] = byDeck[k] || []).push(x); });
-    var decks = Object.keys(byDeck), tot = arr.length || 1, used = 0, rem = [], take = {};
+    var decks = Object.keys(byDeck), tot = 0, used = 0, rem = [], take = {}, deckW = {};
+    /* high-yield on: a deck's share of the paper follows its yield, so the
+       past-year papers and the core-concept decks carry more of the paper.
+       high-yield off: the share follows the deck's size, as before. */
     decks.forEach(function(k){
-      var w2 = want * byDeck[k].length / tot, f = Math.floor(w2);
+      var w = 0;
+      if(hyFn){ byDeck[k].forEach(function(x){ w += (hyFn(x) || 0.001); }); } else { w = byDeck[k].length; }
+      deckW[k] = w; tot += w;
+    });
+    tot = tot || 1;
+    decks.forEach(function(k){
+      var w2 = want * deckW[k] / tot, f = Math.floor(w2);
       take[k] = f; used += f; rem.push({ k:k, f: w2 - f });
     });
     rem.sort(function(a,b){ return b.f - a.f; });
@@ -5201,8 +5348,8 @@
       if(needOn){
         a2 = a2.map(function(x){
           var fr = (recent && recent[x.k + '|' + x.id]) ? 0 : 1;
-          return { x:x, fr:fr, s: needScore(x, targets) + rnd() * 0.05 };
-        }).sort(function(a,b){ if(a.fr !== b.fr) return b.fr - a.fr; return b.s - a.s; }).map(function(o){ return o.x; });
+          return { x:x, fr:fr, hy: (hyFn ? hyFn(x) : 0), s: needScore(x, targets) + rnd() * 0.05 };
+        }).sort(function(a,b){ if(a.fr !== b.fr) return b.fr - a.fr; if(a.hy !== b.hy) return b.hy - a.hy; return b.s - a.s; }).map(function(o){ return o.x; });
         /* a scarce bucket must not be swallowed in the first few decks: cap this
            deck's share of it at the rate the paper still needs */
         var leftAll = Math.max(1, _needState.left);
@@ -5228,7 +5375,7 @@
         for(var z3=0; z3<spare.length && kept.length < take[k]; z3++) kept.push(spare[z3]);
         a2 = kept;
       } else {
-        a2 = freshFirst(a2, recent, rnd);
+        a2 = hyFn ? hyFirst(a2, recent, rnd, hyFn) : freshFirst(a2, recent, rnd);
         a2 = a2.slice(0, take[k]);
       }
       a2.forEach(needBump);
@@ -5239,7 +5386,7 @@
   function pickByBlueprint(pool, len, W, mix, opts){
     opts = opts || {};
     var rnd = opts.rnd || Math.random, recent = opts.recent || null;
-    var targets = opts.targets || null, needOn = !!opts.needOn;
+    var targets = opts.targets || null, needOn = !!opts.needOn, hyFn = opts.hyFn || null;
     needInit(len);
     var plan = blueprintPlan(len, pool, W);
     var bySub = {};
@@ -5253,11 +5400,11 @@
         var need = split[g] || 0; if(!need) return;
         var poolG = arr.filter(function(x){ return (x.tag || '') === g; });
         if(!poolG.length) return;
-        spreadTake(poolG, Math.min(need, poolG.length), recent, rnd, targets, needOn).forEach(function(x){ seen[x.k + '|' + x.id] = 1; got.push(x); });
+        spreadTake(poolG, Math.min(need, poolG.length), recent, rnd, targets, needOn, hyFn).forEach(function(x){ seen[x.k + '|' + x.id] = 1; got.push(x); });
       });
       if(got.length < want){
         var rest = arr.filter(function(x){ return !seen[x.k + '|' + x.id]; });
-        got = got.concat(spreadTake(rest, Math.min(want - got.length, rest.length), recent, rnd, targets, needOn));
+        got = got.concat(spreadTake(rest, Math.min(want - got.length, rest.length), recent, rnd, targets, needOn, hyFn));
       }
       out = out.concat(got.slice(0, want));
     });
@@ -5329,6 +5476,7 @@
       : 'PYQ: none in this selection.';
     card.appendChild(pyqLine);
     pyqSwitch(card);
+    highYieldSwitch(card);
     /* the hashtag split only means something when we are looking at individual
        questions (they carry a tag); a deck row does not, so skip it there */
     var anyTag = TAGS.some(function(g){ return tagAvail[g]; });
@@ -5373,6 +5521,7 @@
     var note = document.createElement('div'); note.className = 'tsub small';
     note.textContent = built + ' of ' + ex.w.length + ' subjects are in your library. A subject with no questions is skipped and its share is given to the subjects you do have, in proportion to their weight. Inside a subject the paper is spread across your decks, so one topic cannot take the whole share.';
     card.appendChild(note);
+    highYieldSwitch(card);
     return card;
   }
   function examPatternCard(ex){
@@ -5391,10 +5540,15 @@
     card.appendChild(tgt);
     var dl = document.createElement('div'); dl.className = 'tsub small'; dl.style.margin = '3px 0 0';
     var dd = ex.diff || {};
-    dl.textContent = '· Target difficulty: easy ' + Math.round((dd.easy||0)*100) + '% · moderate ' + Math.round((dd.mod||0)*100) + '% · hard ' + Math.round((dd.hard||0)*100) + '% · image-based ' + Math.round((ex.imgShare||0)*100) + '%'
-      + ((ex.mtfShare||0) ? (' · multiple true-false ' + Math.round(ex.mtfShare*100) + '%') : '')
-      + '. These apply only where a question carries that label.';
+    dl.textContent = '\u00b7 Target difficulty: easy ' + Math.round((dd.easy||0)*100) + '% \u00b7 moderate ' + Math.round((dd.mod||0)*100) + '% \u00b7 hard ' + Math.round((dd.hard||0)*100) + '% \u2014 as close as your library allows.';
     card.appendChild(dl);
+    var bc = bankCounts();
+    var bl = document.createElement('div'); bl.className = 'tsub small'; bl.style.margin = '3px 0 0';
+    bl.textContent = bc.mcq
+      ? ('\u00b7 Your bank: ' + bc.mcq + ' MCQs \u00b7 ' + bc.img + ' with an image \u00b7 ' + bc.mtf + ' multiple true-false'
+         + ((bc.img || bc.mtf) ? '.' : ' \u2014 image and multiple true-false questions are not in the bank yet, so a paper cannot include them.'))
+      : '\u00b7 Your bank: counts load with the paper.';
+    card.appendChild(bl);
     (ex.trend || []).forEach(function(t){
       var d = document.createElement('div'); d.className = 'tsub small'; d.style.margin = '3px 0 0'; d.textContent = '· ' + t;
       card.appendChild(d);
@@ -5469,12 +5623,43 @@
   }
 
   /* ---------- setup screen ---------- */
+  function renderResumeGate(){
+    try{ clearQPal(); }catch(e){}
+    document.body.classList.remove('testrun');
+    var box = $('content'); box.textContent = '';
+    var wrap = document.createElement('div'); wrap.className = 'twrap';
+    var h = document.createElement('div'); h.className = 'tbig'; h.textContent = 'You have an unfinished paper'; wrap.appendChild(h);
+    var ex = examOf(testRun.exam);
+    var answered = 0; (testRun.answers||[]).forEach(function(a){ if(a != null) answered++; });
+    var left = testRun.untimed ? null : Math.round(((testRun.secOn ? testRun.secEnds : testRun.ends) - Date.now())/1000);
+    var sub = document.createElement('div'); sub.className = 'tsub';
+    sub.textContent = ex.name + ' \u00b7 ' + answered + ' of ' + testRun.n + ' answered'
+      + (testRun.secOn ? ' \u00b7 section ' + (testRun.secIdx+1) + ' of ' + testRun.secN : '')
+      + (left == null ? ' \u00b7 untimed' : ' \u00b7 ' + (left > 0 ? (fmtClock(left) + ' left') : 'time is up'))
+      + ' \u00b7 started ' + new Date(testRun.started).toLocaleString();
+    wrap.appendChild(sub);
+    var c = document.createElement('div'); c.className = 'tcard';
+    var resume = document.createElement('button'); resume.type = 'button'; resume.className = 'tstart'; resume.style.width = '100%';
+    resume.textContent = 'Resume this paper';
+    resume.onclick = function(){ renderTestRun(); window.scrollTo(0,0); };
+    c.appendChild(resume);
+    var sub2 = document.createElement('button'); sub2.type = 'button'; sub2.className = 'btn primary wide'; sub2.style.marginTop = '10px';
+    sub2.textContent = 'Submit & see results';
+    sub2.onclick = function(){ testSubmit(); };
+    c.appendChild(sub2);
+    var dis = document.createElement('button'); dis.type = 'button'; dis.className = 'btn wide'; dis.style.marginTop = '10px';
+    dis.textContent = 'Discard it';
+    dis.onclick = function(){ if(!window.confirm('Discard this unfinished paper? Your answers will be lost.')) return; try{ ss('fd:testrun', null); }catch(e){} testRun = null; renderTest(); window.scrollTo(0,0); };
+    c.appendChild(dis);
+    wrap.appendChild(c);
+    box.appendChild(wrap);
+  }
   function renderTest(){
     /* pool flows need the card bodies: fetch them once, then re-render */
     if(!_allHydrated && typeof ensureCards === 'function'){ ensureCards(function(){ try{ render(); }catch(e){} }); }
     try{ clearQPal(); }catch(e){}
     document.body.classList.remove('testrun');
-    if(testRun){ renderTestRun(); return; }
+    if(testRun){ renderResumeGate(); return; }
     if(view.tResult){ renderTestResult(); return; }
     if(view.tMode === 'grand'){ renderTestGrand(); return; }
     if(view.tMode === 'deck'){ renderTestDeckSetup(); return; }
@@ -5723,11 +5908,22 @@
       inp.onblur = function(){ inp.value = S.len; draw(); };
       lrow.appendChild(inp);
       card.appendChild(lrow);
+      if(S.mode === 'subject' && S.subs.length === 1){
+        var _w2 = 0; (_ex.w || []).forEach(function(p){ if(p[0] === S.subs[0]) _w2 = p[1]; });
+        if(_w2){
+          var wb = document.createElement('button'); wb.type = 'button'; wb.className = 'tchip'; wb.style.marginTop = '8px';
+          wb.textContent = 'Use exam weight \u00b7 ' + _w2 + ' Q';
+          wb.onclick = function(){ S.len = _w2; draw(); };
+          card.appendChild(wb);
+        }
+      }
       var info = document.createElement('div'); info.className = 'tsub small';
       info.textContent = pool.length + ' deck' + (pool.length === 1 ? '' : 's') + ' \u00b7 ' + nQ + ' MCQs available'
         + ((S.years.length || S.subs.length || S.units.length || S.chaps.length) ? '' : ' \u2014 the whole tree')
         + '  \u00b7  paper of ' + Math.min(S.len, nQ) + '  \u00b7  ' + (S.untimed ? 'untimed' : _ex.mark);
       card.appendChild(info);
+      pyqSwitch(card);
+      highYieldSwitch(card);
       /* what this paper will actually be made of */
       try{ card.appendChild(distForPool(pool, Math.min(S.len, nQ), 'How these ' + Math.min(S.len, nQ) + ' questions are chosen')); }catch(e){}
       startBtn.disabled = !nQ;
@@ -5853,6 +6049,7 @@
     var act = document.createElement('button'); act.type = 'button'; act.className = 'tstart'; act.textContent = 'Practise these'; act.disabled = true;
     card.appendChild(act);
     wrap.appendChild(card);
+    pyqSwitch(wrap);
     box.appendChild(wrap);
     var idx = null, hits = [], timer = null;
     function buildIndex(){
@@ -5918,15 +6115,23 @@
     var sub = document.createElement('div'); sub.className = 'tsub';
     sub.textContent = 'Timed, exam-style practice from your decks. Pick a mode.';
     wrap.appendChild(sub);
+    var seg = document.createElement('div'); seg.className = 'tchips'; seg.style.margin = '2px 0 10px';
+    [['paper','Paper'],['qbank','Qbank'],['pyq','PYQ'],['history','History']].forEach(function(o){
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'tchip' + (testSeg === o[0] ? ' on' : ''); b.textContent = o[1];
+      b.onclick = function(){ testSeg = o[0]; renderTest(); window.scrollTo(0,0); };
+      seg.appendChild(b);
+    });
+    wrap.appendChild(seg);
     var modes = document.createElement('div'); modes.className = 'tmodes';
     modes.appendChild(testModeTile({ title:'Start a test', desc:'Pick your subjects, systems and length \u2014 or just hit start for a sensible paper.', soon:false, onTap:function(){ view = { t:'test', tMode:'build', bMode:'custom' }; render(); window.scrollTo(0,0); } }));
     modes.appendChild(testModeTile({ title:'Subject test', desc:'A timed paper from one whole subject, at its real weight in the exam you pick.', soon:false, onTap:function(){ view = { t:'test', tMode:'build', bMode:'subject' }; render(); window.scrollTo(0,0); } }));
     modes.appendChild(testModeTile({ title:'Real Exam Grand Test', desc:'A timed paper built to a real exam pattern — NEET-PG, INI-CET or RUHS-MO.', soon:false, onTap:function(){ view = { t:'test', tMode:'grand' }; render(); window.scrollTo(0,0); } }));
     modes.appendChild(testModeTile({ title:'Weak areas', desc:'Built from your real accuracy \u2014 every question you missed, worst first, plus the chapters you are weakest in.', soon:false, onTap:function(){ view = { t:'test', tMode:'build', bMode:'weak' }; render(); window.scrollTo(0,0); } }));
     modes.appendChild(testModeTile({ title:'Find a question', desc:'Search every question in your bank by word or phrase \u2014 then practise just those.', soon:false, onTap:function(){ view = { t:'test', tMode:'find' }; render(); window.scrollTo(0,0); } }));
-    wrap.appendChild(modes);
+    if(testSeg === 'paper'){ wrap.appendChild(modes); }
 
     /* Qbank — the WHOLE MBBS tree: Year → Subject → Unit → Chapter → deck, collapsible */
+    if(testSeg === 'qbank'){
     var qdecks = [];
     (decksData || []).forEach(function(d){
       if(!d || !d.deck_key) return;
@@ -6043,8 +6248,10 @@
       }
       wrap.appendChild(qc);
     }
+    }
 
     /* PYQs — NEET papers in the KB, filed under the same MBBS hierarchy */
+    if(testSeg === 'pyq'){
     var pyqIndex = (PYQ_INDEX && Object.keys(PYQ_INDEX).length) ? PYQ_INDEX : {};
     var pyqDecks = {};
     (decksData || []).forEach(function(d){
@@ -6128,9 +6335,10 @@
       });
       wrap.appendChild(pc);
     }
+    }
 
 
-    renderTestHistory(wrap);
+    if(testSeg === 'history'){ renderTestHistory(wrap); }
     box.appendChild(wrap);
   }
 
@@ -6188,6 +6396,7 @@
                                      'How these ' + n + ' questions are chosen'));
       }
     }catch(e){}
+    pyqSwitch(wrap);
     var start = document.createElement('button'); start.type = 'button'; start.className = 'tstart'; start.textContent = 'Start test';
     start.disabled = !n;
     start.onclick = function(){ testDeck = dk; testScope = 'all'; testStart(); };
@@ -6268,6 +6477,42 @@
       });
       wrap.appendChild(hc);
     }
+    /* per-subject trend across stored papers */
+    (function(){
+      var papers = ls('fd:testpapers', {}); if(!papers || typeof papers !== 'object' || Array.isArray(papers)) return;
+      var list = Object.keys(papers).map(function(k){ return papers[k]; }).filter(Boolean).sort(function(a,b){ return a.ts - b.ts; });
+      if(list.length < 2) return;
+      var bySub = {};
+      list.forEach(function(p){
+        Object.keys(p.perSubject || {}).forEach(function(sb){
+          var v = p.perSubject[sb]; if(!v || !v.total) return;
+          (bySub[sb] = bySub[sb] || []).push(v.right / v.total * 100);
+        });
+      });
+      var rows2 = [];
+      Object.keys(bySub).forEach(function(sb){
+        var a = bySub[sb]; if(a.length < 2) return;
+        var last = Math.round(a[a.length-1]);
+        var prev = Math.round(a.slice(0, a.length-1).reduce(function(s,x){ return s+x; }, 0) / (a.length-1));
+        rows2.push({ s:sb, last:last, delta: last - prev });
+      });
+      if(!rows2.length) return;
+      rows2.sort(function(x,y){ return x.delta - y.delta; });
+      var tc = document.createElement('div'); tc.className = 'tcard';
+      var tl = document.createElement('div'); tl.className = 'tlabel'; tl.textContent = 'Subject trend'; tc.appendChild(tl);
+      var tn = document.createElement('div'); tn.className = 'tsub small'; tn.style.margin = '0 0 6px';
+      tn.textContent = 'Latest paper against your average so far - worst movers first.';
+      tc.appendChild(tn);
+      rows2.slice(0, 6).forEach(function(x){
+        var r = document.createElement('div'); r.className = 'thist';
+        var a = document.createElement('span'); a.className = 'thist-d'; a.textContent = x.s;
+        var b = document.createElement('span'); b.className = 'thist-s'; b.textContent = x.last + '%';
+        var c = document.createElement('span'); c.className = 'thist-t' + (x.delta > 0 ? ' ttrend-up' : (x.delta < 0 ? ' ttrend-dn' : ''));
+        c.textContent = (x.delta > 0 ? '\u25b2 +' + x.delta : (x.delta < 0 ? '\u25bc ' + x.delta : '\u2014 flat'));
+        r.appendChild(a); r.appendChild(b); r.appendChild(c); tc.appendChild(r);
+      });
+      wrap.appendChild(tc);
+    })();
     var _un = unNotedMistakes(), _nt = notedList();
     if(_un.length){
       var ec = document.createElement('button'); ec.type = 'button'; ec.className = 'tstart ghost';
@@ -6399,7 +6644,17 @@
       wrap.appendChild(distTable(want, pool, ex));
     }
     wrap.appendChild(examPatternCard(ex));
+    pyqSwitch(wrap);
 
+    var tg = document.createElement('div'); tg.className = 'tchips'; tg.style.margin = '8px 0';
+    [['timed','Timed \u00b7 exam-like'],['untimed','Untimed \u00b7 study']].forEach(function(o){
+      var b = document.createElement('button'); b.type = 'button';
+      b.className = 'tchip' + (((testUntimed ? 'untimed' : 'timed')) === o[0] ? ' on' : '');
+      b.textContent = o[1];
+      b.onclick = function(){ testUntimed = (o[0] === 'untimed'); renderTest(); window.scrollTo(0,0); };
+      tg.appendChild(b);
+    });
+    wrap.appendChild(tg);
     var start = document.createElement('button'); start.type = 'button'; start.className = 'tstart';
     start.textContent = 'Start ' + ex.name + ' paper'; start.disabled = !can;
     start.onclick = function(){ testStart(); };
@@ -6437,7 +6692,7 @@
       var qs;
       if(onlyErrors && onlyErrors.length){ qs = pool.slice(); shuffleSeed(qs, rnd); }
       else if(testCustom || (testScope && testScope !== 'all')){ shuffleSeed(pool, rnd); qs = pool.slice(0, want); }
-      else { qs = pickByBlueprint(pool, want, ex.w, ex.mix, { rnd:rnd, recent:recent, targets:targets, needOn:needOn }).qs; }
+      else { qs = pickByBlueprint(pool, want, ex.w, ex.mix, { rnd:rnd, recent:recent, targets:targets, needOn:needOn, hyFn: (testHighYield && ex.hy) ? highYieldScore : null }).qs; }
       if(!qs.length){ shuffleSeed(pool, rnd); qs = pool.slice(0, want); }
       if(testPriority && testPriority.length && !(onlyErrors && onlyErrors.length)){
         var _pset = {}; testPriority.forEach(function(x){ _pset[x] = 1; });
@@ -6455,9 +6710,9 @@
       var t0 = Date.now();
       testRun = { qs: qs, i: 0, answers: [], marked: [], started: t0, ends: t0 + n * 60000,
                   scope: testScope, n: n, errors: !!onlyErrors, exam: ex.k,
-                  secOn: secOn, secN: secN, secQ: secQ, secPerQ: secPerQ, secMins: secMins0, secIdx: 0, secEnds: t0 + secMins0 * 60000, seed: seed, targets: targets, needOn: needOn, untimed: !!testUntimed };
-      for(var i=0;i<n;i++){ testRun.answers.push(null); testRun.marked.push(false); }
-      ss('fd:testrun', testRun);
+                  secOn: secOn, secN: secN, secQ: secQ, secPerQ: secPerQ, secMins: secMins0, secIdx: 0, secEnds: t0 + secMins0 * 60000, seed: seed, targets: targets, needOn: needOn, untimed: !!testUntimed,
+                  struck: [], tq: [], curAt: t0 };
+      for(var i=0;i<n;i++){ testRun.answers.push(null); testRun.marked.push(false); testRun.struck.push([]); testRun.tq.push(0); }
       ss('fd:testrun', testRun);
       view.tResult = null;
       renderTestRun();
@@ -6570,9 +6825,11 @@
     if(!testRun) return;
     if(!testRun.secOn) return testSubmit();
     if(manual && !window.confirm('Section ' + (testRun.secIdx+1) + ' of ' + testRun.secN + ' will lock now. Move on to the next section?')) return;
+    testAccrue();
     testRun.secIdx++;
     if(testRun.secIdx >= testRun.secN){ return testSubmit(); }
     testRun.i = testRun.secIdx * testRun.secQ;
+    testRun.curAt = Date.now();
     if(testRun.i >= testRun.n){ return testSubmit(); }
     testRun.secEnds = Date.now() + testSecMins(testRun.secIdx) * 60000;
     testRun.warned = false;
@@ -6643,16 +6900,41 @@
     var qc = document.createElement('div'); qc.className = 'tq';
     var meta = document.createElement('div'); meta.className = 'tqmeta'; meta.textContent = [q.s, q.u, q.t].filter(Boolean).join(' \u00b7 '); qc.appendChild(meta);
     var qt = document.createElement('div'); qt.className = 'tqtext'; qt.textContent = q.q; qc.appendChild(qt);
+    if(q.img){ var _qi = qImgEl(q.img); if(_qi) qc.appendChild(_qi); }
     var opts = document.createElement('div'); opts.className = 'tqopts';
-    (q.options||[]).forEach(function(o,k){
-      var b = document.createElement('button'); b.type = 'button';
-      b.className = 'tqopt' + (testRun.answers[testRun.i] === k ? ' on' : '');
-      var L = document.createElement('span'); L.className = 'tqlet'; L.textContent = String.fromCharCode(65+k);
-      var T = document.createElement('span'); T.className = 'tqtext2'; T.textContent = o;
-      b.appendChild(L); b.appendChild(T);
-      b.onclick = function(){ testSelect(k); };
-      opts.appendChild(b);
-    });
+    if(q.mtf){
+      var _ans = Array.isArray(testRun.answers[testRun.i]) ? testRun.answers[testRun.i].slice() : (q.stmts||[]).map(function(){ return null; });
+      (q.stmts||[]).forEach(function(s, si){
+        var row = document.createElement('div'); row.className = 'tqstmt';
+        var tx = document.createElement('span'); tx.className = 'tqstmt-t'; tx.textContent = (si+1) + ') ' + s.t; row.appendChild(tx);
+        var sf = document.createElement('span'); sf.className = 'tqsf';
+        [['True', true], ['False', false]].forEach(function(o){
+          var b = document.createElement('button'); b.type = 'button';
+          b.className = (_ans[si] === o[1]) ? 'on' : '';
+          b.textContent = o[0];
+          b.onclick = function(){ testStmt(si, o[1]); };
+          sf.appendChild(b);
+        });
+        row.appendChild(sf); opts.appendChild(row);
+      });
+      var _mh = document.createElement('div'); _mh.className = 'tsub small';
+      _mh.textContent = 'Mark every statement True or False.';
+      opts.appendChild(_mh);
+    } else {
+      var _stk = (testRun.struck && testRun.struck[testRun.i]) || [];
+      (q.options||[]).forEach(function(o,k){
+        var b = document.createElement('button'); b.type = 'button';
+        b.className = 'tqopt' + (testRun.answers[testRun.i] === k ? ' on' : '') + (_stk.indexOf(k) >= 0 ? ' struck' : '');
+        var L = document.createElement('span'); L.className = 'tqlet'; L.textContent = String.fromCharCode(65+k);
+        var T = document.createElement('span'); T.className = 'tqtext2'; T.textContent = o;
+        b.appendChild(L); b.appendChild(T);
+        var x = document.createElement('span'); x.className = 'tqx'; x.textContent = '\u2715'; x.title = 'Cross out this option';
+        x.onclick = function(e){ e.stopPropagation(); testStrike(k); };
+        b.appendChild(x);
+        b.onclick = function(){ testSelect(k); };
+        opts.appendChild(b);
+      });
+    }
     qc.appendChild(opts);
     var _sl = srcLine(q); if(_sl) qc.appendChild(_sl);
     wrap.appendChild(qc);
@@ -6672,16 +6954,33 @@
     if(testRun.secOn && testRun.i >= _st-1 && testRun.i < testRun.n-1) nxt.textContent = 'Next section ›';
     nav.appendChild(nxt); wrap.appendChild(nav);
 
+    var tri = document.createElement('div'); tri.className = 'ttri';
+    var nu = document.createElement('button'); nu.type = 'button'; nu.className = 'tend'; nu.textContent = 'Next unanswered';
+    nu.onclick = function(){ testNextUnanswered(); };
+    tri.appendChild(nu);
+    [['all','All'],['unans','Unanswered'],['mark','Marked']].forEach(function(o){
+      var b = document.createElement('button'); b.type = 'button';
+      b.className = 'tchip' + (testPalFilter === o[0] ? ' on' : '');
+      b.textContent = o[1];
+      b.onclick = function(){ testPalFilter = o[0]; renderTestRun(); };
+      tri.appendChild(b);
+    });
+    wrap.appendChild(tri);
+
     var pal = document.createElement('div'); pal.className = 'tpal';
     var answered = 0; testRun.answers.forEach(function(a){ if(a != null) answered++; });
+    var _shown = 0;
     for(var pi=_sf; pi<_st; pi++){
-      var b = document.createElement('button'); b.type = 'button';
       var a = testRun.answers[pi];
+      if(testPalFilter === 'unans' && a != null) continue;
+      if(testPalFilter === 'mark' && !testRun.marked[pi]) continue;
+      var b = document.createElement('button'); b.type = 'button';
       b.className = 'tpalcell' + (a!=null ? ' done' : '') + (pi===testRun.i ? ' cur' : '') + (testRun.marked[pi] ? ' marked' : '');
       b.textContent = (pi+1);
       b.onclick = (function(ix){ return function(){ testGoto(ix); }; })(pi);
-      pal.appendChild(b);
+      pal.appendChild(b); _shown++;
     }
+    if(!_shown){ var _pe = document.createElement('div'); _pe.className = 'tsub small'; _pe.textContent = 'Nothing in this filter.'; pal.appendChild(_pe); }
     wrap.appendChild(pal);
     var markedN = testRun.marked.filter(Boolean).length;
     var sum = document.createElement('div'); sum.className = 'tsub small';
@@ -6696,16 +6995,56 @@
     testTimerOn();
   }
 
+  function testAccrue(){
+    if(!testRun) return;
+    if(!Array.isArray(testRun.tq) || testRun.tq.length !== (testRun.qs||[]).length) testRun.tq = (testRun.qs||[]).map(function(){ return 0; });
+    var i = testRun.i;
+    if(typeof testRun.curAt === 'number' && i >= 0 && i < testRun.tq.length){
+      var dt = Date.now() - testRun.curAt;
+      if(dt > 0 && dt < 6 * 3600000) testRun.tq[i] = (testRun.tq[i] || 0) + dt;
+    }
+    testRun.curAt = Date.now();
+  }
+  function testStrike(k){
+    if(!testRun) return;
+    var i = testRun.i;
+    if(!Array.isArray(testRun.struck) || testRun.struck.length !== (testRun.qs||[]).length) testRun.struck = (testRun.qs||[]).map(function(){ return []; });
+    var arr = (testRun.struck[i] || []).slice();
+    var p = arr.indexOf(k);
+    if(p >= 0) arr.splice(p,1); else arr.push(k);
+    testRun.struck[i] = arr;
+    if(testRun.answers[i] != null && arr.indexOf(testRun.answers[i]) >= 0) testRun.answers[i] = null;
+    testSave(); renderTestRun();
+  }
+  function testNextUnanswered(){
+    if(!testRun) return;
+    var from = testRun.secOn ? testRun.secIdx * testRun.secQ : 0;
+    var to = testRun.secOn ? Math.min(testRun.n, from + testRun.secQ) - 1 : testRun.n - 1;
+    for(var j = testRun.i + 1; j <= to; j++){ if(testRun.answers[j] == null) return testGoto(j); }
+    for(var k2 = from; k2 <= testRun.i; k2++){ if(testRun.answers[k2] == null) return testGoto(k2); }
+    toast('Nothing left unanswered in this section.');
+  }
   function testGoto(i){
     if(!testRun) return;
     var from = testRun.secOn ? testRun.secIdx * testRun.secQ : 0;
     var to = testRun.secOn ? Math.min(testRun.n, from + testRun.secQ) - 1 : testRun.n - 1;
-    testRun.i = Math.max(from, Math.min(to, i));
+    var ni = Math.max(from, Math.min(to, i));
+    if(ni !== testRun.i) testAccrue();
+    testRun.i = ni;
+    testRun.curAt = Date.now();
     testSave(); renderTestRun(); window.scrollTo(0,0);
   }
   function testSelect(k){
     if(!testRun) return;
     testRun.answers[testRun.i] = (testRun.answers[testRun.i] === k) ? null : k;
+    testSave(); renderTestRun();
+  }
+  function testStmt(si, val){
+    if(!testRun) return;
+    var q = testRun.qs[testRun.i]; if(!q || !q.mtf) return;
+    var cur = Array.isArray(testRun.answers[testRun.i]) ? testRun.answers[testRun.i].slice() : (q.stmts||[]).map(function(){ return null; });
+    cur[si] = (cur[si] === val) ? null : val;
+    testRun.answers[testRun.i] = cur;
     testSave(); renderTestRun();
   }
   function testConfirmSubmit(){
@@ -6724,19 +7063,23 @@
       var a = testRun.answers[i], sb = q.s || 'Other';
       if(!perSubject[sb]) perSubject[sb] = { right:0, total:0 };
       perSubject[sb].total++;
+      var _mtfNeg = (q.mtf && ex.mtf && typeof ex.mtf.neg === 'number') ? ex.mtf.neg : ex.neg;
+      var _mtfPos = (q.mtf && ex.mtf && typeof ex.mtf.pos === 'number') ? ex.mtf.pos : ex.pos;
       if(a == null){ skipped++; }
-      else if(a === q.answer){ right++; score += ex.pos; perSubject[sb].right++; }
-      else { wrong++; score += ex.neg; }
+      else if(ansCorrect(q, a)){ right++; score += _mtfPos; perSubject[sb].right++; }
+      else { wrong++; score += _mtfNeg; }
     });
     score = Math.round(score * 100) / 100;
     var maxScore = Math.round(testRun.n * ex.pos * 100) / 100;
+    testAccrue();
     var secs = Math.round((Date.now() - testRun.started)/1000);
     var marked = Array.isArray(testRun.marked) ? testRun.marked : [];
     var review = testRun.qs.map(function(q,i){ return { q:q, picked:testRun.answers[i], mark: !!marked[i] }; });
     try{ testSeenAdd(testRun.seed, testRun.qs); }catch(e){}
     var res = { ts: Date.now(), n: testRun.n, right: right, wrong: wrong, skipped: skipped, score: score,
                 max: maxScore, secs: secs, scope: testRun.scope, perSubject: perSubject, exam: ex.k, seed: testRun.seed,
-                wrongList: testRun.qs.filter(function(q,i){ return testRun.answers[i] !== q.answer; }),
+                wrongList: testRun.qs.filter(function(q,i){ return !ansCorrect(q, testRun.answers[i]); }),
+                tq: (testRun.tq || []).slice(),
                 review: review };
     /* NOTE: we no longer dump questions into an error log. What you missed is tracked by
        per-question stats (fd:qstats, synced) and the error log itself is written BY YOU. */
@@ -6750,8 +7093,7 @@
         var k3 = q.id;                       /* the qid is the stable identity */
         var st = _qs[k3] || (_qs[k3] = { d: q.k, a: 0, w: 0, t: 0 });
         if(!st.d) st.d = q.k;
-        st.a++; if(a !== q.answer) st.w++;
-        st.t = _now;
+        st.a++; if(!ansCorrect(q, a)) st.w++;
         st.t = _now;
       });
       var _ks = Object.keys(_qs);
@@ -6918,7 +7260,7 @@
         ts: res.ts, seed: res.seed, exam: res.exam, n: res.n, scope: res.scope,
         right: res.right, wrong: res.wrong, skipped: res.skipped, score: res.score, max: res.max, secs: res.secs,
         perSubject: res.perSubject,
-        items: (res.review || []).map(function(it){ return { k: it.q.k, id: it.q.id, picked: it.picked, mark: !!it.mark }; })
+        items: (res.review || []).map(function(it, i){ return { k: it.q.k, id: it.q.id, picked: it.picked, mark: !!it.mark, tq: (res.tq && res.tq[i]) || 0 }; })
       };
       var ks = Object.keys(papers).sort(function(a, b){ return Number(b) - Number(a); });
       ks.slice(12).forEach(function(k){ delete papers[k]; });
@@ -6938,12 +7280,12 @@
         var q = findMcqItem(it.k, it.id);
         if(!q) return;
         review.push({ q: q, picked: it.picked, mark: !!it.mark });
-        if(it.picked !== q.answer) wrongList.push(q);
+        if(!ansCorrect(q, it.picked)) wrongList.push(q);
       });
       if(!review.length){ toast('Those questions are not in the library any more.'); return; }
       var res = { ts: p.ts, n: p.n, right: p.right, wrong: p.wrong, skipped: p.skipped, score: p.score, max: p.max,
                   secs: p.secs, scope: p.scope, perSubject: p.perSubject, exam: p.exam, seed: p.seed,
-                  wrongList: wrongList, review: review, past: true };
+                  wrongList: wrongList, tq: (p.items || []).map(function(it){ return it.tq || 0; }), review: review, past: true };
       view = { t: 'test', tResult: res };
       renderTestResult(); window.scrollTo(0, 0);
     });
@@ -6965,23 +7307,24 @@
     back.onclick = function(){ view = { t: 'test', tResult: res }; renderTestResult(); window.scrollTo(0, 0); };
     top.appendChild(back);
     var qn = document.createElement('span'); qn.className = 'tqn'; qn.textContent = 'Review ' + (r1.i + 1) + ' / ' + res.review.length; top.appendChild(qn);
+    var ra = document.createElement('button'); ra.type = 'button'; ra.className = 'tend'; ra.textContent = r1.revealAll ? 'Gate on' : 'Reveal all';
+    ra.onclick = function(){ r1.revealAll = !r1.revealAll; renderReview1(); };
+    top.appendChild(ra);
     wrap.appendChild(top);
     var pb = document.createElement('div'); pb.className = 'tprog';
     var pi = document.createElement('i'); pi.style.width = Math.round((r1.i + 1) / res.review.length * 100) + '%'; pb.appendChild(pi); wrap.appendChild(pb);
 
-    var item = res.review[r1.i], q = item.q, ok = (item.picked === q.answer);
-    var revealed = !!r1.revealed[r1.i];
+    var item = res.review[r1.i], q = item.q, ok = ansCorrect(q, item.picked);
+    var needsGate = (!ok || item.mark);
+    var revealed = !needsGate || !!r1.revealed[r1.i] || !!r1.revealAll;
     var qc = document.createElement('div'); qc.className = 'tq';
     var meta = document.createElement('div'); meta.className = 'tqmeta'; meta.textContent = [q.s, q.u, q.t].filter(Boolean).join(' \u00b7 '); qc.appendChild(meta);
     var qt = document.createElement('div'); qt.className = 'tqtext'; qt.textContent = q.q; qc.appendChild(qt);
     var qimgHost = document.createElement('div'); qc.appendChild(qimgHost);
     qimgBlock(q.k, q.id, 'q', 'Question image', qimgHost, renderReview1);
     var opts = document.createElement('div'); opts.className = 'tqopts';
-    (q.options || []).forEach(function(o, k){
-      var row = document.createElement('div'); row.className = 'rvopt' + (k === q.answer ? ' correct' : (k === item.picked ? ' picked' : ''));
-      row.textContent = String.fromCharCode(65 + k) + ') ' + o + (k === q.answer ? '  \u2713' : (k === item.picked ? '  (your answer)' : ''));
-      opts.appendChild(row);
-    });
+    var _qi3 = qImgEl(q.img); if(_qi3) qc.appendChild(_qi3);
+    rvOptions(q, item.picked, opts);
     qc.appendChild(opts);
     var _sl = srcLine(q); if(_sl) qc.appendChild(_sl);
     wrap.appendChild(qc);
@@ -7157,34 +7500,109 @@
     });
     wrap.appendChild(rows);
 
+    /* where the marks went, and where that sits against an indicative cut-off */
+    (function(){
+      var _ex = examOf(res.exam);
+      var leak = [];
+      Object.keys(res.perSubject || {}).forEach(function(sb){
+        var v = res.perSubject[sb], acc = v.total ? v.right/v.total : 0;
+        var got = Math.round((v.right*_ex.pos + (v.total - v.right)*_ex.neg) * 100)/100;
+        var mx = Math.round(v.total*_ex.pos*100)/100;
+        leak.push({ s:sb, acc:acc, leak:Math.round((mx-got)*100)/100 });
+      });
+      if(leak.length){
+        leak.sort(function(a,b){ return b.leak - a.leak; });
+        var lc = document.createElement('div'); lc.className = 'tcard';
+        var ll = document.createElement('div'); ll.className = 'tlabel'; ll.textContent = 'Where your marks went'; lc.appendChild(ll);
+        var ln = document.createElement('div'); ln.className = 'tsub small'; ln.style.margin = '0 0 6px';
+        ln.textContent = 'Sorted by marks lost, against the ' + _ex.name + ' weight of each subject.';
+        lc.appendChild(ln);
+        leak.slice(0, 8).forEach(function(x){
+          var w0 = 0; (_ex.w || []).forEach(function(p){ if(p[0] === x.s) w0 = p[1]; });
+          var r = document.createElement('div'); r.className = 'thist';
+          var a = document.createElement('span'); a.className = 'thist-d'; a.textContent = x.s + (w0 ? '  (' + w0 + 'Q weight)' : '');
+          var b = document.createElement('span'); b.className = 'thist-s'; b.textContent = Math.round(x.acc*100) + '%';
+          var c = document.createElement('span'); c.className = 'thist-t'; c.textContent = 'lost ' + x.leak;
+          r.appendChild(a); r.appendChild(b); r.appendChild(c); lc.appendChild(r);
+        });
+        wrap.appendChild(lc);
+      }
+      if(_ex.cutoffPct){
+        var pct = res.max ? Math.round(res.score/res.max*100) : 0;
+        var cc = document.createElement('div'); cc.className = 'tcard';
+        var cl2 = document.createElement('div'); cl2.className = 'tlabel'; cl2.textContent = 'Against an indicative cut-off'; cc.appendChild(cl2);
+        var cbig = document.createElement('div'); cbig.className = 'big'; cbig.textContent = pct + '%'; cc.appendChild(cbig);
+        var cnote = document.createElement('div'); cnote.className = 'tsub small';
+        cnote.textContent = 'Your score is ' + pct + '% of the paper. Indicative band for ' + _ex.name + ': ' + _ex.cutoffPct[0] + '-' + _ex.cutoffPct[1] + '%. '
+          + (pct >= _ex.cutoffPct[1] ? 'Comfortably above the band.' : (pct >= _ex.cutoffPct[0] ? 'Inside the band.' : 'Below the band - the subjects at the top of the list above are where the marks are.'))
+          + ' Indicative only, not an official figure.';
+        cc.appendChild(cnote);
+        wrap.appendChild(cc);
+      }
+    })();
+
+    (function(){
+      var tq = res.tq || [], arr = [];
+      res.review.forEach(function(it, i){ if(tq[i] > 0) arr.push({ q:it.q, ms:tq[i] }); });
+      if(arr.length < 3) return;
+      arr.sort(function(a,b){ return b.ms - a.ms; });
+      var tc = document.createElement('div'); tc.className = 'tcard';
+      var tl = document.createElement('div'); tl.className = 'tlabel'; tl.textContent = 'Slowest questions'; tc.appendChild(tl);
+      var tn = document.createElement('div'); tn.className = 'tsub small'; tn.style.margin = '0 0 6px';
+      tn.textContent = 'Where your time actually went - long is fine if you got it, worrying if you did not.';
+      tc.appendChild(tn);
+      arr.slice(0, 5).forEach(function(x){
+        var r = document.createElement('div'); r.className = 'terr';
+        var mm = document.createElement('div'); mm.className = 'terr-m';
+        mm.textContent = fmtClock(Math.round(x.ms/1000)) + ' \u00b7 ' + [x.q.s, x.q.t].filter(Boolean).join(' \u00b7 ');
+        r.appendChild(mm);
+        var qq = document.createElement('div'); qq.className = 'terr-q'; qq.textContent = x.q.q; r.appendChild(qq);
+        tc.appendChild(r);
+      });
+      wrap.appendChild(tc);
+    })();
+
     if(res.review && res.review.length){
       var rv = document.createElement('div'); rv.className = 'tcard';
       var vl = document.createElement('div'); vl.className = 'tlabel'; vl.textContent = 'Review'; rv.appendChild(vl);
       rv.appendChild(qLegend([['right','correct'],['wrong','wrong'],['skip','not attempted'],['mark','marked']]));
+      var _frow = document.createElement('div'); _frow.className = 'tchips'; _frow.style.margin = '4px 0 8px';
+      [['all','All'],['wrong','Wrong'],['mark','Marked'],['skip','Skipped']].forEach(function(o){
+        var b = document.createElement('button'); b.type = 'button'; b.className = 'tchip' + (testRevFilter === o[0] ? ' on' : ''); b.textContent = o[1];
+        b.onclick = function(){ testRevFilter = o[0]; qimgRefreshResult(); };
+        _frow.appendChild(b);
+      });
+      var _cb = document.createElement('button'); _cb.type = 'button'; _cb.className = 'tchip' + (testRevCompact ? ' on' : '');
+      _cb.textContent = testRevCompact ? 'Compact' : 'Full';
+      _cb.onclick = function(){ testRevCompact = !testRevCompact; qimgRefreshResult(); };
+      _frow.appendChild(_cb);
+      rv.appendChild(_frow);
       res.review.forEach(function(item, i){
-        var q = item.q, ok = (item.picked === q.answer);
+        var q = item.q, ok = ansCorrect(q, item.picked);
         var eb = document.createElement('div'); eb.className = 'terr'; eb.id = 'rvi' + i;
         _palItems.push({ n:i+1, status:((item.picked == null) ? 'skip' : (ok ? 'right' : 'wrong')), mark:!!item.mark, el:(function(id){ return function(){ return document.getElementById(id); }; })('rvi' + i) });
+        if(testRevFilter === 'wrong' && ok) return;
+        if(testRevFilter === 'mark' && !item.mark) return;
+        if(testRevFilter === 'skip' && item.picked != null) return;
         var m = document.createElement('div'); m.className = 'terr-m';
         m.textContent = 'Q' + (i+1) + ' \u00b7 ' + (q.id || '') + ' \u00b7 ' + [q.s, q.t].filter(Boolean).join(' \u00b7 ') + ' \u00b7 ' + (item.picked==null ? 'not attempted' : (ok ? 'correct' : 'wrong'));
         eb.appendChild(m);
         var qq = document.createElement('div'); qq.className = 'terr-q'; qq.textContent = q.q; eb.appendChild(qq);
-        qimgBlock(q.k, q.id, 'q', 'Question image', eb, qimgRefreshResult);
-        (q.options||[]).forEach(function(o,k){
-          var row = document.createElement('div'); row.className = 'rvopt' + (k===q.answer ? ' correct' : (k===item.picked ? ' picked' : ''));
-          row.textContent = String.fromCharCode(65+k) + ') ' + o + (k===q.answer ? '  \u2713' : (k===item.picked ? '  (your answer)' : ''));
-          eb.appendChild(row);
-        });
-        if(q.explain){ var ex = document.createElement('div'); ex.className = 'rvexp'; ex.textContent = q.explain; eb.appendChild(ex); }
-        qimgBlock(q.k, q.id, 'e', 'Explanation images', eb, qimgRefreshResult);
-        var _sl1 = srcLine(q); if(_sl1) eb.appendChild(_sl1);
-        if(!ok || item.mark){ errNoteRow(q.k, q.id, eb); }
+        if(!testRevCompact){
+          qimgBlock(q.k, q.id, 'q', 'Question image', eb, qimgRefreshResult);
+          var _qi2 = qImgEl(q.img); if(_qi2) eb.appendChild(_qi2);
+          rvOptions(q, item.picked, eb);
+          if(q.explain){ var ex = document.createElement('div'); ex.className = 'rvexp'; ex.textContent = q.explain; eb.appendChild(ex); }
+          qimgBlock(q.k, q.id, 'e', 'Explanation images', eb, qimgRefreshResult);
+          var _sl1 = srcLine(q); if(_sl1) eb.appendChild(_sl1);
+          if(!ok || item.mark){ errNoteRow(q.k, q.id, eb); }
+        }
         rv.appendChild(eb);
       });
       wrap.appendChild(rv);
     }
 
-    var _mm = (res.review || []).filter(function(it){ return it.mark || it.picked !== it.q.answer; });
+    var _mm = (res.review || []).filter(function(it){ return it.mark || !ansCorrect(it.q, it.picked); });
     if(_mm.length){
       var pr = document.createElement('button'); pr.type = 'button'; pr.className = 'tstart';
       pr.textContent = 'Practise marked + missed (' + _mm.length + ')';
@@ -7195,6 +7613,11 @@
     rb.textContent = 'Review one by one';
     rb.onclick = function(){ view = { t: 'review1', tResult: res, r1: { i: 0, revealed: {} } }; render(); window.scrollTo(0, 0); };
     wrap.appendChild(rb);
+
+    var rt = document.createElement('button'); rt.type = 'button'; rt.className = 'tstart ghost';
+    rt.textContent = 'Retake these questions';
+    rt.onclick = function(){ view.tResult = null; testStart(res.review.map(function(it){ return it.q; })); };
+    wrap.appendChild(rt);
 
     var nt = document.createElement('button'); nt.type = 'button'; nt.className = 'tstart ghost';
     nt.textContent = 'New paper';
@@ -7498,11 +7921,8 @@
           var mm = document.createElement('div'); mm.className = 'terr-m';
           mm.textContent = [loc.s, loc.u, CHAP[q.k]].filter(Boolean).join(' \u00b7 '); box.appendChild(mm);
           var qq = document.createElement('div'); qq.className = 'terr-q'; qq.textContent = q.q; box.appendChild(qq);
-          (q.options || []).forEach(function(o, k){
-            var row = document.createElement('div'); row.className = 'rvopt' + (k === q.answer ? ' correct' : '');
-            row.textContent = String.fromCharCode(65 + k) + ') ' + o + (k === q.answer ? '  \u2713' : '');
-            box.appendChild(row);
-          });
+          var _qi4 = qImgEl(q.img); if(_qi4) box.appendChild(_qi4);
+          rvOptions(q, null, box);
           if(q.explain){ var ex = document.createElement('div'); ex.className = 'rvexp'; ex.textContent = q.explain; box.appendChild(ex); }
           var _sl2 = srcLine(q); if(_sl2) box.appendChild(_sl2);
         } else {
