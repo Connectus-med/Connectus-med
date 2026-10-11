@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-17 08:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-17 12:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -840,9 +840,15 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-17 08:00';
-  var BUILD_NOTE = 'NEET-PG 2026 pattern updated: 180 questions (was 200) for 720 marks, five sections of 36 questions with 42 minutes each, +4 / -1 - about 70 seconds a question now.';
+  var APP_BUILD = '2026-10-17 12:00';
+  var BUILD_NOTE = 'Fixed a screen-jump bug: the app could pull you back to the screen it first opened on, on any later background sync. The restore now runs only once, at boot. Also fixed the Insights button, which opened Home instead of the owner screen.';
   var CHANGELOG = [
+    { build:'2026-10-17 12:00', title:'Fixed: screens jumping on their own', items:[
+      'Fixed the bug where the app sometimes moved to another screen by itself - most often back to Test while you were on What is New. The restore-last-screen step could fire on any later background sync (the 30-second check, or when you returned to the app), not only at startup.',
+      'It now runs exactly once, at startup, and only if you have not already chosen a screen - so a background sync can never move you again.',
+      'Also fixed: the Insights button (owner) opened Home instead of the owner screen.',
+      'Resuming the screen you were on when you reopen the app still works.',
+    ]},
     { build:'2026-10-17 08:00', title:'NEET-PG 2026 pattern: 180 questions', items:[
       'NEET-PG in the app now matches the NBEMS Information Bulletin for 2026: 180 questions (cut from 200) for 720 marks, still 3 hours 30 minutes, +4 / -1 / 0.',
       'The paper is five sections of 36 questions, 42 minutes each, auto-locked - so a Real Exam Grand Test now builds 180 questions in 5 x 36, and the strategy pace reads about 70 seconds a question (it was 63).',
@@ -1888,6 +1894,24 @@
   var view = { t: 'home' };
   /* read the saved screen ONCE, before anything can overwrite it */
   var BOOT_VIEW = (function(){ try{ var v = ls('fd:view', null); return (v && typeof v === 'object' && v.t) ? v : null; }catch(e){ return null; } })();
+  var BOOT_AT = Date.now();
+  /* Restore the screen the user was on - ONLY once, at boot, and only if nothing
+     else has chosen a screen yet. The guard used to stay open while a test was
+     open, so a later background load (the 30s poll, a focus, a data change) could
+     fire it and yank the user back to the boot-time screen. */
+  function restoreBootView(){
+    if(viewRestored) return;
+    viewRestored = true;
+    try{
+      var _rv2 = BOOT_VIEW;
+      if(!testRun && view.t === 'home' && (Date.now() - BOOT_AT) < 20000 &&
+         _rv2 && typeof _rv2 === 'object' && _rv2.t &&
+         ['home','learn','revise','test','errors','owner','insights','passes','whatsnew','search','account','subject'].indexOf(_rv2.t) >= 0){
+        view = _rv2;
+        try{ render(); }catch(e9){}
+      }
+    }catch(e8){}
+  }
   /* the test scope you had chosen also comes back */
   try{
     var _bd = ls('fd:builder', null);
@@ -2393,14 +2417,7 @@
       /* weak-areas stats: merge the cloud copy with this device (max attempts / wrongs, newest time) */
       if(_qt && _qt.value){ try{ if(mergeQStats(JSON.parse(_qt.value))) pushQStats(); }catch(e3){} }
       /* re-apply the saved screen once the data is in — the first paint can race the load */
-      if(!viewRestored && !testRun){
-        viewRestored = true;
-        try{
-          var _rv2 = BOOT_VIEW;
-          if(_rv2 && typeof _rv2 === 'object' && _rv2.t && ['home','learn','revise','test','errors','owner','passes','whatsnew','search','account','subject'].indexOf(_rv2.t) >= 0) view = _rv2;
-          try{ render(); }catch(e9){}
-        }catch(e8){}
-      }
+      restoreBootView();
       try{ normQStats(); }catch(e6){}
       if(_en && _en.value){ try{ if(mergeErrNotes(JSON.parse(_en.value))) pushErrNotes(); }catch(e4){} }
       PYQ_INDEX = {};
@@ -2535,6 +2552,7 @@
     else if(view.t === 'errors') renderErrors();
     else if(view.t === 'review1') renderReview1();
     else if(view.t === 'owner') renderOwner();
+    else if(view.t === 'insights') renderOwner();
     else if(view.t === 'passes') renderPasses();
 
     else if(view.t === 'whatsnew') renderWhatsNew();
