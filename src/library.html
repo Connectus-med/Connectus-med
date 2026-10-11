@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-13 21:30' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-13 22:30' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -50,8 +50,6 @@
   .lastsync{border:0; background:none; color:var(--muted); font:inherit; font-size:.7rem; font-weight:650;
     cursor:pointer; padding:4px 2px; white-space:nowrap; border-radius:8px}
   .lastsync:active{transform:translateY(1px)}
-  .buildchip{border:1px solid var(--line); background:var(--panel); color:var(--muted); font:inherit; font-size:.62rem; font-weight:750; padding:4px 7px; border-radius:999px; cursor:pointer; white-space:nowrap; flex:none}
-  .buildchip:active{transform:translateY(1px)}
   @media (max-width:400px){ .lastsync{display:none} }
   .avatar{width:42px; height:42px; flex:none; border-radius:50%; border:0; cursor:pointer;
     background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:#fff;
@@ -66,6 +64,9 @@
   .pinfo.tappable:hover{background:var(--accent-soft)}
   .pinfo.tappable #pSub{color:var(--accent-2); font-weight:700}
   .pinfo b{display:block; font-size:.95rem; font-weight:750; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .pbuild.tappable{cursor:pointer; border-radius:12px}
+  .pbuild.tappable:hover{background:var(--accent-soft)}
+  .pbuildtap{display:block; margin-top:3px; font-size:.72rem; color:var(--accent-2); font-weight:700}
   .pmenu .field{margin:8px 12px}
   .pmenu .btn.wide{width:calc(100% - 24px); margin:8px 12px}
 
@@ -609,7 +610,6 @@
 
 <header class="appbar">
   <div class="brand" id="appTitle"><span class="logomark" role="img" aria-label="Connectus"></span><span class="brandcol"><span class="brandname" id="appTitleTxt">Connectus</span><span class="brandquote">Know what you know · Fix what you don’t</span></span></div>
-  <button id="buildChip" class="buildchip" title="Check for updates">v</button>
   <button id="lastSync" class="lastsync" aria-label="Sync now">—</button>
   <span id="syncDot" class="dot on"></span>
   <button id="profileBtn" class="avatar" aria-label="Profile">L</button>
@@ -766,9 +766,13 @@
   var viewRestored = false;
   var testPriority = null;   /* deck|id keys the paper must include (weak-areas paper) */
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
-  var APP_BUILD = '2026-10-13 21:30';
-  var BUILD_NOTE = 'Fixed the reason an old version kept coming back: a device on an older build can no longer push its stale page over the newer one.';
+  var APP_BUILD = '2026-10-13 22:30';
+  var BUILD_NOTE = 'The header is clean again — the build number now lives here in the profile menu, tap it to check for updates.';
   var CHANGELOG = [
+    { build:'2026-10-13 22:30', title:'Build number moved into the profile menu', items:[
+      'The build chip was crowding the header and squeezing the Connectus title. It now sits in the profile menu (tap the avatar) instead.',
+      'Tap the build row there to check for updates on the spot, and it shows the time the app was loaded.'
+    ]},
     { build:'2026-10-13 21:30', title:'An old version can no longer come back', items:[
       'Root cause found: when the app opened on a device that was still on an older build, it published that older page back to the cloud — overwriting the newer one. Every device then saw the old version again.',
       'The publish guard now compares build numbers: a page will never overwrite a cloud build that is the same or newer. Your own progress and edits were never affected.'
@@ -1700,11 +1704,16 @@
   function applyTitle(){ var e=$('appTitleTxt'); if(e) e.textContent = appTitle; document.title = appTitle + ' - Flashcards'; try{ fitBrandQuote(); }catch(_){} }
   function applyBuild(){
     var pb = $('pmenuBuild');
-    if(pb){
-      pb.textContent = '';
-      var b2 = document.createElement('b'); b2.textContent = 'Build ' + APP_BUILD; pb.appendChild(b2);
-      pb.appendChild(document.createTextNode(' \u2014 ' + BUILD_NOTE));
-    }
+    if(!pb) return;
+    pb.textContent = '';
+    var b2 = document.createElement('b'); b2.textContent = 'Build ' + APP_BUILD; pb.appendChild(b2);
+    pb.appendChild(document.createTextNode(' \u2014 ' + BUILD_NOTE));
+    var t = document.createElement('span'); t.className = 'pbuildtap';
+    var when = ''; try{ when = sessionStorage.getItem('fd:loaded') || ''; }catch(e){}
+    t.textContent = (when ? 'Loaded ' + when + ' \u00b7 ' : '') + 'Tap to check for updates';
+    pb.appendChild(t);
+    pb.classList.add('tappable');
+    pb.onclick = function(){ try{ checkUpdate(); }catch(e){ try{ selfUpdate(true); }catch(e2){} } };
   }
   function toast(msg){
     var el = document.createElement('div'); el.className = 'updtoast'; el.textContent = msg;
@@ -6524,13 +6533,7 @@
   window.addEventListener('online', function(){ if(session){ try{ qFlush(); }catch(e){} load(); } });
   window.addEventListener('focus', function(){ selfUpdate(); if(session && autoAllowed() && (Date.now() - lastLoadAt > 30000)) load(); else quietRender(); });
 
-  try{
-    var _bc = $('buildChip');
-    if(_bc){
-      _bc.textContent = 'v' + APP_BUILD;
-      _bc.onclick = function(){ _bc.textContent = 'checking…'; selfUpdate(true); setTimeout(function(){ _bc.textContent = 'v' + APP_BUILD; }, 4000); };
-    }
-  }catch(e){}
+  try{ var _d = new Date(), _hh = _d.getHours(), _mm = ('0'+_d.getMinutes()).slice(-2); sessionStorage.setItem('fd:loaded', ('0'+_hh).slice(-2) + ':' + _mm); }catch(e){}
   applyBuild(); buildToast();
   /* never leave the user on a blank screen: if the first render fails, say so */
   window.addEventListener('error', function(ev){
