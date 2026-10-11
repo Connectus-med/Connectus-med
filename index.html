@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-16 14:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-16 16:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -672,6 +672,11 @@
   .tqsf{display:flex; gap:6px; flex:0 0 auto}
   .tqsf button{border:1px solid var(--line); background:var(--bg); color:var(--ink); border-radius:999px; padding:8px 12px; font:inherit; font-size:.8rem; font-weight:750; cursor:pointer}
   .tqsf button.on{background:var(--accent-2); border-color:var(--accent-2); color:#fff}
+  /* paper triage */
+  .ttri{display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-top:10px}
+  .tqx{margin-left:auto; color:var(--muted); font-weight:800; padding:0 4px; cursor:pointer; flex:none}
+  .tqopt.struck .tqtext2{text-decoration:line-through; opacity:.5}
+  .tqopt.struck .tqlet{opacity:.5}
 </style>
 </head>
 <body>
@@ -835,9 +840,16 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-16 14:00';
-  var BUILD_NOTE = 'Question images now render in a paper and its review, multiple true-false questions work, the exam screen states what your bank actually holds, an unfinished paper asks Resume or Discard first, and the saved view no longer bloats the device.';
+  var APP_BUILD = '2026-10-16 16:00';
+  var BUILD_NOTE = 'The result now shows where your marks went, how you sit against an indicative cut-off, and your slowest questions; and a paper lets you cross out options, jump to the next unanswered, filter the navigator, and retake the same questions.';
   var CHANGELOG = [
+    { build:'2026-10-16 16:00', title:'Marks feedback and a faster paper', items:[
+      'After a paper, the result now shows Where your marks went - each subject sorted by the marks it cost you, against that subject weight in the exam - plus where your score sits against an indicative cut-off band.',
+      'A new Slowest questions card shows where your time actually went, so a long question you got and a long question you missed are easy to tell apart.',
+      'While sitting a paper you can now cross out an option (the x on the right), jump straight to the next unanswered question, and filter the navigator to All, Unanswered or Marked.',
+      'Every question now records its own time, and Retake these questions rebuilds the same paper in one tap.',
+      'Past tests now show a subject trend, so a subject quietly slipping is visible before the exam.',
+    ]},
     { build:'2026-10-16 14:00', title:'Images and MTF are real, and an unfinished paper asks first', items:[
       'A question that carries an image now shows it while you sit the paper and again in the review, and a multiple true-false question renders one True/False row per statement with the correct INI-CET penalty.',
       'The exam screen no longer promises image or multiple true-false shares the bank cannot supply: it now states exactly how many of each your bank holds.',
@@ -4931,6 +4943,7 @@
      answer, and you mark yourself right or wrong. Every wrong card goes to the
      error log, and you can re-practise just those. */
   var testRun = null, testTimerId = null, testScope = 'all', testLen = 200, testDeck = '', testExam = 'NEET-PG', testSections = true, testSeed = 0, testUntimed = false, testWithPyq = true, testCustom = false, testSelSubjects = [], testSelUnits = [], testSelChapters = [], testSelYears = [];
+  var testPalFilter = 'all';
 
   /* Extraction sometimes left HTML entities in the text (\&lt; for <, \&gt; for >,
      \&amp; for &). They must never reach the screen, so every string that flows
@@ -5082,7 +5095,7 @@
   }
   /* ---------- the three real exam patterns (latest cycle) ---------- */
   var EXAMS = [
-    { k:'NEET-PG', name:'NEET-PG', org:'NBEMS (NBE)', q:200, mins:210, pos:4, neg:-1,
+    { k:'NEET-PG', name:'NEET-PG', org:'NBEMS (NBE)', q:200, mins:210, pos:4, neg:-1, cutoffPct:[45,60],
       secN:5, secQ:40, secMins:42,
       mark:'+4 correct · −1 wrong · 0 unattempted',
       sec:'5 sections × 40 Q, 42 min each — auto-locked, no going back',
@@ -5098,7 +5111,7 @@
          ['Biochemistry',11],['Forensic Medicine & Toxicology',7],['Pediatrics',7],['ENT (Otorhinolaryngology)',7],
          ['Ophthalmology',6],['Dermatology, Venereology & Leprosy',2],['Psychiatry',2],['Orthopaedics',2],
          ['Anaesthesiology',1],['Radiodiagnosis',1]] },
-    { k:'INI-CET', name:'INI-CET', org:'AIIMS New Delhi', q:200, mins:180, pos:1, neg:-1/3,
+    { k:'INI-CET', name:'INI-CET', org:'AIIMS New Delhi', q:200, mins:180, pos:1, neg:-1/3, cutoffPct:[50,65],
       secN:4, secQ:50, secMins:45, mtf:{pos:1, neg:-0.2},
       mark:'+1 correct · −1/3 wrong (single) · −1/5 wrong (multiple true-false)',
       sec:'4 sections × 50 Q, 45 min each — auto-locked, no going back',
@@ -5114,7 +5127,7 @@
          ['Biochemistry',12],['Anatomy',10],['Physiology',10],['ENT (Otorhinolaryngology)',7],['Ophthalmology',7],
          ['Radiodiagnosis',6],['Forensic Medicine & Toxicology',4],['Psychiatry',3],
          ['Dermatology, Venereology & Leprosy',2],['Orthopaedics',1],['Anaesthesiology',1]] },
-    { k:'RUHS-MO', name:'RUHS-MO', org:'RUHS Rajasthan (MODRE)', q:100, mins:120, pos:1, neg:0,
+    { k:'RUHS-MO', name:'RUHS-MO', org:'RUHS Rajasthan (MODRE)', q:100, mins:120, pos:1, neg:0, cutoffPct:[60,75],
       secN:1, secQ:100, secMins:120,
       mark:'+1 correct · no negative marking',
       sec:'One paper, no sections — attempt all',
@@ -6361,6 +6374,42 @@
       });
       wrap.appendChild(hc);
     }
+    /* per-subject trend across stored papers */
+    (function(){
+      var papers = ls('fd:testpapers', {}); if(!papers || typeof papers !== 'object' || Array.isArray(papers)) return;
+      var list = Object.keys(papers).map(function(k){ return papers[k]; }).filter(Boolean).sort(function(a,b){ return a.ts - b.ts; });
+      if(list.length < 2) return;
+      var bySub = {};
+      list.forEach(function(p){
+        Object.keys(p.perSubject || {}).forEach(function(sb){
+          var v = p.perSubject[sb]; if(!v || !v.total) return;
+          (bySub[sb] = bySub[sb] || []).push(v.right / v.total * 100);
+        });
+      });
+      var rows2 = [];
+      Object.keys(bySub).forEach(function(sb){
+        var a = bySub[sb]; if(a.length < 2) return;
+        var last = Math.round(a[a.length-1]);
+        var prev = Math.round(a.slice(0, a.length-1).reduce(function(s,x){ return s+x; }, 0) / (a.length-1));
+        rows2.push({ s:sb, last:last, delta: last - prev });
+      });
+      if(!rows2.length) return;
+      rows2.sort(function(x,y){ return x.delta - y.delta; });
+      var tc = document.createElement('div'); tc.className = 'tcard';
+      var tl = document.createElement('div'); tl.className = 'tlabel'; tl.textContent = 'Subject trend'; tc.appendChild(tl);
+      var tn = document.createElement('div'); tn.className = 'tsub small'; tn.style.margin = '0 0 6px';
+      tn.textContent = 'Latest paper against your average so far - worst movers first.';
+      tc.appendChild(tn);
+      rows2.slice(0, 6).forEach(function(x){
+        var r = document.createElement('div'); r.className = 'thist';
+        var a = document.createElement('span'); a.className = 'thist-d'; a.textContent = x.s;
+        var b = document.createElement('span'); b.className = 'thist-s'; b.textContent = x.last + '%';
+        var c = document.createElement('span'); c.className = 'thist-t' + (x.delta > 0 ? ' ttrend-up' : (x.delta < 0 ? ' ttrend-dn' : ''));
+        c.textContent = (x.delta > 0 ? '\u25b2 +' + x.delta : (x.delta < 0 ? '\u25bc ' + x.delta : '\u2014 flat'));
+        r.appendChild(a); r.appendChild(b); r.appendChild(c); tc.appendChild(r);
+      });
+      wrap.appendChild(tc);
+    })();
     var _un = unNotedMistakes(), _nt = notedList();
     if(_un.length){
       var ec = document.createElement('button'); ec.type = 'button'; ec.className = 'tstart ghost';
@@ -6548,8 +6597,9 @@
       var t0 = Date.now();
       testRun = { qs: qs, i: 0, answers: [], marked: [], started: t0, ends: t0 + n * 60000,
                   scope: testScope, n: n, errors: !!onlyErrors, exam: ex.k,
-                  secOn: secOn, secN: secN, secQ: secQ, secPerQ: secPerQ, secMins: secMins0, secIdx: 0, secEnds: t0 + secMins0 * 60000, seed: seed, targets: targets, needOn: needOn, untimed: !!testUntimed };
-      for(var i=0;i<n;i++){ testRun.answers.push(null); testRun.marked.push(false); }
+                  secOn: secOn, secN: secN, secQ: secQ, secPerQ: secPerQ, secMins: secMins0, secIdx: 0, secEnds: t0 + secMins0 * 60000, seed: seed, targets: targets, needOn: needOn, untimed: !!testUntimed,
+                  struck: [], tq: [], curAt: t0 };
+      for(var i=0;i<n;i++){ testRun.answers.push(null); testRun.marked.push(false); testRun.struck.push([]); testRun.tq.push(0); }
       ss('fd:testrun', testRun);
       view.tResult = null;
       renderTestRun();
@@ -6662,9 +6712,11 @@
     if(!testRun) return;
     if(!testRun.secOn) return testSubmit();
     if(manual && !window.confirm('Section ' + (testRun.secIdx+1) + ' of ' + testRun.secN + ' will lock now. Move on to the next section?')) return;
+    testAccrue();
     testRun.secIdx++;
     if(testRun.secIdx >= testRun.secN){ return testSubmit(); }
     testRun.i = testRun.secIdx * testRun.secQ;
+    testRun.curAt = Date.now();
     if(testRun.i >= testRun.n){ return testSubmit(); }
     testRun.secEnds = Date.now() + testSecMins(testRun.secIdx) * 60000;
     testRun.warned = false;
@@ -6756,12 +6808,16 @@
       _mh.textContent = 'Mark every statement True or False.';
       opts.appendChild(_mh);
     } else {
+      var _stk = (testRun.struck && testRun.struck[testRun.i]) || [];
       (q.options||[]).forEach(function(o,k){
         var b = document.createElement('button'); b.type = 'button';
-        b.className = 'tqopt' + (testRun.answers[testRun.i] === k ? ' on' : '');
+        b.className = 'tqopt' + (testRun.answers[testRun.i] === k ? ' on' : '') + (_stk.indexOf(k) >= 0 ? ' struck' : '');
         var L = document.createElement('span'); L.className = 'tqlet'; L.textContent = String.fromCharCode(65+k);
         var T = document.createElement('span'); T.className = 'tqtext2'; T.textContent = o;
         b.appendChild(L); b.appendChild(T);
+        var x = document.createElement('span'); x.className = 'tqx'; x.textContent = '\u2715'; x.title = 'Cross out this option';
+        x.onclick = function(e){ e.stopPropagation(); testStrike(k); };
+        b.appendChild(x);
         b.onclick = function(){ testSelect(k); };
         opts.appendChild(b);
       });
@@ -6785,16 +6841,33 @@
     if(testRun.secOn && testRun.i >= _st-1 && testRun.i < testRun.n-1) nxt.textContent = 'Next section ›';
     nav.appendChild(nxt); wrap.appendChild(nav);
 
+    var tri = document.createElement('div'); tri.className = 'ttri';
+    var nu = document.createElement('button'); nu.type = 'button'; nu.className = 'tend'; nu.textContent = 'Next unanswered';
+    nu.onclick = function(){ testNextUnanswered(); };
+    tri.appendChild(nu);
+    [['all','All'],['unans','Unanswered'],['mark','Marked']].forEach(function(o){
+      var b = document.createElement('button'); b.type = 'button';
+      b.className = 'tchip' + (testPalFilter === o[0] ? ' on' : '');
+      b.textContent = o[1];
+      b.onclick = function(){ testPalFilter = o[0]; renderTestRun(); };
+      tri.appendChild(b);
+    });
+    wrap.appendChild(tri);
+
     var pal = document.createElement('div'); pal.className = 'tpal';
     var answered = 0; testRun.answers.forEach(function(a){ if(a != null) answered++; });
+    var _shown = 0;
     for(var pi=_sf; pi<_st; pi++){
-      var b = document.createElement('button'); b.type = 'button';
       var a = testRun.answers[pi];
+      if(testPalFilter === 'unans' && a != null) continue;
+      if(testPalFilter === 'mark' && !testRun.marked[pi]) continue;
+      var b = document.createElement('button'); b.type = 'button';
       b.className = 'tpalcell' + (a!=null ? ' done' : '') + (pi===testRun.i ? ' cur' : '') + (testRun.marked[pi] ? ' marked' : '');
       b.textContent = (pi+1);
       b.onclick = (function(ix){ return function(){ testGoto(ix); }; })(pi);
-      pal.appendChild(b);
+      pal.appendChild(b); _shown++;
     }
+    if(!_shown){ var _pe = document.createElement('div'); _pe.className = 'tsub small'; _pe.textContent = 'Nothing in this filter.'; pal.appendChild(_pe); }
     wrap.appendChild(pal);
     var markedN = testRun.marked.filter(Boolean).length;
     var sum = document.createElement('div'); sum.className = 'tsub small';
@@ -6809,11 +6882,43 @@
     testTimerOn();
   }
 
+  function testAccrue(){
+    if(!testRun) return;
+    if(!Array.isArray(testRun.tq) || testRun.tq.length !== (testRun.qs||[]).length) testRun.tq = (testRun.qs||[]).map(function(){ return 0; });
+    var i = testRun.i;
+    if(typeof testRun.curAt === 'number' && i >= 0 && i < testRun.tq.length){
+      var dt = Date.now() - testRun.curAt;
+      if(dt > 0 && dt < 6 * 3600000) testRun.tq[i] = (testRun.tq[i] || 0) + dt;
+    }
+    testRun.curAt = Date.now();
+  }
+  function testStrike(k){
+    if(!testRun) return;
+    var i = testRun.i;
+    if(!Array.isArray(testRun.struck) || testRun.struck.length !== (testRun.qs||[]).length) testRun.struck = (testRun.qs||[]).map(function(){ return []; });
+    var arr = (testRun.struck[i] || []).slice();
+    var p = arr.indexOf(k);
+    if(p >= 0) arr.splice(p,1); else arr.push(k);
+    testRun.struck[i] = arr;
+    if(testRun.answers[i] != null && arr.indexOf(testRun.answers[i]) >= 0) testRun.answers[i] = null;
+    testSave(); renderTestRun();
+  }
+  function testNextUnanswered(){
+    if(!testRun) return;
+    var from = testRun.secOn ? testRun.secIdx * testRun.secQ : 0;
+    var to = testRun.secOn ? Math.min(testRun.n, from + testRun.secQ) - 1 : testRun.n - 1;
+    for(var j = testRun.i + 1; j <= to; j++){ if(testRun.answers[j] == null) return testGoto(j); }
+    for(var k2 = from; k2 <= testRun.i; k2++){ if(testRun.answers[k2] == null) return testGoto(k2); }
+    toast('Nothing left unanswered in this section.');
+  }
   function testGoto(i){
     if(!testRun) return;
     var from = testRun.secOn ? testRun.secIdx * testRun.secQ : 0;
     var to = testRun.secOn ? Math.min(testRun.n, from + testRun.secQ) - 1 : testRun.n - 1;
-    testRun.i = Math.max(from, Math.min(to, i));
+    var ni = Math.max(from, Math.min(to, i));
+    if(ni !== testRun.i) testAccrue();
+    testRun.i = ni;
+    testRun.curAt = Date.now();
     testSave(); renderTestRun(); window.scrollTo(0,0);
   }
   function testSelect(k){
@@ -6853,6 +6958,7 @@
     });
     score = Math.round(score * 100) / 100;
     var maxScore = Math.round(testRun.n * ex.pos * 100) / 100;
+    testAccrue();
     var secs = Math.round((Date.now() - testRun.started)/1000);
     var marked = Array.isArray(testRun.marked) ? testRun.marked : [];
     var review = testRun.qs.map(function(q,i){ return { q:q, picked:testRun.answers[i], mark: !!marked[i] }; });
@@ -6860,6 +6966,7 @@
     var res = { ts: Date.now(), n: testRun.n, right: right, wrong: wrong, skipped: skipped, score: score,
                 max: maxScore, secs: secs, scope: testRun.scope, perSubject: perSubject, exam: ex.k, seed: testRun.seed,
                 wrongList: testRun.qs.filter(function(q,i){ return !ansCorrect(q, testRun.answers[i]); }),
+                tq: (testRun.tq || []).slice(),
                 review: review };
     /* NOTE: we no longer dump questions into an error log. What you missed is tracked by
        per-question stats (fd:qstats, synced) and the error log itself is written BY YOU. */
@@ -7040,7 +7147,7 @@
         ts: res.ts, seed: res.seed, exam: res.exam, n: res.n, scope: res.scope,
         right: res.right, wrong: res.wrong, skipped: res.skipped, score: res.score, max: res.max, secs: res.secs,
         perSubject: res.perSubject,
-        items: (res.review || []).map(function(it){ return { k: it.q.k, id: it.q.id, picked: it.picked, mark: !!it.mark }; })
+        items: (res.review || []).map(function(it, i){ return { k: it.q.k, id: it.q.id, picked: it.picked, mark: !!it.mark, tq: (res.tq && res.tq[i]) || 0 }; })
       };
       var ks = Object.keys(papers).sort(function(a, b){ return Number(b) - Number(a); });
       ks.slice(12).forEach(function(k){ delete papers[k]; });
@@ -7065,7 +7172,7 @@
       if(!review.length){ toast('Those questions are not in the library any more.'); return; }
       var res = { ts: p.ts, n: p.n, right: p.right, wrong: p.wrong, skipped: p.skipped, score: p.score, max: p.max,
                   secs: p.secs, scope: p.scope, perSubject: p.perSubject, exam: p.exam, seed: p.seed,
-                  wrongList: wrongList, review: review, past: true };
+                  wrongList: wrongList, tq: (p.items || []).map(function(it){ return it.tq || 0; }), review: review, past: true };
       view = { t: 'test', tResult: res };
       renderTestResult(); window.scrollTo(0, 0);
     });
@@ -7276,6 +7383,68 @@
     });
     wrap.appendChild(rows);
 
+    /* where the marks went, and where that sits against an indicative cut-off */
+    (function(){
+      var _ex = examOf(res.exam);
+      var leak = [];
+      Object.keys(res.perSubject || {}).forEach(function(sb){
+        var v = res.perSubject[sb], acc = v.total ? v.right/v.total : 0;
+        var got = Math.round((v.right*_ex.pos + (v.total - v.right)*_ex.neg) * 100)/100;
+        var mx = Math.round(v.total*_ex.pos*100)/100;
+        leak.push({ s:sb, acc:acc, leak:Math.round((mx-got)*100)/100 });
+      });
+      if(leak.length){
+        leak.sort(function(a,b){ return b.leak - a.leak; });
+        var lc = document.createElement('div'); lc.className = 'tcard';
+        var ll = document.createElement('div'); ll.className = 'tlabel'; ll.textContent = 'Where your marks went'; lc.appendChild(ll);
+        var ln = document.createElement('div'); ln.className = 'tsub small'; ln.style.margin = '0 0 6px';
+        ln.textContent = 'Sorted by marks lost, against the ' + _ex.name + ' weight of each subject.';
+        lc.appendChild(ln);
+        leak.slice(0, 8).forEach(function(x){
+          var w0 = 0; (_ex.w || []).forEach(function(p){ if(p[0] === x.s) w0 = p[1]; });
+          var r = document.createElement('div'); r.className = 'thist';
+          var a = document.createElement('span'); a.className = 'thist-d'; a.textContent = x.s + (w0 ? '  (' + w0 + 'Q weight)' : '');
+          var b = document.createElement('span'); b.className = 'thist-s'; b.textContent = Math.round(x.acc*100) + '%';
+          var c = document.createElement('span'); c.className = 'thist-t'; c.textContent = 'lost ' + x.leak;
+          r.appendChild(a); r.appendChild(b); r.appendChild(c); lc.appendChild(r);
+        });
+        wrap.appendChild(lc);
+      }
+      if(_ex.cutoffPct){
+        var pct = res.max ? Math.round(res.score/res.max*100) : 0;
+        var cc = document.createElement('div'); cc.className = 'tcard';
+        var cl2 = document.createElement('div'); cl2.className = 'tlabel'; cl2.textContent = 'Against an indicative cut-off'; cc.appendChild(cl2);
+        var cbig = document.createElement('div'); cbig.className = 'big'; cbig.textContent = pct + '%'; cc.appendChild(cbig);
+        var cnote = document.createElement('div'); cnote.className = 'tsub small';
+        cnote.textContent = 'Your score is ' + pct + '% of the paper. Indicative band for ' + _ex.name + ': ' + _ex.cutoffPct[0] + '-' + _ex.cutoffPct[1] + '%. '
+          + (pct >= _ex.cutoffPct[1] ? 'Comfortably above the band.' : (pct >= _ex.cutoffPct[0] ? 'Inside the band.' : 'Below the band - the subjects at the top of the list above are where the marks are.'))
+          + ' Indicative only, not an official figure.';
+        cc.appendChild(cnote);
+        wrap.appendChild(cc);
+      }
+    })();
+
+    (function(){
+      var tq = res.tq || [], arr = [];
+      res.review.forEach(function(it, i){ if(tq[i] > 0) arr.push({ q:it.q, ms:tq[i] }); });
+      if(arr.length < 3) return;
+      arr.sort(function(a,b){ return b.ms - a.ms; });
+      var tc = document.createElement('div'); tc.className = 'tcard';
+      var tl = document.createElement('div'); tl.className = 'tlabel'; tl.textContent = 'Slowest questions'; tc.appendChild(tl);
+      var tn = document.createElement('div'); tn.className = 'tsub small'; tn.style.margin = '0 0 6px';
+      tn.textContent = 'Where your time actually went - long is fine if you got it, worrying if you did not.';
+      tc.appendChild(tn);
+      arr.slice(0, 5).forEach(function(x){
+        var r = document.createElement('div'); r.className = 'terr';
+        var mm = document.createElement('div'); mm.className = 'terr-m';
+        mm.textContent = fmtClock(Math.round(x.ms/1000)) + ' \u00b7 ' + [x.q.s, x.q.t].filter(Boolean).join(' \u00b7 ');
+        r.appendChild(mm);
+        var qq = document.createElement('div'); qq.className = 'terr-q'; qq.textContent = x.q.q; r.appendChild(qq);
+        tc.appendChild(r);
+      });
+      wrap.appendChild(tc);
+    })();
+
     if(res.review && res.review.length){
       var rv = document.createElement('div'); rv.className = 'tcard';
       var vl = document.createElement('div'); vl.className = 'tlabel'; vl.textContent = 'Review'; rv.appendChild(vl);
@@ -7311,6 +7480,11 @@
     rb.textContent = 'Review one by one';
     rb.onclick = function(){ view = { t: 'review1', tResult: res, r1: { i: 0, revealed: {} } }; render(); window.scrollTo(0, 0); };
     wrap.appendChild(rb);
+
+    var rt = document.createElement('button'); rt.type = 'button'; rt.className = 'tstart ghost';
+    rt.textContent = 'Retake these questions';
+    rt.onclick = function(){ view.tResult = null; testStart(res.review.map(function(it){ return it.q; })); };
+    wrap.appendChild(rt);
 
     var nt = document.createElement('button'); nt.type = 'button'; nt.className = 'tstart ghost';
     nt.textContent = 'New paper';
