@@ -12,7 +12,8 @@ A medical study app for NEET-PG / INI-CET / RUHS-MO aspirants — flashcards plu
 | `index.html` | The last published build — the file the Netlify site serves. Kept in sync with `src/library.html` on every publish. |
 | `terms.html` · `refund.html` · `privacy.html` | The policy pages the app links to. **Deploy all four together** — a lone `index.html` leaves dead links. |
 | `tests/` | The regression suite + its synthetic fixture. |
-| `docs/BUILD.md` | The build / test / publish / rollback loop. **Read this before changing anything.** |
+| `functions/medcircuit/index.ts` | The backend edge function (public link, catalogue, deck content, payments). Deployed from here. |
+| `docs/BUILD.md` | The build / test / publish / rollback loop, and the backend deploy rules. **Read this before changing anything.** |
 
 ## The app in one paragraph
 
