@@ -9,7 +9,7 @@
  *     so progress, decks and passes always go to the network
  * Bump CACHE when the shell assets change.
  */
-var CACHE = 'connectus-shell-v3';
+var CACHE = 'connectus-shell-v4';
 var SHELL = ['./', './index.html', './manifest.webmanifest',
              './icon-192.png', './icon-512.png', './icon-maskable-512.png'];
 
