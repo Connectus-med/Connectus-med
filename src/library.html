@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-14 05:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-14 07:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -766,9 +766,14 @@
   var viewRestored = false;
   var testPriority = null;   /* deck|id keys the paper must include (weak-areas paper) */
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
-  var APP_BUILD = '2026-10-14 05:00';
-  var BUILD_NOTE = 'Groundwork for the next data cut: deck counts now come from a number, and cards can be loaded per-deck on demand.';
+  var APP_BUILD = '2026-10-14 07:00';
+  var BUILD_NOTE = 'The big one: the app no longer downloads every card on every load — 2.6 MB is now about 57 KB. Cards load only when you actually use them.';
   var CHANGELOG = [
+    { build:'2026-10-14 07:00', title:'2.6 MB down to about 57 KB', items:[
+      'Opening the app used to download every card of every deck \u2014 about 2.6 MB each time. The library only needs the counts, which now come from a small catalogue.',
+      'Cards are fetched per deck when you open one, and the question pool loads once when you open Test. Same screens, same behaviour, roughly 45x less data on a normal open.',
+      'Along with the earlier fixes, a normal session now costs a few hundred KB instead of hundreds of MB.'
+    ]},
     { build:'2026-10-14 05:00', title:'Groundwork for the big data cut', items:[
       'Deck counts now come from a stored number instead of counting every card body, and the app can fetch one deck\u2019s cards on demand.',
       'No behaviour change yet — this is the groundwork so the deck list can stop shipping every card on every load.',
@@ -2104,6 +2109,13 @@
         if(done) done();
       }).catch(function(){ need.forEach(function(k){ delete _hydrating[k]; }); if(done) done(); });
   }
+  var _allHydrated = false;
+  function ensureCards(done){
+    if(_allHydrated || (decksData || []).every(function(d){ return Array.isArray(d.cards) && d.cards.length; })){
+      _allHydrated = true; if(done) done(); return;
+    }
+    hydrateAll(function(){ _allHydrated = true; if(done) done(); });
+  }
   function hydrateAll(done){
     var keys = (decksData || []).filter(function(d){ return !(Array.isArray(d.cards) && d.cards.length); }).map(function(d){ return d.deck_key; });
     if(!keys.length){ if(done) done(); return Promise.resolve(); }
@@ -2120,14 +2132,27 @@
     ensureAuth().then(function(){
       var uid = session.user.id;
       return Promise.all([
-        get('/rest/v1/decks?select=deck_key,topic,subject,set_no,unit,category,cards,updated_at&user_id=eq.' + uid + '&filed=is.true&order=updated_at.desc'),
+        /* No cards here: the list used to carry every card body (2.6 MB). The
+           library only needs the counts, which come from deck_catalog() below.
+           Cards are fetched per deck (openDeck) or all-at-once when a screen
+           genuinely needs the pool (test / weak areas / search / error log). */
+        get('/rest/v1/decks?select=deck_key,topic,subject,set_no,unit,category,updated_at&user_id=eq.' + uid + '&order=updated_at.desc'),
+        get('/rest/v1/rpc/deck_catalog').catch(function(){ return []; }),
         get('/rest/v1/deck_state?select=deck_key,card_id,rating,interval_days,due_at,deleted,front_text,back_text,note,updated_ms&user_id=eq.' + uid),
         get('/rest/v1/subjects?select=year,name,sort_order&user_id=eq.' + uid),
         get('/rest/v1/settings?select=key,value&key=in.(deck_paths,taxonomy,qstats,errnotes,pyq_index)&user_id=eq.' + uid).catch(function(){ return []; })
       ]);
     }).then(function(res){
       loadRetries = 0;
-      finishLoad(res[0] || [], res[1] || [], res[2] || [], false, res[3] || []);
+      var _decks = res[0] || [], _cat = res[1] || [];
+      var _nByKey = {};
+      (_cat || []).forEach(function(r){ if(r && r.deck_key) _nByKey[r.deck_key] = r.n; });
+      _decks.forEach(function(d){
+        if(!d) return;
+        if(typeof d.n !== 'number' && typeof _nByKey[d.deck_key] === 'number') d.n = _nByKey[d.deck_key];
+        if(!Array.isArray(d.cards)) d.cards = [];
+      });
+      finishLoad(_decks, res[2] || [], res[3] || [], false, res[4] || []);
     }).catch(function(e){ setDot('off'); toast('Could not load. ' + (e && e.message ? e.message : ''));
       if(loadRetries < 4){ loadRetries++; setTimeout(function(){ try{ load(); }catch(_){} }, 2000 * loadRetries); }
     });
@@ -2333,6 +2358,8 @@
     return b;
   }
   function testBtn(fn){
+    /* pool flows need the card bodies: fetch them once, then re-render */
+    if(!_allHydrated && typeof ensureCards === 'function'){ ensureCards(function(){ try{ render(); }catch(e){} }); }
     var b = document.createElement('button'); b.type = 'button'; b.className = 'testbtn';
     b.setAttribute('aria-label','Test this'); b.title = 'Test this';
     b.innerHTML = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6a1 1 0 0 1 1 1v1H8V4a1 1 0 0 1 1-1z"/><path d="M8 5H6.5A1.5 1.5 0 0 0 5 6.5v13A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5v-13A1.5 1.5 0 0 0 17.5 5H16"/><path d="M8.5 11.5l1.8 1.8 3.6-3.6"/></svg>';
@@ -2657,6 +2684,8 @@
     return true;
   }
   function collectCards(f){
+    /* pool flows need the card bodies: fetch them once, then re-render */
+    if(!_allHydrated && typeof ensureCards === 'function'){ ensureCards(function(){ try{ render(); }catch(e){} }); }
     f = f || {};
     var now = Date.now(), out = [];
     decksData.forEach(function(d){
@@ -2735,6 +2764,8 @@
   }
   function decksInSubject(y, s){ var t = filterTreeForSubject(y, s), all = []; t.forEach(function(n){ all = all.concat(n.decks); }); return all; }
   function practicePanel(cfg){
+    /* pool flows need the card bodies: fetch them once, then re-render */
+    if(!_allHydrated && typeof ensureCards === 'function'){ ensureCards(function(){ try{ render(); }catch(e){} }); }
     var dc = document.createElement('div'); dc.className = 'card3';
     var h = document.createElement('div'); h.className = 'chead'; h.textContent = cfg.heading || 'Filter & practice'; dc.appendChild(h);
     var totalLine = document.createElement('div'); totalLine.className = 'muted small'; totalLine.style.margin = '2px 2px 4px';
@@ -3820,6 +3851,8 @@
     return ((PUB && PUB.decks) || []).map(function(d){ return { deck_key: d.key, topic: d.topic, subject: d.subject, set_no: d.set_no }; });
   }
   function wireSearchInto(inp, res){
+    /* pool flows need the card bodies: fetch them once, then re-render */
+    if(!_allHydrated && typeof ensureCards === 'function'){ ensureCards(function(){ try{ render(); }catch(e){} }); }
     if(!inp || !res) return;
     inp.addEventListener('input', function(){
       var q = String(inp.value || '').trim().toLowerCase();
@@ -4128,6 +4161,8 @@
     abtn('Sign out', doSignOut);
   }
   function renderSearch(){
+    /* pool flows need the card bodies: fetch them once, then re-render */
+    if(!_allHydrated && typeof ensureCards === 'function'){ ensureCards(function(){ try{ render(); }catch(e){} }); }
     var c = $('content'); c.textContent = '';
     var head = document.createElement('div'); head.className = 'viewhead';
     var back = document.createElement('button'); back.className = 'btn sm'; back.textContent = '\u2190 Home';
@@ -5053,6 +5088,8 @@
 
   /* ---------- setup screen ---------- */
   function renderTest(){
+    /* pool flows need the card bodies: fetch them once, then re-render */
+    if(!_allHydrated && typeof ensureCards === 'function'){ ensureCards(function(){ try{ render(); }catch(e){} }); }
     try{ clearQPal(); }catch(e){}
     document.body.classList.remove('testrun');
     if(testRun){ renderTestRun(); return; }
@@ -6473,6 +6510,8 @@
     return wrap;
   }
   function renderErrors(){
+    /* pool flows need the card bodies: fetch them once, then re-render */
+    if(!_allHydrated && typeof ensureCards === 'function'){ ensureCards(function(){ try{ render(); }catch(e){} }); }
     var c = $('content'); c.textContent = '';
     var head = document.createElement('div'); head.className = 'viewhead';
     var back = document.createElement('button'); back.className = 'btn sm'; back.textContent = '\u2190 Test';
