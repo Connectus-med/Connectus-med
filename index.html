@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-17 22:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-18 08:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -20,13 +20,28 @@
 <style>
   :root{
     --accent:#f97316; --accent-2:#ea580c; --accent-soft:#fff1e6;
-    --bg:#f7f4f1; --panel:#ffffff; --ink:#20160f; --muted:#7a6a5d; --line:#ecdfd3;
+    --bg:#f7f4f1; --panel:#ffffff; --ink:#20160f; --muted:#6a5a4d; --line:#ecdfd3;
     --cap:999px; --shadow:0 10px 30px -18px rgba(120,60,10,.55);
+    /* ---- design tokens: one source of truth ---- */
+    --fg:var(--ink);                       /* was referenced but never defined */
+    --ok:#0f766e; --ok-strong:#16a34a;
+    --bad:#c81e1e; --bad-strong:#dc2626;
+    --warn:#d97706; --warn-soft:#ffe9a8;
+    --mark:#7c3aed; --mark-soft:rgba(124,58,237,.14); --mark-ring:rgba(124,58,237,.35);
+    --focus:rgba(234,88,12,.45);
+    --r-sm:10px; --r-md:14px; --r-lg:18px;
+    --el-1:0 1px 2px rgba(120,60,10,.05), 0 8px 24px -20px rgba(120,60,10,.5);
   }
   body.dark{
     --accent:#fb923c; --accent-2:#f97316; --accent-soft:#2a1a0e;
     --bg:#0c0b0a; --panel:#161412; --ink:#f6efe9; --muted:#a99a8d; --line:#2b2622;
     --shadow:0 10px 30px -18px rgba(0,0,0,.8);
+    --ok:#34d399; --ok-strong:#4ade80;
+    --bad:#f87171; --bad-strong:#fca5a5;
+    --warn:#fbbf24; --warn-soft:#3a2c10;
+    --mark:#a78bfa; --mark-soft:rgba(167,139,250,.20); --mark-ring:rgba(167,139,250,.42);
+    --focus:rgba(251,146,60,.55);
+    --el-1:0 1px 2px rgba(0,0,0,.5), 0 8px 24px -20px rgba(0,0,0,.85);
   }
   *{box-sizing:border-box}
   html,body{margin:0;height:100%}
@@ -45,8 +60,8 @@
   .brand{flex:1; min-width:0; font-size:1.38rem; font-weight:900; letter-spacing:-.025em;
     overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
   .dot{width:9px; height:9px; border-radius:50%; background:#c9b8a8; flex:none}
-  .dot.on{background:#16a34a}
-  .dot.off{background:#dc2626}
+  .dot.on{background:var(--ok-strong)}
+  .dot.off{background:var(--bad-strong)}
   .lastsync{border:0; background:none; color:var(--muted); font:inherit; font-size:.7rem; font-weight:650;
     cursor:pointer; padding:4px 2px; white-space:nowrap; border-radius:8px}
   .lastsync:active{transform:translateY(1px)}
@@ -107,7 +122,7 @@
     padding:10px 16px; font:inherit; font-size:.88rem; font-weight:650; cursor:pointer}
   .btn:active{transform:translateY(1px)}
   .btn.primary{background:var(--accent-2); border-color:var(--accent-2); color:#fff}
-  .btn.danger{color:#dc2626; border-color:#f0b4b4}
+  .btn.danger{color:var(--bad-strong); border-color:#f0b4b4}
   .btn.sm{padding:7px 13px; font-size:.8rem}
   .btn.wide{display:block; width:calc(100% - 32px); margin:8px 16px; text-align:center}
   .navwrap{padding:0 8px}
@@ -247,10 +262,10 @@
   .mbar{display:flex; height:11px; border-radius:var(--cap); overflow:hidden; background:transparent; margin-right:auto}
   .mbar i{display:block; height:100%}
   .seg-ns{background:#d8cfc6}
-  .seg-a{background:#dc2626}
-  .seg-h{background:#d97706}
-  .seg-g{background:#0f766e}
-  .seg-e{background:#16a34a}
+  .seg-a{background:var(--bad-strong)}
+  .seg-h{background:var(--warn)}
+  .seg-g{background:var(--ok)}
+  .seg-e{background:var(--ok-strong)}
   .ph{font-size:.72rem; font-weight:900; letter-spacing:.06em; text-transform:uppercase; color:var(--accent-2);
     margin:16px 0 2px; padding-top:12px; border-top:1px solid var(--line)}
   .ph.first{margin-top:4px; padding-top:0; border-top:0}
@@ -271,12 +286,12 @@
   .ptop .pv{font-size:.78rem; font-weight:850; color:var(--accent-2)}
   .pbar{display:block; height:8px; border-radius:var(--cap); background:var(--line); overflow:hidden; margin:7px 0 4px}
   .pbar i{display:block; height:100%; background:linear-gradient(90deg,var(--accent),var(--accent-2))}
-  .pbar.lo i{background:linear-gradient(90deg,#dc2626,#f87171)}
-  .pbar.mid i{background:linear-gradient(90deg,#d97706,#fbbf24)}
-  .pbar.hi i{background:linear-gradient(90deg,#0f766e,#34d399)}
-  .bar.lo>i{background:linear-gradient(90deg,#dc2626,#f87171)}
-  .bar.mid>i{background:linear-gradient(90deg,#d97706,#fbbf24)}
-  .bar.hi>i{background:linear-gradient(90deg,#0f766e,#34d399)}
+  .pbar.lo i{background:linear-gradient(90deg,var(--bad-strong),#f87171)}
+  .pbar.mid i{background:linear-gradient(90deg,var(--warn),#fbbf24)}
+  .pbar.hi i{background:linear-gradient(90deg,var(--ok),#34d399)}
+  .bar.lo>i{background:linear-gradient(90deg,var(--bad-strong),#f87171)}
+  .bar.mid>i{background:linear-gradient(90deg,var(--warn),#fbbf24)}
+  .bar.hi>i{background:linear-gradient(90deg,var(--ok),#34d399)}
   .noderow{display:flex; align-items:center; gap:8px}
   .noderow .topichead,.noderow .subjhead{flex:1; min-width:0}
   .playbtn{flex:none; width:34px; height:34px; border-radius:50%; border:1px solid var(--accent-2); background:var(--accent-soft); color:var(--accent-2); display:flex; align-items:center; justify-content:center; cursor:pointer; padding:0}
@@ -384,7 +399,7 @@
   .errnotetxt{font-weight:800; font-size:1rem; line-height:1.45; margin:5px 0 9px; padding:2px 0 2px 10px; border-left:4px solid var(--accent-2); color:var(--ink)}
   .errnote{min-height:46px; line-height:1.45; resize:vertical}
     border:1px solid var(--line); border-radius:10px; padding:9px 10px; background:var(--bg); color:var(--ink)}
-  .errrm{margin-top:8px; border:0; background:none; color:#c81e1e; font:inherit; font-size:.8rem; font-weight:750; cursor:pointer; padding:0}
+  .errrm{margin-top:8px; border:0; background:none; color:var(--bad); font:inherit; font-size:.8rem; font-weight:750; cursor:pointer; padding:0}
   /* grand test */
   .twrap{display:flex; flex-direction:column; gap:12px}
   .tbig{font-size:1.5rem; font-weight:800}
@@ -412,26 +427,26 @@
   .ttrend{display:flex; align-items:center; gap:10px; margin:2px 0 8px}
   .tspark{width:96px; height:34px; flex:0 0 auto; overflow:visible}
   .tspark .ln{fill:none; stroke:var(--accent-2); stroke-width:2.4; stroke-linejoin:round; stroke-linecap:round; vector-effect:non-scaling-stroke}
-  .tspark .ar{fill:rgba(124,58,237,.10)}
+  .tspark .ar{fill:var(--mark-soft)}
   .tspark .dt{fill:var(--accent-2)}
   .ttrend-txt{flex:1; min-width:0; font-size:.82rem; color:var(--muted)}
   .ttrend-txt b{color:var(--fg); font-weight:800}
-  .ttrend-up{color:#0f766e; font-weight:800}
-  .ttrend-dn{color:#c81e1e; font-weight:800}
+  .ttrend-up{color:var(--ok); font-weight:800}
+  .ttrend-dn{color:var(--bad); font-weight:800}
   .ttrend-fl{color:var(--muted); font-weight:700}
   .tfind{width:100%; box-sizing:border-box; border:1px solid var(--line); background:var(--card);
          color:var(--fg); font:inherit; font-size:.95rem; border-radius:14px; padding:12px 14px; margin:2px 0 10px}
-  .tfind:focus{outline:none; border-color:var(--accent-2); box-shadow:0 0 0 3px rgba(124,58,237,.14)}
+  .tfind:focus{outline:none; border-color:var(--accent-2); box-shadow:0 0 0 3px var(--mark-soft)}
   .tfindres{display:flex; flex-direction:column; gap:7px; max-height:52vh; overflow:auto}
   .tfindrow{border:1px solid var(--line); border-radius:12px; padding:9px 11px; cursor:pointer}
   .tfindrow:hover{border-color:var(--accent-2)}
   .tfindrow .tfq{font-size:.86rem; line-height:1.35}
   .tfindrow .tfm{font-size:.74rem; color:var(--muted); margin-top:3px}
-  .tfindrow mark{background:rgba(124,58,237,.18); color:inherit; border-radius:3px; padding:0 2px}
+  .tfindrow mark{background:var(--mark-soft); color:inherit; border-radius:3px; padding:0 2px}
   .tbar{display:flex; align-items:center; gap:10px}
   .tqn{font-weight:800; font-size:.9rem}
   .tclock{margin-left:auto; font-weight:800; font-variant-numeric:tabular-nums; font-size:1rem; color:var(--accent-2)}
-  .tclock.low{color:#c81e1e}
+  .tclock.low{color:var(--bad)}
   .tend{border:1px solid var(--line); background:none; color:var(--muted); border-radius:999px; padding:7px 14px; font:inherit; font-size:.8rem; font-weight:750; cursor:pointer}
   .tprog{height:5px; background:var(--line); border-radius:999px; overflow:hidden}
   .tprog i{display:block; height:100%; background:var(--accent-2)}
@@ -442,8 +457,8 @@
   .tsrc{margin-top:8px; font-size:.72rem; color:var(--muted)}
   .tmarks{display:flex; gap:10px}
   .tmk{flex:1; border:0; border-radius:999px; padding:14px; font:inherit; font-size:.92rem; font-weight:800; color:#fff; cursor:pointer}
-  .tmk.right{background:#0f766e}
-  .tmk.wrong{background:#c81e1e}
+  .tmk.right{background:var(--ok)}
+  .tmk.wrong{background:var(--bad)}
   .tskip{align-self:center; border:0; background:none; color:var(--muted); font:inherit; font-size:.82rem; font-weight:750; cursor:pointer; text-decoration:underline}
   .tscore{font-size:2.4rem; font-weight:800; color:var(--accent-2); line-height:1}
   .terr{padding:10px 0; border-top:1px solid var(--line)}
@@ -465,8 +480,8 @@
   .tpalcell.done{background:var(--accent-soft); border-color:var(--accent-2); color:var(--accent-2)}
   .tpalcell.cur{outline:2px solid var(--accent-2); outline-offset:1px}
   .rvopt{font-size:.85rem; line-height:1.4; padding:4px 0; color:var(--muted)}
-  .rvopt.correct{color:#0f766e; font-weight:800}
-  .rvopt.picked{color:#c81e1e; font-weight:700}
+  .rvopt.correct{color:var(--ok); font-weight:800}
+  .rvopt.picked{color:var(--bad); font-weight:700}
   .qsrc{margin-top:7px; color:var(--muted); font-size:.74rem; line-height:1.35}
   .rvexp{margin-top:8px; padding:9px 11px; border-left:3px solid var(--accent-2); background:var(--accent-soft); border-radius:9px; font-size:.85rem; line-height:1.5}
   /* ---- right-edge question palette (review / error log) ---- */
@@ -481,22 +496,22 @@
   .qpal::-webkit-scrollbar{height:0}
   .qpalcell{width:27px; height:27px; flex:none; border-radius:8px; border:2px solid var(--line); background:var(--panel); color:var(--ink);
     font:inherit; font-size:.65rem; font-weight:800; cursor:pointer; padding:0; display:flex; align-items:center; justify-content:center; line-height:1}
-  .qpalcell.right{background:#16a34a; border-color:#16a34a; color:#fff}
-  .qpalcell.wrong{background:#dc2626; border-color:#dc2626; color:#fff}
+  .qpalcell.right{background:var(--ok-strong); border-color:var(--ok-strong); color:#fff}
+  .qpalcell.wrong{background:var(--bad-strong); border-color:var(--bad-strong); color:#fff}
   .qpalcell.skip{background:transparent; border-color:#b9b9bd; color:var(--muted)}
-  .qpalcell.mark{border-color:#7c3aed; box-shadow:0 0 0 2px rgba(124,58,237,.35)}
+  .qpalcell.mark{border-color:var(--mark); box-shadow:0 0 0 2px var(--mark-ring)}
   .qpalcell.cur{outline:2px solid var(--accent-2); outline-offset:2px}
   body.qpal-on main{padding-top:46px}
   .qlegend{display:flex; flex-wrap:wrap; gap:10px 14px; align-items:center; margin:2px 0 4px; font-size:.72rem; color:var(--muted)}
   .qlegend span{display:inline-flex; align-items:center; gap:5px}
   .qlegend i{width:14px; height:14px; border-radius:5px; border:2px solid var(--line); display:inline-block; flex:none}
-  .qlegend i.right{background:#16a34a; border-color:#16a34a}
-  .qlegend i.wrong{background:#dc2626; border-color:#dc2626}
+  .qlegend i.right{background:var(--ok-strong); border-color:var(--ok-strong)}
+  .qlegend i.wrong{background:var(--bad-strong); border-color:var(--bad-strong)}
   .qlegend i.skip{background:transparent; border-color:#b9b9bd}
-  .qlegend i.mark{border-color:#7c3aed; box-shadow:0 0 0 2px rgba(124,58,237,.3)}
+  .qlegend i.mark{border-color:var(--mark); box-shadow:0 0 0 2px var(--mark-ring)}
   .tmark{border:1px solid var(--line); background:none; color:var(--muted); border-radius:999px; padding:15px 14px; font:inherit; font-size:.8rem; font-weight:750; cursor:pointer; flex:0 0 auto}
-  .tmark.on{background:#7c3aed; border-color:#7c3aed; color:#fff}
-  .tpalcell.marked{border-color:#7c3aed; box-shadow:0 0 0 2px rgba(124,58,237,.35)}
+  .tmark.on{background:var(--mark); border-color:var(--mark); color:#fff}
+  .tpalcell.marked{border-color:var(--mark); box-shadow:0 0 0 2px var(--mark-ring)}
   .tinfo{display:flex; justify-content:space-between; gap:12px; font-size:.86rem; padding:6px 0; border-top:1px solid var(--line)}
   .tinfo:first-of-type{border-top:0}
   .tinfo-k{color:var(--muted); font-weight:700}
@@ -580,7 +595,7 @@
   .reauth-box{background:var(--panel); color:var(--ink); border:1px solid var(--line); border-radius:18px; padding:16px; width:min(340px,92vw); display:flex; flex-direction:column; gap:10px}
   .reauth-h{font-weight:800}
   .reauth-box input{border:1px solid var(--line); background:var(--bg); color:var(--ink); border-radius:10px; padding:11px 13px; font-size:.95rem; width:100%}
-  .reauth-msg{color:#c81e1e; font-size:.82rem; min-height:1em}
+  .reauth-msg{color:var(--bad); font-size:.82rem; min-height:1em}
   .reauth-row{display:flex; gap:10px; justify-content:flex-end}
   .modal{position:fixed; inset:0; z-index:70; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,.55); padding:18px}
   .modal .box{background:var(--panel); border:1px solid var(--line); border-radius:20px; padding:20px; max-width:400px; width:100%}
@@ -609,7 +624,7 @@
   .lockbadge,.freetag{display:inline-flex; align-items:center; gap:5px; font-size:.64rem; font-weight:800;
     letter-spacing:.04em; text-transform:uppercase; border-radius:var(--cap); padding:3px 9px; border:1px solid}
   .lockbadge{color:var(--muted); background:var(--bg); border-color:var(--line)}
-  .freetag{color:#0f766e; background:#e7f6f3; border-color:#9fd9cd}
+  .freetag{color:var(--ok); background:#e7f6f3; border-color:#9fd9cd}
   body.dark .freetag{color:#8fd9cd; background:#0f2f2a; border-color:#1d5348}
   .lockbadge svg{display:block}
   .guestnote{margin:0 0 12px; padding:13px 15px; border-radius:16px; background:var(--accent-soft);
@@ -683,6 +698,12 @@
     font:inherit; font-size:.85rem; font-weight:800; cursor:pointer; box-shadow:0 14px 34px -12px rgba(120,60,10,.6)}
   .updpill:active{transform:translateX(-50%) translateY(1px)}
   .setdemo{margin:2px 0 2px; padding:9px 11px; border:1px dashed var(--line); border-radius:10px; font-size:1rem; line-height:1.5; color:var(--ink)}
+  /* keyboard focus ring (mouse/touch are unaffected) */
+  :focus-visible{ outline:2px solid var(--accent-2); outline-offset:2px }
+  /* respect a user's motion preference */
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; scroll-behavior:auto !important }
+  }
 </style>
 </head>
 <body>
@@ -839,9 +860,15 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-17 22:00';
-  var BUILD_NOTE = 'A proper Settings screen: Appearance (theme plus a new text-size control), Sync, Study and About, all in one organized place, reached from a Settings entry in the profile menu.';
+  var APP_BUILD = '2026-10-18 08:00';
+  var BUILD_NOTE = 'A design-system pass: one token layer for colour roles, the stray purple removed from an orange app, a broken token fixed, a keyboard focus ring, reduced-motion support, and the Practice-now button no longer overlaps the result screen.';
   var CHANGELOG = [
+    { build:'2026-10-18 08:00', title:'Design system pass: tokens, focus ring, and a fixed overlap', items:[
+      'Fixed a real overlap: the Practice-now lightning button stayed on the result screen and sat over the content. It is Home-only again.',
+      'Introduced one token layer for colour roles (success, danger, warning, mark) instead of about thirty scattered literals, so the whole app can be re-themed from one place.',
+      'Removed a stray purple that had leaked into the orange app in eleven places - it is now a proper, intentional token.',
+      'Fixed a broken token that had been referenced but never defined, so two styles were silently failing, and added a keyboard focus ring plus reduced-motion support and stronger secondary-text contrast.',
+    ]},
     { build:'2026-10-17 22:00', title:'Settings screen with a text-size control', items:[
       'There is now a proper Settings screen - tap the avatar, then Settings. Appearance (theme and text size), Sync, Study & tests and About are all in one organized place.',
       'New: Text size - Small, Default, Large or Larger - with a live sample, so you can set the reading size that suits you. It is remembered on your device.',
@@ -7868,6 +7895,7 @@
 
     box.appendChild(wrap);
     mountQPal(_palItems);
+    updateFab();   /* the result screen is opened directly - hide the Home-only FAB here too */
   }
 
 
