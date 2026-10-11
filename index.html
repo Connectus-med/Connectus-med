@@ -83,7 +83,20 @@
   function refresh(){
     if(trying) return;
     trying = true;
-    pull().then(function(html){
+    var have = getCached();
+    /* Data guard: ask the 16-byte version question FIRST. Only download the
+       ~450 KB app when the build actually changed (or we have nothing cached). */
+    fetch(FN + "?api=version&_=" + Date.now(), { headers: { "apikey": KEY }, cache: "no-store" })
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(v){
+        var latest = v && v.ui_version ? String(v.ui_version) : "";
+        if(have && latest && buildOf(have) === latest){
+          trying = false;
+          tiny.textContent = "Up to date.";
+          setTimeout(function(){ tiny.textContent = ""; }, 1500);
+          return;
+        }
+        pull().then(function(html){
       trying = false;
       if(!ok(html)) throw new Error("bad build");
       var old = getCached();
@@ -92,6 +105,15 @@
       if(buildOf(html) !== buildOf(old) && Date.now() - started < 6000){ show(html); }
       else { tiny.textContent = "Up to date."; setTimeout(function(){ tiny.textContent = ""; }, 1500); }
     }).catch(function(){ trying = false; fail(!!getCached()); });
+      })
+      .catch(function(){ /* version check failed: fall back to the old behaviour */
+        pull().then(function(html){
+          if(!ok(html)) throw new Error("bad build");
+          var old2 = getCached(); put(html);
+          if(!old2){ show(html); return; }
+          if(buildOf(html) !== buildOf(old2) && Date.now() - started < 6000) show(html);
+        }).catch(function(){ trying = false; fail(!!getCached()); });
+      });
   }
 
   var c0 = getCached();
