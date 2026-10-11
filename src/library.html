@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-14 00:30' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-14 02:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -766,9 +766,14 @@
   var viewRestored = false;
   var testPriority = null;   /* deck|id keys the paper must include (weak-areas paper) */
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
-  var APP_BUILD = '2026-10-14 00:30';
-  var BUILD_NOTE = 'Silent failures now report themselves — if the app ever breaks on a device, it tells us anonymously instead of waiting for you to notice.';
+  var APP_BUILD = '2026-10-14 02:00';
+  var BUILD_NOTE = 'Stopped the app eating your data — the 30-second sync was re-downloading every card each time (about 2.6 MB). It now asks a 100-byte question instead.';
   var CHANGELOG = [
+    { build:'2026-10-14 02:00', title:'Your data is safe again', items:[
+      'Found it: a 30-second background timer was re-downloading the ENTIRE deck list with every card body — about 2.6 MB each time, roughly 300 MB an hour on a phone.',
+      'It now asks a ~100-byte question ("has anything changed?") and only downloads when the answer is yes. Same freshness, about 26,000x less traffic.',
+      'The loader also checks the 16-byte build version before downloading the app, so the app file is fetched once per update instead of on every open.'
+    ]},
     { build:'2026-10-14 00:30', title:'The app now reports its own failures', items:[
       'If something breaks on a real device, the app sends a small anonymous note (which screen, what went wrong) so we hear about it ourselves instead of finding out hours later from you.',
       'It is anonymous: no name, no account, no email — any email in the text is stripped. At most four distinct errors per session, and it can never itself slow down or break the app.'
@@ -2065,6 +2070,7 @@
   }
 
   var lastLoadAt = 0;
+  var lastStamp = null;   /* last decks.updated_at we actually loaded */
   var loadRetries = 0;
   function load(){
     lastLoadAt = Date.now();
@@ -6571,7 +6577,24 @@
     b.onclick = function(){ setTab(b.dataset.tab); };
   });
   setInterval(renderLastSync, 30000);
-  setInterval(function(){ if(session && !document.hidden){ try{ qFlush(); }catch(e){} if(Date.now() - lastLoadAt > 25000) load(); } }, 30000);
+  /* ---- data guard -------------------------------------------------------
+     This timer used to call load() every 30s, which re-downloaded the whole
+     deck list WITH every card body (2.6 MB). On a phone that is ~300 MB/hour
+     of someone's data. Now it asks a ~100-byte question — "has anything
+     changed?" — and only loads when the answer is yes. Same freshness,
+     ~20,000x less traffic. */
+  function pollChanged(){
+    if(!session || document.hidden) return;
+    fetch(SB_URL + '/rest/v1/decks?select=updated_at&user_id=eq.' + session.user.id + '&order=updated_at.desc&limit=1',
+          { headers: authHeaders() })
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(rows){
+        var st = (rows && rows.length && rows[0].updated_at) || '';
+        if(lastStamp === null){ lastStamp = st; return; }   /* first probe only records */
+        if(st && st !== lastStamp){ lastStamp = st; load(); }
+      }).catch(function(){});
+  }
+  setInterval(function(){ if(session && !document.hidden){ try{ qFlush(); }catch(e){} pollChanged(); } }, 30000);
   document.addEventListener('visibilitychange', function(){ if(!document.hidden){ selfUpdate(); if(session && autoAllowed() && (Date.now() - lastLoadAt > 30000)) load(); else quietRender(); } });
   window.addEventListener('online', function(){ if(session){ try{ qFlush(); }catch(e){} load(); } });
   window.addEventListener('focus', function(){ selfUpdate(); if(session && autoAllowed() && (Date.now() - lastLoadAt > 30000)) load(); else quietRender(); });
