@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-13 22:30' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-13 23:30' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -766,9 +766,13 @@
   var viewRestored = false;
   var testPriority = null;   /* deck|id keys the paper must include (weak-areas paper) */
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
-  var APP_BUILD = '2026-10-13 22:30';
-  var BUILD_NOTE = 'The header is clean again — the build number now lives here in the profile menu, tap it to check for updates.';
+  var APP_BUILD = '2026-10-13 23:30';
+  var BUILD_NOTE = '"Collapse all" now really collapses everything — the Qbank was quietly re-opening its years every time.';
   var CHANGELOG = [
+    { build:'2026-10-13 23:30', title:'Collapse all actually collapses all', items:[
+      'The Qbank tree re-opened its year rows on every redraw, so the collapse-all button looked broken. It now defaults open only the very first time, and then your choice sticks — even after a reload.',
+      'Collapse all also closes any row still open on screen, and the button hides itself once everything is closed.'
+    ]},
     { build:'2026-10-13 22:30', title:'Build number moved into the profile menu', items:[
       'The build chip was crowding the header and squeezing the Connectus title. It now sits in the profile menu (tap the avatar) instead.',
       'Tap the build row there to check for updates on the spot, and it shows the time the app was loaded.'
@@ -1669,6 +1673,7 @@
   var theme = ls('fd:theme', 'light');
   var collapsed = ls('fd:collapsed', {});
   var openMap = ls('fd:openmap', {});
+  var qbSeeded = ls('fd:qbseeded', false);   /* the Qbank's years default open ONCE ever — after that the user's choice wins, even across reloads */
   var appTitle = ls('fd:title', 'Connectus');
   var tax = [];
   var allYears = YEARS.slice();
@@ -4523,7 +4528,18 @@
   window.addEventListener('message', function(e){ var d=e.data; if(!d) return; if(d.fd==='practised' && d.key) setLastDeck(d.key, d.topic); else if(d.fd==='exit'){ try{ $('back').click(); }catch(_){} } });
 
   $('lastSync').onclick = function(){ load(); };
-  $('collapseFab').onclick = function(){ openMap = {}; ss('fd:openmap', openMap); render(); window.scrollTo({ top:0, behavior:'smooth' }); };
+  $('collapseFab').onclick = function(){
+    /* collapse EVERYTHING: one store drives every tree (library, Qbank, PYQs) */
+    openMap = {};
+    qbSeeded = true; try{ ss('fd:qbseeded', true); }catch(e){}   /* stop the Qbank re-opening its years */
+    try{ ss('fd:openmap', openMap); }catch(e){}
+    render();
+    /* belt and braces: any row still open in the DOM gets closed too */
+    Array.prototype.forEach.call(document.querySelectorAll('[data-kids]'), function(el){ try{ slideSet(el, false, false); }catch(e){} });
+    Array.prototype.forEach.call(document.querySelectorAll('.chev.open'), function(c){ c.classList.remove('open'); });
+    updateFab();
+    window.scrollTo({ top:0, behavior:'smooth' });
+  };
 
   /* instant practice: tap the lightning, it strikes, the last deck opens */
   (function(){
@@ -5365,7 +5381,7 @@
       });
       function qcount(list){ var n = 0; (list || []).forEach(function(x){ n += x.n; }); return n; }
       function qbuild(parent, label, nQ, key, cls, fill){
-        if(openMap[key] === undefined && cls === 'qyear') openMap[key] = true;
+        if(!qbSeeded && openMap[key] === undefined && cls === 'qyear') openMap[key] = true;
         var open = !!openMap[key];
         var kids = newKids(key, open);
         var built = false;
@@ -5378,6 +5394,7 @@
         parent.appendChild(row); parent.appendChild(kids);
         if(open) build();
         qLazy.push(build);
+        if(!qbSeeded){ qbSeeded = true; try{ ss('fd:qbseeded', true); }catch(e){} }
         return kids;
       }
       function qDeckRows(cKids, list){
