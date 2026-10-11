@@ -171,7 +171,12 @@
       var old = getCached();
       put(html);
       if(!old){ show(html); return; }
-      if(buildOf(html) !== buildOf(old) && Date.now() - started < 6000){ show(html); }
+      /* Swap whenever the build actually changed. This used to also require
+         `Date.now() - started < 6000` - so a download that took longer than six
+         seconds was silently dropped, the loader said "Up to date.", and the
+         device stayed on the old build for ever. On mobile data a 470 KB app
+         routinely takes longer than six seconds. */
+      if(buildOf(html) !== buildOf(old)){ show(html); }
       else { tiny.textContent = "Up to date."; setTimeout(function(){ tiny.textContent = ""; }, 1500); }
     }).catch(function(){ trying = false; fail(!!getCached()); });
       })
@@ -180,7 +185,7 @@
           if(!ok(html)) throw new Error("bad build");
           var old2 = getCached(); put(html);
           if(!old2){ show(html); return; }
-          if(buildOf(html) !== buildOf(old2) && Date.now() - started < 6000) show(html);
+          if(buildOf(html) !== buildOf(old2)) show(html);   /* same fix as above */
         }).catch(function(){ trying = false; fail(!!getCached()); });
       });
   }
