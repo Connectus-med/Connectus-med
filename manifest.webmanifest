@@ -1,0 +1,50 @@
+{
+  "name": "Connectus — NEET-PG / INI-CET / RUHS-MO",
+  "short_name": "Connectus",
+  "description": "Medical flashcards and a real-exam MCQ engine for NEET-PG, INI-CET and RUHS-MO. Know what you know, fix what you don't.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f7f4f1",
+  "theme_color": "#ea580c",
+  "lang": "en-IN",
+  "dir": "ltr",
+  "categories": [
+    "education",
+    "medical",
+    "productivity"
+  ],
+  "icons": [
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Real Exam Grand Test",
+      "short_name": "Exam",
+      "url": "./index.html#test"
+    },
+    {
+      "name": "Revise what is due",
+      "short_name": "Revise",
+      "url": "./index.html#revise"
+    }
+  ]
+}
