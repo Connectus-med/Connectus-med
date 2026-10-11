@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-14 21:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-14 23:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -787,8 +787,13 @@
   var testPriority = null;   /* deck|id keys the paper must include (weak-areas paper) */
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var APP_BUILD = '2026-10-14 09:00';
-  var BUILD_NOTE = 'Questions load reliably again: the bank is fetched in smaller batches, a failed batch no longer hides the rest, and the flags that could wedge a deck out of loading for ever are cleared.';
+  var BUILD_NOTE = 'The question counts are back: every screen now knows how many MCQs a deck holds from the catalogue itself, instead of waiting for the card bodies to arrive.';
   var CHANGELOG = [
+    { build:'2026-10-14 23:00', title:'The question counts are back', items:[
+      'Every screen that lists questions - the Qbank tree, the test builder, the PYQ papers, a deck\u2019s own setup - now knows how many MCQs a deck holds straight from the catalogue, instead of counting the card bodies.',
+      'That was the real bug behind \u201c0 Q\u201d everywhere: the deck list deliberately stopped shipping card bodies (2.6 MB down to 57 KB), and these screens were still counting them - so until the cards finished arriving in the background, they read zero. Some screens never recovered at all.',
+      'A deck that genuinely has no MCQs (a flashcard deck) still reads 0 Q, as it should.',
+    ]},
     { build:'2026-10-14 21:00', title:'Questions load reliably again', items:[
       'The bank is fetched in smaller batches (25 decks, not 40), so a single response stays small enough to survive a weak connection. At 40, the whole bank meant multi-megabyte responses.',
       'A batch that fails is now counted and told to you, instead of quietly swallowing every batch after it - which is how a screen could end up reading 0 questions with nothing on screen to explain it.',
@@ -2191,7 +2196,7 @@
            Cards are fetched per deck (openDeck) or all-at-once when a screen
            genuinely needs the pool (test / weak areas / search / error log). */
         get('/rest/v1/decks?select=deck_key,topic,subject,set_no,unit,category,updated_at&user_id=eq.' + uid + '&order=updated_at.desc'),
-        get('/rest/v1/rpc/deck_catalog').catch(function(){ return []; }),
+        get('/rest/v1/rpc/deck_catalog2').catch(function(){ return get('/rest/v1/rpc/deck_catalog').catch(function(){ return []; }); }),
         get('/rest/v1/deck_state?select=deck_key,card_id,rating,interval_days,due_at,deleted,front_text,back_text,note,updated_ms&user_id=eq.' + uid),
         get('/rest/v1/subjects?select=year,name,sort_order&user_id=eq.' + uid),
         get('/rest/v1/settings?select=key,value&key=in.(deck_paths,taxonomy,qstats,errnotes,pyq_index)&user_id=eq.' + uid).catch(function(){ return []; })
@@ -2199,11 +2204,17 @@
     }).then(function(res){
       loadRetries = 0;
       var _decks = res[0] || [], _cat = res[1] || [];
-      var _nByKey = {};
-      (_cat || []).forEach(function(r){ if(r && r.deck_key) _nByKey[r.deck_key] = r.n; });
+      var _nByKey = {}, _mcqByKey = {};
+      (_cat || []).forEach(function(r){
+        if(!r || !r.deck_key) return;
+        _nByKey[r.deck_key] = r.n;
+        if(typeof r.mcqs === 'number') _mcqByKey[r.deck_key] = r.mcqs;
+      });
       _decks.forEach(function(d){
         if(!d) return;
         if(typeof d.n !== 'number' && typeof _nByKey[d.deck_key] === 'number') d.n = _nByKey[d.deck_key];
+        /* the MCQ count, so the pool screens never have to wait for the cards */
+        if(typeof _mcqByKey[d.deck_key] === 'number') d.mcqs = _mcqByKey[d.deck_key];
         if(!Array.isArray(d.cards)) d.cards = [];
       });
       finishLoad(_decks, res[2] || [], res[3] || [], false, res[4] || []);
@@ -4790,6 +4801,15 @@
     return !!(c && c.id && c.type === 'mcq' && Array.isArray(c.options) && c.options.length >= 2 &&
               typeof c.answer === 'number' && c.answer >= 0 && c.answer < c.options.length);
   }
+  /* How many MCQs a deck holds. deck_catalog2() tells us up front (d.mcqs), so a
+     pool screen never has to wait for the card bodies to arrive - which is why
+     they used to read "0 Q" until hydration finished. Falls back to counting the
+     cards when the count is not known. */
+  function mcqCount(d){
+    if(!d) return 0;
+    if(typeof d.mcqs === 'number') return d.mcqs;
+    return (Array.isArray(d.cards) ? d.cards : []).filter(isMcq).length;
+  }
   function isMcqItem(x){
     return !!(x && x.q && Array.isArray(x.options) && x.options.length >= 2 && typeof x.answer === 'number');
   }
@@ -5305,7 +5325,7 @@
       if(!d || !d.deck_key) return;
       if(!IS_OWNER && !UNLOCKED && lockedKeys[d.deck_key]) return;
       if(chapters.indexOf(CHAP[d.deck_key] || '') < 0) return;
-      n += (Array.isArray(d.cards) ? d.cards : []).filter(isMcq).length;
+      n += mcqCount(d);
     });
     return n;
   }
@@ -5416,7 +5436,7 @@
       }
       /* length */
       var pool = customPoolSel(S.years, S.subs, S.units, S.chaps);
-      var nQ = 0; pool.forEach(function(d){ nQ += (Array.isArray(d.cards) ? d.cards.filter(isMcq).length : 0); });
+      var nQ = 0; pool.forEach(function(d){ nQ += mcqCount(d); });
       var llb = document.createElement('div'); llb.className = 'tlabel'; llb.textContent = 'Questions'; card.appendChild(llb);
       var lrow = document.createElement('div'); lrow.className = 'tchips';
       [20, 50, 100].forEach(function(v){
@@ -5534,7 +5554,7 @@
       if(subs.length && subs.indexOf(loc.s) < 0) return false;
       if(units.length && units.indexOf(loc.u) < 0) return false;
       if(chaps.length && chaps.indexOf(CHAP[d.deck_key] || '') < 0) return false;
-      return (Array.isArray(d.cards) ? d.cards : []).filter(isMcq).length > 0;
+      return mcqCount(d) > 0;
     });
   }
   /* ---------- Find a question: search the whole bank, then practise the matches ---------- */
@@ -5630,8 +5650,8 @@
     (decksData || []).forEach(function(d){
       if(!d || !d.deck_key) return;
       if(!IS_OWNER && !UNLOCKED && lockedKeys[d.deck_key]) return;
-      var mc = (Array.isArray(d.cards) ? d.cards : []).filter(isMcq);
-      if(mc.length) qdecks.push({ d:d, n:mc.length });
+      var mn = mcqCount(d);
+      if(mn) qdecks.push({ d:d, n:mn });
     });
     var hasTree = !!(TAX && Object.keys(TAX).length);
     if(qdecks.length || hasTree){
@@ -5749,7 +5769,7 @@
     (decksData || []).forEach(function(d){
       if(!d || !d.deck_key || d.deck_key.indexOf('PYQ_') !== 0) return;
       if(!IS_OWNER && !UNLOCKED && lockedKeys[d.deck_key]) return;
-      var n = (Array.isArray(d.cards) ? d.cards : []).filter(isMcq).length;
+      var n = mcqCount(d);
       if(!n) return;
       pyqDecks[d.deck_key] = { d:d, n:n };
     });
@@ -5846,7 +5866,7 @@
     var dk = view.tDeck, d = null;
     (decksData || []).forEach(function(x){ if(x && x.deck_key === dk) d = x; });
     var loc = deckLoc[dk] || {};
-    var n = d ? (Array.isArray(d.cards) ? d.cards.filter(isMcq).length : 0) : 0;
+    var n = d ? mcqCount(d) : 0;
     var back = document.createElement('button'); back.type = 'button'; back.className = 'tend'; back.textContent = '\u2039 Test modes';
     back.onclick = function(){ view = { t:'test' }; render(); window.scrollTo(0,0); };
     wrap.appendChild(back);
