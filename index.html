@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-17 16:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-17 18:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -847,9 +847,14 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-17 16:00';
-  var BUILD_NOTE = 'The app no longer reloads itself while you use it - a newer version waits behind an Update ready pill you tap when you want. The sync label is calm too: syncing while writes are queued, then a steady synced.';
+  var APP_BUILD = '2026-10-17 18:00';
+  var BUILD_NOTE = 'Removed a Netlify-injected third-party script that was baked into the app, and stopped the whole screen re-rendering every time you return to the app - the last source of the blink.';
   var CHANGELOG = [
+    { build:'2026-10-17 18:00', title:'Removed the 3rd-party script; no re-render on return', items:[
+      'Found and removed a Netlify script that had been baked into the app file - a third-party script that had no business being inside the app.',
+      'Fixed the last source of the blink: the app re-drew the whole screen every time you returned to it. It now only refreshes the sync label, and re-draws only when the data actually changed.',
+      'The app still never reloads itself - a newer version waits behind the Update ready pill.',
+    ]},
     { build:'2026-10-17 16:00', title:'No more self-reload; a calm sync label', items:[
       'Fixed the flash/blink: the app used to reload itself whenever a newer version was published, which fired on every focus and looked like a blink. It never reloads itself now.',
       'A newer version instead shows a small Update ready - tap to update pill. Tap it when you are not mid-paper or mid-deck and it switches over; if you are in a paper or a deck it waits and tells you so.',
@@ -8251,9 +8256,9 @@
       }).catch(function(){});
   }
   setInterval(function(){ if(session && !document.hidden){ try{ qFlush(); }catch(e){} pollChanged(); } }, 30000);
-  document.addEventListener('visibilitychange', function(){ if(!document.hidden){ selfUpdate(); if(session && autoAllowed() && (Date.now() - lastLoadAt > 30000)) pollChanged(); else quietRender(); } });
+  document.addEventListener('visibilitychange', function(){ if(!document.hidden){ selfUpdate(); if(session && autoAllowed() && (Date.now() - lastLoadAt > 30000)) pollChanged(); else { try{ renderLastSync(); }catch(e){} } } });
   window.addEventListener('online', function(){ if(session){ try{ qFlush(); }catch(e){} pollChanged(); } });
-  window.addEventListener('focus', function(){ selfUpdate(); if(session && autoAllowed() && (Date.now() - lastLoadAt > 30000)) pollChanged(); else quietRender(); });
+  window.addEventListener('focus', function(){ selfUpdate(); if(session && autoAllowed() && (Date.now() - lastLoadAt > 30000)) pollChanged(); else { try{ renderLastSync(); }catch(e){} } });
 
   try{ var _d = new Date(), _hh = _d.getHours(), _mm = ('0'+_d.getMinutes()).slice(-2); sessionStorage.setItem('fd:loaded', ('0'+_hh).slice(-2) + ':' + _mm); }catch(e){}
   applyBuild(); buildToast();
@@ -8309,5 +8314,4 @@
 </script>
 
 
-<script async="" src="/.netlify/scripts/hud?variant=public" data-nf-variant="public" data-netlify-site-id="3304d3ae-7fc9-4190-beb8-ff3fc78420f7" data-app-host="app.netlify.com"></script>
 </body></html>
