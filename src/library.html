@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-13 20:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-13 21:30' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -766,9 +766,13 @@
   var viewRestored = false;
   var testPriority = null;   /* deck|id keys the paper must include (weak-areas paper) */
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
-  var APP_BUILD = '2026-10-13 20:00';
-  var BUILD_NOTE = 'The build you are running now shows in the header — tap it to check for updates.';
+  var APP_BUILD = '2026-10-13 21:30';
+  var BUILD_NOTE = 'Fixed the reason an old version kept coming back: a device on an older build can no longer push its stale page over the newer one.';
   var CHANGELOG = [
+    { build:'2026-10-13 21:30', title:'An old version can no longer come back', items:[
+      'Root cause found: when the app opened on a device that was still on an older build, it published that older page back to the cloud — overwriting the newer one. Every device then saw the old version again.',
+      'The publish guard now compares build numbers: a page will never overwrite a cloud build that is the same or newer. Your own progress and edits were never affected.'
+    ]},
     { build:'2026-10-13 20:00', title:'You can always see which build you are on', items:[
       'The current build now shows in the header as a small chip (e.g. v2026-10-13 20:00).',
       'Tap the chip to check for updates on the spot — useful if the app ever looks older than it should.'
@@ -3712,11 +3716,22 @@
   function publishSelf(){
     if(!IS_OWNER) return;
     try{ if(sessionStorage.getItem('fd:pub') === APP_BUILD) return; }catch(e){}
+    var _cloudVer = null;
     ensureAuth().then(function(){
+      return get('/rest/v1/settings?select=value&key=eq.ui_version&user_id=eq.' + session.user.id);
+    }).then(function(vr){
+      try{ if(vr && vr.length && vr[0].value) _cloudVer = String(vr[0].value); }catch(e){}
       return get('/rest/v1/settings?select=value&key=eq.library_html&user_id=eq.' + session.user.id);
     }).then(function(rows){
       var cur = (rows && rows.length && rows[0].value) || '';
       if(cur.indexOf("APP_BUILD = '" + APP_BUILD + "'") >= 0) return;
+      /* NEVER let an older page overwrite a same-or-newer cloud build.
+         (The old equality-only check let any device on an old build push its
+         stale page back over a newer one — which is how an old version kept
+         reappearing for everyone.) */
+      var _m = cur.match(/var APP_BUILD = '([^']+)'/);
+      if(_m && vnum(_m[1]) >= vnum(APP_BUILD)) return;
+      if(_cloudVer && vnum(_cloudVer) > vnum(APP_BUILD)) return;
       var clone = document.documentElement.cloneNode(true);
       var cf = clone.querySelector ? clone.querySelector('#frame') : null; if(cf) cf.removeAttribute('srcdoc');
       var cc = clone.querySelector ? clone.querySelector('#content') : null; if(cc) cc.innerHTML = '';
