@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-18 08:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-18 12:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -31,10 +31,17 @@
     --focus:rgba(234,88,12,.45);
     --r-sm:10px; --r-md:14px; --r-lg:18px;
     --el-1:0 1px 2px rgba(120,60,10,.05), 0 8px 24px -20px rgba(120,60,10,.5);
+    --el-2:0 16px 38px -20px rgba(120,60,10,.5);
+    --panel-2:#fdfbf8;
+    /* type scale */
+    --fs-xs:.72rem; --fs-sm:.8rem; --fs-base:.88rem; --fs-md:.98rem; --fs-lg:1.12rem; --fs-xl:1.5rem; --fs-2xl:2.3rem;
+    /* spacing + radius scale */
+    --sp-1:6px; --sp-2:10px; --sp-3:16px; --sp-4:22px;
+    --r-xl:22px;
   }
   body.dark{
     --accent:#fb923c; --accent-2:#f97316; --accent-soft:#2a1a0e;
-    --bg:#0c0b0a; --panel:#161412; --ink:#f6efe9; --muted:#a99a8d; --line:#2b2622;
+    --bg:#121110; --panel:#1b1917; --panel-2:#232019; --ink:#f6efe9; --muted:#a99a8d; --line:#322c26;
     --shadow:0 10px 30px -18px rgba(0,0,0,.8);
     --ok:#34d399; --ok-strong:#4ade80;
     --bad:#f87171; --bad-strong:#fca5a5;
@@ -47,8 +54,8 @@
   html,body{margin:0;height:100%}
   body{background:var(--bg); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; -webkit-font-smoothing:antialiased}
   .hidden{display:none!important}
-  .muted{color:var(--muted); font-size:.86rem; line-height:1.5}
-  .small{font-size:.78rem}
+  .muted{color:var(--muted); font-size:var(--fs-base); line-height:1.5}
+  .small{font-size:var(--fs-sm)}
 
   /* app bar */
   .appbar{position:fixed; left:0; right:0; top:0; z-index:30; display:flex; align-items:center; gap:12px;
@@ -247,8 +254,8 @@
   .tile{border:1px solid var(--line); background:var(--panel); border-radius:16px; padding:14px; box-shadow:var(--shadow)}
   .tile b{display:block; font-size:1.5rem; font-weight:850; letter-spacing:-.02em}
   .tile span{color:var(--muted); font-size:.74rem; font-weight:600}
-  .card3{border:1px solid var(--line); background:var(--panel); border-radius:18px; padding:16px; margin-top:12px; box-shadow:var(--shadow)}
-  .card3 .chead{font-size:.72rem; font-weight:800; text-transform:uppercase; letter-spacing:.09em; color:var(--muted); margin-bottom:8px}
+  .card3{border:1px solid var(--line); background:var(--panel); border-radius:var(--r-lg); padding:var(--sp-3); margin-top:12px; box-shadow:var(--el-1)}
+  .card3 .chead{font-size:var(--fs-xs); font-weight:800; text-transform:uppercase; letter-spacing:.09em; color:var(--muted); margin-bottom:8px}
   .card3 .big{font-size:2rem; font-weight:850; color:var(--accent-2); line-height:1.1}
   .bar2{display:flex; height:10px; border-radius:var(--cap); overflow:hidden; background:var(--line); margin:12px 0 8px}
   .bar2 i{display:block; height:100%}
@@ -402,11 +409,11 @@
   .errrm{margin-top:8px; border:0; background:none; color:var(--bad); font:inherit; font-size:.8rem; font-weight:750; cursor:pointer; padding:0}
   /* grand test */
   .twrap{display:flex; flex-direction:column; gap:12px}
-  .tbig{font-size:1.5rem; font-weight:800}
+  .tbig{font-size:var(--fs-xl); font-weight:800}
   .tsub{color:var(--muted); font-size:.88rem; line-height:1.45}
-  .tsub.small{font-size:.8rem}
+  .tsub.small{font-size:var(--fs-sm)}
   .tcard{background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:12px 14px; display:flex; flex-direction:column; gap:8px}
-  .tlabel{font-size:.68rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:var(--muted)}
+  .tlabel{font-size:var(--fs-xs); font-weight:800; letter-spacing:.09em; text-transform:uppercase; color:var(--muted)}
   .tsel{font:inherit; padding:10px 12px; border:1px solid var(--line); border-radius:12px; background:var(--bg); color:var(--ink); width:100%}
   .tchips{display:flex; gap:8px; flex-wrap:wrap}
   .tchips.scroll{max-height:210px; overflow:auto; padding:2px}
@@ -414,9 +421,9 @@
   .tchip.allchip.on{background:var(--accent-2); color:#fff; border-style:solid}
   .tchip.allchip[disabled]{opacity:.45}
   .tnum{width:80px; padding:7px 10px; border-radius:var(--cap); border:1px solid var(--line); font:inherit; font-size:.9rem; text-align:center; background:var(--panel); color:inherit}
-  .tchip{border:1px solid var(--line); background:var(--bg); color:var(--ink); border-radius:999px; padding:9px 16px; font:inherit; font-size:.85rem; font-weight:750; cursor:pointer}
+  .tchip{border:1px solid var(--line); background:var(--bg); color:var(--ink); border-radius:999px; padding:9px 16px; font:inherit; font-size:var(--fs-base); font-weight:750; cursor:pointer; min-height:40px; padding-left:17px; padding-right:17px}
   .tchip.on{background:var(--accent-2); border-color:var(--accent-2); color:#fff}
-  .tstart{border:0; background:var(--accent-2); color:#fff; border-radius:999px; padding:15px 18px; font:inherit; font-size:.95rem; font-weight:800; cursor:pointer; box-shadow:0 12px 26px -14px rgba(255,106,0,.7)}
+  .tstart{border:0; background:var(--accent-2); color:#fff; border-radius:999px; padding:15px 18px; font:inherit; font-size:var(--fs-md); font-weight:800; cursor:pointer; min-height:48px; box-shadow:0 12px 26px -14px rgba(255,106,0,.7)}
   .tstart.stickybar{position:sticky; bottom:14px; z-index:6; width:100%; margin-top:14px}
   .tstart.ghost{background:none; color:var(--accent-2); border:1px solid var(--line); box-shadow:none}
   .tstart:disabled{opacity:.45; box-shadow:none}
@@ -460,7 +467,7 @@
   .tmk.right{background:var(--ok)}
   .tmk.wrong{background:var(--bad)}
   .tskip{align-self:center; border:0; background:none; color:var(--muted); font:inherit; font-size:.82rem; font-weight:750; cursor:pointer; text-decoration:underline}
-  .tscore{font-size:2.4rem; font-weight:800; color:var(--accent-2); line-height:1}
+  .tscore{font-size:var(--fs-2xl); font-weight:800; color:var(--accent-2); line-height:1}
   .terr{padding:10px 0; border-top:1px solid var(--line)}
   .terr:first-of-type{border-top:0}
   .terr-m{font-size:.72rem; color:var(--muted); margin-bottom:3px}
@@ -704,6 +711,18 @@
   @media (prefers-reduced-motion: reduce){
     *, *::before, *::after{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; scroll-behavior:auto !important }
   }
+  /* empty states + loading skeleton */
+  .sechead{display:flex; align-items:center; gap:10px; margin:22px 2px 4px; font-size:var(--fs-xs); font-weight:850; letter-spacing:.11em; text-transform:uppercase; color:var(--ink); opacity:.75}
+  .sechead::after{content:""; flex:1; height:1px; background:var(--line)}
+  .empty{text-align:center; padding:26px 16px 20px; color:var(--muted)}
+  .empty-ic{display:flex; justify-content:center; opacity:.45}
+  .empty-ic svg{width:38px; height:38px}
+  .empty-t{font-size:var(--fs-lg); font-weight:800; color:var(--ink); margin-top:10px}
+  .empty-s{font-size:var(--fs-base); margin-top:5px; line-height:1.55; color:var(--ink); opacity:.7; max-width:34ch; margin-left:auto; margin-right:auto}
+  .skel-card{height:74px; border-radius:var(--r-lg); margin-top:12px; border:1px solid var(--line);
+    background:linear-gradient(100deg, var(--line) 30%, var(--panel-2) 50%, var(--line) 70%);
+    background-size:220% 100%; animation:shim 1.15s linear infinite}
+  @keyframes shim{to{background-position:-220% 0}}
 </style>
 </head>
 <body>
@@ -860,9 +879,15 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-18 08:00';
-  var BUILD_NOTE = 'A design-system pass: one token layer for colour roles, the stray purple removed from an orange app, a broken token fixed, a keyboard focus ring, reduced-motion support, and the Practice-now button no longer overlaps the result screen.';
+  var APP_BUILD = '2026-10-18 12:00';
+  var BUILD_NOTE = 'Design system, part 2: one token layer (type, radius, spacing, elevation, dark ramp) applied across the app, stronger section headers, real empty states, a loading skeleton, a clearer Home and bigger tap targets.';
   var CHANGELOG = [
+    { build:'2026-10-18 12:00', title:'Design system: tokens, hierarchy, empty states', items:[
+      'The whole app now runs on one token layer - type sizes, radii, spacing and elevation come from a single scale, so screens are consistent instead of ad-hoc.',
+      'Stronger section headers with a hairline, and a clearer Home hierarchy: Today, then Practice, Your progress, and Exam.',
+      'Proper empty states (icon, title, one line) instead of a bare sentence, and a loading skeleton so the first paint is not blank.',
+      'Softer dark mode and bigger tap targets on chips and buttons. Every screen was rendered and reviewed.',
+    ]},
     { build:'2026-10-18 08:00', title:'Design system pass: tokens, focus ring, and a fixed overlap', items:[
       'Fixed a real overlap: the Practice-now lightning button stayed on the result screen and sat over the content. It is Home-only again.',
       'Introduced one token layer for colour roles (success, danger, warning, mark) instead of about thirty scattered literals, so the whole app can be re-themed from one place.',
@@ -3334,10 +3359,12 @@
     var subs = backlogSubjects(), totN = 0;
     subs.forEach(function(x){ totN += x.n; });
     var line = document.createElement('div'); line.className = 'muted small'; line.style.margin = '0 2px 8px';
-    line.textContent = subs.length
-      ? (totN + ' cards across ' + subs.length + (subs.length === 1 ? ' subject' : ' subjects') + ' have never been opened \u2014 expand a year to find them.')
-      : 'Every card has been started. Nothing left here.';
-    c.appendChild(line);
+    if(subs.length){
+      line.textContent = totN + ' cards across ' + subs.length + (subs.length === 1 ? ' subject' : ' subjects') + ' have never been opened \u2014 expand a year to find them.';
+      c.appendChild(line);
+    } else {
+      c.appendChild(emptyState('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 6 9 17l-5-5"/></svg>', 'Every card has been started', 'Nothing is untouched \u2014 head to Revise to keep it sticking.'));
+    }
     c.appendChild(searchCapsule());
     var lbl = document.createElement('div'); lbl.className = 'chead'; lbl.style.margin = '16px 2px 0'; lbl.textContent = 'All categories';
     c.appendChild(lbl);
@@ -3529,22 +3556,39 @@
     out.sort(function(a, b){ var x = a.label.toLowerCase(), z = b.label.toLowerCase(); return x < z ? -1 : (x > z ? 1 : 0); });
     return out;
   }
+  function emptyState(icon, title, sub, actionLabel, actionFn){
+    var d = document.createElement('div'); d.className = 'empty';
+    var ic = document.createElement('div'); ic.className = 'empty-ic'; ic.innerHTML = icon || ''; d.appendChild(ic);
+    var t = document.createElement('div'); t.className = 'empty-t'; t.textContent = title || 'Nothing here yet'; d.appendChild(t);
+    if(sub){ var s = document.createElement('div'); s.className = 'empty-s'; s.textContent = sub; d.appendChild(s); }
+    if(actionLabel && actionFn){
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'btn primary'; b.style.marginTop = '12px';
+      b.textContent = actionLabel; b.onclick = actionFn; d.appendChild(b);
+    }
+    return d;
+  }
+  function skeleton(){ var d = document.createElement('div'); for(var i=0;i<3;i++){ var r = document.createElement('div'); r.className = 'skel-card'; d.appendChild(r); } return d; }
+  function sectHead(t){ var d = document.createElement('div'); d.className = 'sechead'; d.textContent = t; return d; }
+
   function renderHome(){
     var c = $('content'); c.textContent = '';
     var t = statTotals();
     if(!IS_OWNER) c.appendChild(publicNote());
     c.appendChild(todayCard(t));
     c.appendChild(homeBanner(t));
-    var _rc = recentCard(); if(_rc) c.appendChild(_rc);
     c.appendChild(streakLine());
-    c.appendChild(recallCard(t));
-    c.appendChild(masteryInfographic());
-    c.appendChild(coverageCard());
-    c.appendChild(examCard());
-    var pdBtn = document.createElement('button'); pdBtn.className = 'btn primary wide'; pdBtn.style.marginTop = '12px';
+    var _rc = recentCard(); if(_rc) c.appendChild(_rc);
+    c.appendChild(sectHead('Practice'));
+    var pdBtn = document.createElement('button'); pdBtn.className = 'btn primary wide'; pdBtn.style.marginTop = '8px';
     pdBtn.textContent = 'Practice all due now'; pdBtn.onclick = function(){ practiceDueAll(); };
     c.appendChild(pdBtn);
     c.appendChild(practicePanel({ heading:'Filter & practice', options: homeSubjectOptions(), title:'Home' }));
+    c.appendChild(sectHead('Your progress'));
+    c.appendChild(recallCard(t));
+    c.appendChild(masteryInfographic());
+    c.appendChild(coverageCard());
+    c.appendChild(sectHead('Exam'));
+    c.appendChild(examCard());
     if(!IS_OWNER && !UNLOCKED){
       var frows = [];
       Object.keys(FREE).forEach(function(k){
@@ -8248,9 +8292,7 @@
     c.appendChild(wrap);
 
     if(!noted.length && !un.length){
-      var em = document.createElement('div'); em.className = 'muted small';
-      em.textContent = 'Nothing yet. Sit a paper, and on the review screen write a line under any question you missed or marked \u2014 that line lands here.';
-      c.appendChild(em);
+      c.appendChild(emptyState('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h5"/></svg>', 'Nothing in the error log yet', 'Sit a paper, and on the review screen write a line under any question you missed or marked \u2014 that line lands here.'));
       return;
     }
 
@@ -8440,6 +8482,7 @@
     var _ry = parseInt(ls('fd:scroll', '0'), 10) || 0;
     if(_ry > 0) setTimeout(function(){ try{ window.scrollTo(0, _ry); }catch(e){} }, 400);
   }catch(e){}
+  try{ var _cc = $('content'); if(_cc && !_cc.childNodes.length) _cc.appendChild(skeleton()); }catch(e){}
   show();
   recoverFromLink();
 })();
