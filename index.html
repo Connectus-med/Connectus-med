@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-17 12:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-17 14:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -840,9 +840,13 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-17 12:00';
-  var BUILD_NOTE = 'Fixed a screen-jump bug: the app could pull you back to the screen it first opened on, on any later background sync. The restore now runs only once, at boot. Also fixed the Insights button, which opened Home instead of the owner screen.';
+  var APP_BUILD = '2026-10-17 14:00';
+  var BUILD_NOTE = 'Fixed the sync label, which grew stale and reset unpredictably. It now updates on every successful sync with the cloud, so it reads a small steady number and only grows when you are actually offline.';
   var CHANGELOG = [
+    { build:'2026-10-17 14:00', title:'Fixed: the synced label', items:[
+      'Fixed the synced label - it could read synced 36m one moment and synced now the next. It was only updated on a full library load, so it grew stale while the app was syncing your progress every few seconds.',
+      'It now updates on every successful round-trip with the cloud - a load, a progress write, or the 30-second check - so it reads now or a few seconds, and only grows when you are actually offline.',
+    ]},
     { build:'2026-10-17 12:00', title:'Fixed: screens jumping on their own', items:[
       'Fixed the bug where the app sometimes moved to another screen by itself - most often back to Test while you were on What is New. The restore-last-screen step could fire on any later background sync (the 30-second check, or when you returned to the app), not only at startup.',
       'It now runs exactly once, at startup, and only if you have not already chosen a screen - so a background sync can never move you again.',
@@ -2039,7 +2043,7 @@
     if(session && session.access_token) h['Authorization'] = 'Bearer ' + session.access_token;
     return h;
   }
-  function get(path){ return fetch(SB_URL + path, { headers: headers() }).then(function(r){ if(!r.ok) return r.text().then(function(t){ throw new Error(t); }); return r.json(); }); }
+  function get(path){ return fetch(SB_URL + path, { headers: headers() }).then(function(r){ if(!r.ok) return r.text().then(function(t){ throw new Error(t); }); return r.json().then(function(j){ try{ setLastSync(Date.now()); }catch(e){} return j; }); }); }
   /* ---------- durable write queue: a write is retried until it lands ---------- */
   var QK = 'fd:q:lib';
   function qLoad(){ try{ var q=JSON.parse(localStorage.getItem(QK)||'[]'); return Array.isArray(q)?q:[]; }catch(e){ return []; } }
@@ -2048,7 +2052,7 @@
   function qSend(path, method, body){
     var opts = { method: method, headers: Object.assign({}, headers(), { 'Prefer': method==='POST' ? 'resolution=merge-duplicates,return=minimal' : 'return=minimal' }), body: JSON.stringify(body) };
     return fetch(SB_URL + path, opts)
-      .then(function(r){ if(!r.ok) return r.text().then(function(t){ throw new Error(t); }); return true; })
+      .then(function(r){ if(!r.ok) return r.text().then(function(t){ throw new Error(t); }); try{ setLastSync(Date.now()); }catch(e){} return true; })
       .catch(function(e){ qAdd({ path:path, method:method, body:body, t:Date.now() }); throw e; });
   }
   function post(path, body){ return qSend(path, 'POST', body); }
@@ -2063,7 +2067,7 @@
         var opts = { method:e.method, headers: Object.assign({}, headers(), { 'Prefer': e.method==='POST' ? 'resolution=merge-duplicates,return=minimal' : 'return=minimal' }), body: JSON.stringify(e.body) };
         return fetch(SB_URL + e.path, opts).then(function(r){ if(!r.ok) throw new Error('q'); }, function(){ failed.push(e); });
       });
-    }, Promise.resolve()).then(function(){ if(failed.length) qSave(failed.concat(qLoad())); });
+    }, Promise.resolve()).then(function(){ if(failed.length) qSave(failed.concat(qLoad())); else { try{ setLastSync(Date.now()); }catch(e){} } });
   }
   function ensureAuth(){
     if(!session) return Promise.reject(new Error('not signed in'));
@@ -8216,6 +8220,7 @@
           { headers: authHeaders() })
       .then(function(r){ return r.ok ? r.json() : null; })
       .then(function(rows){
+        try{ setLastSync(Date.now()); }catch(e){}
         var st = (rows && rows.length && rows[0].updated_at) || '';
         if(lastStamp === null){ lastStamp = st; return; }   /* first probe only records */
         if(st && st !== lastStamp){ lastStamp = st; load(); }
