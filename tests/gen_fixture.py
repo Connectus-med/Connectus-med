@@ -36,9 +36,18 @@ def main():
     # the app treats the signed-in user as the OWNER only when a `title`
     # settings row comes back for them — without it it takes the guest path and
     # never reads /rest/v1/decks, so the pool is empty and no paper can start.
+    # per-card state the library must read back. One card is DELETED: if the
+    # pull ever stops asking for card_id, stateMapFor() cannot match it and the
+    # deleted card leaks back into the test pool — the suite catches that.
+    first = decks[0]["deck_key"]
+    states = [
+        {"deck_key": first, "card_id": first + "_q1", "rating": None, "due_at": None, "deleted": True, "updated_ms": 1},
+        {"deck_key": first, "card_id": first + "_q2", "rating": 2, "due_at": 1, "deleted": False, "updated_ms": 2},
+        {"deck_key": first, "card_id": first + "_q3", "rating": 1, "due_at": 1, "deleted": False, "updated_ms": 3},
+    ]
     fx = {"uid": "00000000-0000-0000-0000-000000000000",
           "subjects": [], "settings": [{"key": "title", "value": "Connectus"}],
-          "decks": decks}
+          "decks": decks, "states": states}
     here = os.path.dirname(os.path.abspath(__file__))
     with open(os.path.join(here, "fixtures.json"), "w", encoding="utf-8") as f:
         json.dump(fx, f, ensure_ascii=False)
