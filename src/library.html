@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-14 09:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-14 18:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -409,6 +409,25 @@
   .thist-d{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
   .thist-s{font-weight:800}
   .thist-t{color:var(--muted); font-size:.78rem; min-width:64px; text-align:right}
+  .ttrend{display:flex; align-items:center; gap:10px; margin:2px 0 8px}
+  .tspark{width:96px; height:34px; flex:0 0 auto; overflow:visible}
+  .tspark .ln{fill:none; stroke:var(--accent-2); stroke-width:2.4; stroke-linejoin:round; stroke-linecap:round; vector-effect:non-scaling-stroke}
+  .tspark .ar{fill:rgba(124,58,237,.10)}
+  .tspark .dt{fill:var(--accent-2)}
+  .ttrend-txt{flex:1; min-width:0; font-size:.82rem; color:var(--muted)}
+  .ttrend-txt b{color:var(--fg); font-weight:800}
+  .ttrend-up{color:#0f766e; font-weight:800}
+  .ttrend-dn{color:#c81e1e; font-weight:800}
+  .ttrend-fl{color:var(--muted); font-weight:700}
+  .tfind{width:100%; box-sizing:border-box; border:1px solid var(--line); background:var(--card);
+         color:var(--fg); font:inherit; font-size:.95rem; border-radius:14px; padding:12px 14px; margin:2px 0 10px}
+  .tfind:focus{outline:none; border-color:var(--accent-2); box-shadow:0 0 0 3px rgba(124,58,237,.14)}
+  .tfindres{display:flex; flex-direction:column; gap:7px; max-height:52vh; overflow:auto}
+  .tfindrow{border:1px solid var(--line); border-radius:12px; padding:9px 11px; cursor:pointer}
+  .tfindrow:hover{border-color:var(--accent-2)}
+  .tfindrow .tfq{font-size:.86rem; line-height:1.35}
+  .tfindrow .tfm{font-size:.74rem; color:var(--muted); margin-top:3px}
+  .tfindrow mark{background:rgba(124,58,237,.18); color:inherit; border-radius:3px; padding:0 2px}
   .tbar{display:flex; align-items:center; gap:10px}
   .tqn{font-weight:800; font-size:.9rem}
   .tclock{margin-left:auto; font-weight:800; font-variant-numeric:tabular-nums; font-size:1rem; color:var(--accent-2)}
@@ -768,8 +787,14 @@
   var testPriority = null;   /* deck|id keys the paper must include (weak-areas paper) */
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var APP_BUILD = '2026-10-14 09:00';
-  var BUILD_NOTE = 'Student-first changes: a Today card that says what to do, clearer home numbers, full-year PYQ papers, and the test builder’s Start button always in reach.';
+  var BUILD_NOTE = 'Batch 5: a score trend on past tests, untimed practice, and a Find-a-question search that turns matches into a paper.';
   var CHANGELOG = [
+    { build:'2026-10-14 18:00', title:'See your progress, and study on your own clock', items:[
+      'Past tests now open with a score trend \u2014 a small line of your recent papers, the last-3 average, and how far it moved against the three before (green up, red down).',
+      'Untimed practice: the test builder has a Timing choice. Pick Untimed and the clock counts up instead of down, sections never lock, and the paper never auto-submits \u2014 your time is still recorded for the trend.',
+      'Find a question: search the stem, the options and the explanation across every question you can open, then turn the matches into a paper in one tap.',
+      'Marking a question for review was already there (the Mark button and the violet rings on the palette) \u2014 it stays exactly as it was.',
+    ]},
     { build:'2026-10-14 09:00', title:'What to do today, in one tap', items:[
       'A new Today card sits at the top of Home: how many cards to review, how many are new, and one button that takes you straight there. The rest of Home is now context, not a decision.',
       'Home numbers were mixing units (499 cards vs 497 decks) and read like a paradox. They are now both cards: "To review 2" and "New 497".',
@@ -4717,7 +4742,7 @@
      MCQs in the content yet, so a question shows the card front, you reveal the
      answer, and you mark yourself right or wrong. Every wrong card goes to the
      error log, and you can re-practise just those. */
-  var testRun = null, testTimerId = null, testScope = 'all', testLen = 200, testDeck = '', testExam = 'NEET-PG', testSections = true, testSeed = 0, testCustom = false, testSelSubjects = [], testSelUnits = [], testSelChapters = [], testSelYears = [];
+  var testRun = null, testTimerId = null, testScope = 'all', testLen = 200, testDeck = '', testExam = 'NEET-PG', testSections = true, testSeed = 0, testUntimed = false, testCustom = false, testSelSubjects = [], testSelUnits = [], testSelChapters = [], testSelYears = [];
 
   function flatText(v){
     if(v == null) return '';
@@ -5140,6 +5165,7 @@
     if(view.tMode === 'grand'){ renderTestGrand(); return; }
     if(view.tMode === 'deck'){ renderTestDeckSetup(); return; }
     if(view.tMode === 'build'){ renderTestBuilder(view.bMode); return; }
+    if(view.tMode === 'find'){ renderTestFind(); return; }
     renderTestModes();
   }
 
@@ -5337,6 +5363,17 @@
         erow.appendChild(b);
       });
       card.appendChild(erow);
+      /* timing - timed (exam-like, sections lock) or untimed (study freely, clock only counts up) */
+      var tlb = document.createElement('div'); tlb.className = 'tlabel'; tlb.textContent = 'Timing'; card.appendChild(tlb);
+      var trow = document.createElement('div'); trow.className = 'tchips';
+      [['timed', 'Timed \u00b7 exam-like'], ['untimed', 'Untimed \u00b7 study']].forEach(function(o){
+        var b = document.createElement('button'); b.type = 'button';
+        b.className = 'tchip' + (((S.untimed ? 'untimed' : 'timed')) === o[0] ? ' on' : '');
+        b.textContent = o[1];
+        b.onclick = function(){ S.untimed = (o[0] === 'untimed'); draw(); };
+        trow.appendChild(b);
+      });
+      card.appendChild(trow);
       /* scope */
       chipRow('Year', spineYearsAll(), S.years);
       chipRow('Subject', spineSubjectsFor(S.years), S.subs);
@@ -5375,7 +5412,7 @@
       var info = document.createElement('div'); info.className = 'tsub small';
       info.textContent = pool.length + ' deck' + (pool.length === 1 ? '' : 's') + ' \u00b7 ' + nQ + ' MCQs available'
         + ((S.years.length || S.subs.length || S.units.length || S.chaps.length) ? '' : ' \u2014 the whole tree')
-        + '  \u00b7  paper of ' + Math.min(S.len, nQ) + '  \u00b7  ' + _ex.mark;
+        + '  \u00b7  paper of ' + Math.min(S.len, nQ) + '  \u00b7  ' + (S.untimed ? 'untimed' : _ex.mark);
       card.appendChild(info);
       startBtn.disabled = !nQ;
       startBtn.textContent = nQ ? ('Start test \u00b7 ' + Math.min(S.len, nQ) + ' Q') : 'No questions here yet';
@@ -5383,6 +5420,7 @@
     wrap.appendChild(card);
     startBtn.onclick = function(){
       testCustom = true;
+      testUntimed = !!S.untimed;
       testSelYears = S.years.slice(); testSelSubjects = S.subs.slice(); testSelUnits = S.units.slice(); testSelChapters = S.chaps.slice();
       if(S.mode === 'weak') testPriority = weakPriorityIds(S.len);
       testLen = S.len; testScope = 'all'; testDeck = '';
@@ -5478,6 +5516,78 @@
       return (Array.isArray(d.cards) ? d.cards : []).filter(isMcq).length > 0;
     });
   }
+  /* ---------- Find a question: search the whole bank, then practise the matches ---------- */
+  function renderTestFind(){
+    testDeck = ''; testCustom = false; testPriority = null; pendingScope = null;
+    var box = $('content'); box.textContent = '';
+    var wrap = document.createElement('div'); wrap.className = 'twrap';
+    var back = document.createElement('button'); back.type = 'button'; back.className = 'tend'; back.textContent = '\u2039 All test modes';
+    back.onclick = function(){ view = { t:'test' }; render(); window.scrollTo(0,0); };
+    wrap.appendChild(back);
+    var h = document.createElement('div'); h.className = 'tbig'; h.textContent = 'Find a question'; wrap.appendChild(h);
+    var sub = document.createElement('div'); sub.className = 'tsub';
+    sub.textContent = 'Search the stem, the options and the explanation across every question you can open \u2014 then practise just the matches.';
+    wrap.appendChild(sub);
+    var card = document.createElement('div'); card.className = 'tcard';
+    var inp = document.createElement('input'); inp.type = 'search'; inp.className = 'tfind';
+    inp.placeholder = 'e.g. Murphy sign, anion gap, Rankine'; inp.autocomplete = 'off';
+    card.appendChild(inp);
+    var res = document.createElement('div'); res.className = 'tfindres'; card.appendChild(res);
+    var act = document.createElement('button'); act.type = 'button'; act.className = 'tstart'; act.textContent = 'Practise these'; act.disabled = true;
+    card.appendChild(act);
+    wrap.appendChild(card);
+    box.appendChild(wrap);
+    var idx = null, hits = [], timer = null;
+    function buildIndex(){
+      if(idx) return idx;
+      idx = [];
+      (decksData || []).forEach(function(d){
+        if(!d || !d.deck_key) return;
+        if(!IS_OWNER && !UNLOCKED && lockedKeys[d.deck_key]) return;   /* free tier stays intact */
+        var loc = deckLoc[d.deck_key] || {};
+        (Array.isArray(d.cards) ? d.cards : []).forEach(function(c){
+          if(isMcq(c)) idx.push(mcqItem(c, d.deck_key, loc, d.topic || d.deck_key));
+        });
+      });
+      return idx;
+    }
+    function note(txt){ res.textContent = ''; var e = document.createElement('div'); e.className = 'tsub small'; e.textContent = txt; res.appendChild(e); }
+    function run(){
+      var q = (inp.value || '').trim().toLowerCase();
+      res.textContent = ''; hits = []; act.disabled = true; act.textContent = 'Practise these';
+      if(q.length < 2){ note('Type at least 2 letters.'); return; }
+      var all = buildIndex(), out = [];
+      for(var i = 0; i < all.length && out.length < 80; i++){
+        var it = all[i];
+        if(((it.q || '') + ' ' + (it.options || []).join(' ') + ' ' + (it.explain || '')).toLowerCase().indexOf(q) >= 0) out.push(it);
+      }
+      hits = out;
+      if(!out.length){ note('Nothing matched \u201c' + inp.value.trim() + '\u201d.'); return; }
+      out.forEach(function(it){
+        var row = document.createElement('div'); row.className = 'tfindrow';
+        var a = document.createElement('div'); a.className = 'tfq'; a.textContent = it.q || '';
+        var b = document.createElement('div'); b.className = 'tfm';
+        b.textContent = (it.s || '') + (it.t ? ' \u00b7 ' + it.t : '') + (it.tag ? ' \u00b7 ' + it.tag : '');
+        row.appendChild(a); row.appendChild(b);
+        row.onclick = function(){ inp.value = it.q || ''; run(); };
+        res.appendChild(row);
+      });
+      act.textContent = 'Practise these ' + Math.min(out.length, 50) + (out.length > 50 ? ' of ' + out.length : '');
+      act.disabled = false;
+    }
+    inp.oninput = function(){ if(timer) clearTimeout(timer); timer = setTimeout(run, 180); };
+    inp.onkeydown = function(e){ if(e.key === 'Enter'){ if(timer) clearTimeout(timer); run(); } };
+    act.onclick = function(){
+      if(!hits.length) return;
+      testPriority = hits.slice(0, 50).map(function(x){ return x.k + '|' + x.id; });
+      testCustom = true; testSelYears = []; testSelSubjects = []; testSelUnits = []; testSelChapters = [];
+      testScope = 'all'; testDeck = ''; testLen = Math.min(50, testPriority.length);
+      testStart();
+    };
+    note('Type at least 2 letters.');
+    try{ inp.focus(); }catch(e){}
+  }
+
   function renderTestModes(){
     testDeck = ''; testCustom = false; testPriority = null; pendingScope = null;
     var box = $('content'); box.textContent = '';
@@ -5491,6 +5601,7 @@
     modes.appendChild(testModeTile({ title:'Subject test', desc:'A timed paper from one whole subject, at its real weight in the exam you pick.', soon:false, onTap:function(){ view = { t:'test', tMode:'build', bMode:'subject' }; render(); window.scrollTo(0,0); } }));
     modes.appendChild(testModeTile({ title:'Real Exam Grand Test', desc:'A timed paper built to a real exam pattern — NEET-PG, INI-CET or RUHS-MO.', soon:false, onTap:function(){ view = { t:'test', tMode:'grand' }; render(); window.scrollTo(0,0); } }));
     modes.appendChild(testModeTile({ title:'Weak areas', desc:'Built from your real accuracy \u2014 every question you missed, worst first, plus the chapters you are weakest in.', soon:false, onTap:function(){ view = { t:'test', tMode:'build', bMode:'weak' }; render(); window.scrollTo(0,0); } }));
+    modes.appendChild(testModeTile({ title:'Find a question', desc:'Search every question in your bank by word or phrase \u2014 then practise just those.', soon:false, onTap:function(){ view = { t:'test', tMode:'find' }; render(); window.scrollTo(0,0); } }));
     wrap.appendChild(modes);
 
     /* Qbank — the WHOLE MBBS tree: Year → Subject → Unit → Chapter → deck, collapsible */
@@ -5781,6 +5892,35 @@
     if(Array.isArray(hist) && hist.length){
       var hc = document.createElement('div'); hc.className = 'tcard';
       var hl = document.createElement('div'); hl.className = 'tlabel'; hl.textContent = 'Past tests'; hc.appendChild(hl);
+      /* --- score trend: a small self-contained sparkline over the recent papers,
+         with the last-3 average and how it moved against the 3 before that. --- */
+      (function(){
+        var pts = hist.filter(function(x){ return x && x.n; }).slice(0, 12).reverse();   /* oldest -> newest */
+        if(pts.length < 2) return;
+        var pct = pts.map(function(x){ return Math.round(x.right / x.n * 100); });
+        var W = 96, H = 34, P = 3;
+        var x = function(i){ return P + (W - 2*P) * (pct.length === 1 ? 0.5 : i/(pct.length-1)); };
+        var y = function(v){ return H - P - (H - 2*P) * (v/100); };
+        var d = pct.map(function(v,i){ return (i?'L':'M') + x(i).toFixed(1) + ' ' + y(v).toFixed(1); }).join(' ');
+        var area = 'M' + x(0).toFixed(1) + ' ' + (H-P) + ' ' + pct.map(function(v,i){ return 'L' + x(i).toFixed(1) + ' ' + y(v).toFixed(1); }).join(' ') + ' L' + x(pct.length-1).toFixed(1) + ' ' + (H-P) + ' Z';
+        var svg = '<svg class="tspark" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none">'
+                + '<path class="ar" d="' + area + '"/>'
+                + '<path class="ln" d="' + d + '"/>'
+                + '<circle class="dt" cx="' + x(pct.length-1).toFixed(1) + '" cy="' + y(pct[pct.length-1]).toFixed(1) + '" r="2.6"/></svg>';
+        var last3 = pct.slice(-3), prev3 = pct.slice(-6, -3);
+        var avg = function(a){ return Math.round(a.reduce(function(s,v){ return s+v; },0)/a.length); };
+        var a3 = avg(last3);
+        var delta = prev3.length ? a3 - avg(prev3) : null;
+        var arrow = delta === null ? '' : (delta > 0 ? ' \u25b2 ' + delta : (delta < 0 ? ' \u25bc ' + Math.abs(delta) : ' \u2014 flat'));
+        var cls = delta === null ? 'ttrend-fl' : (delta > 0 ? 'ttrend-up' : (delta < 0 ? 'ttrend-dn' : 'ttrend-fl'));
+        var tr = document.createElement('div'); tr.className = 'ttrend';
+        tr.innerHTML = svg;
+        var tx = document.createElement('div'); tx.className = 'ttrend-txt';
+        tx.innerHTML = 'Last ' + last3.length + ': <b>' + a3 + '%</b>'
+                      + '<span class="' + cls + '">' + arrow + '</span>'
+                      + ' \u00b7 ' + pct.length + ' papers';
+        tr.appendChild(tx); hc.appendChild(tr);
+      })();
       hist.slice(0, 6).forEach(function(t){
         var r = document.createElement('div'); r.className = 'thist';
         var a = document.createElement('span'); a.className = 'thist-d'; a.textContent = new Date(t.ts).toLocaleDateString();
@@ -5976,7 +6116,7 @@
       var t0 = Date.now();
       testRun = { qs: qs, i: 0, answers: [], marked: [], started: t0, ends: t0 + n * 60000,
                   scope: testScope, n: n, errors: !!onlyErrors, exam: ex.k,
-                  secOn: secOn, secN: secN, secQ: secQ, secPerQ: secPerQ, secMins: secMins0, secIdx: 0, secEnds: t0 + secMins0 * 60000, seed: seed, targets: targets, needOn: needOn };
+                  secOn: secOn, secN: secN, secQ: secQ, secPerQ: secPerQ, secMins: secMins0, secIdx: 0, secEnds: t0 + secMins0 * 60000, seed: seed, targets: targets, needOn: needOn, untimed: !!testUntimed };
       for(var i=0;i<n;i++){ testRun.answers.push(null); testRun.marked.push(false); }
       ss('fd:testrun', testRun);
       ss('fd:testrun', testRun);
@@ -6062,6 +6202,13 @@
   }
   function testTick(){
     var el = $('tclock'); if(!el || !testRun || testRun.paused) return;
+    if(testRun.untimed){
+      /* untimed: count up, so the student still sees how long they took, and
+         nothing ever locks or auto-submits. */
+      el.textContent = '\u23f1 ' + fmtClock(Math.round((Date.now() - testRun.started)/1000));
+      el.classList.remove('low');
+      return;
+    }
     var endAt = testRun.secOn ? testRun.secEnds : testRun.ends;
     var left = Math.round((endAt - Date.now())/1000);
     el.textContent = fmtClock(left);
