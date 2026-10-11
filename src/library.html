@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-14 07:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-14 09:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -402,6 +402,7 @@
   .tchip{border:1px solid var(--line); background:var(--bg); color:var(--ink); border-radius:999px; padding:9px 16px; font:inherit; font-size:.85rem; font-weight:750; cursor:pointer}
   .tchip.on{background:var(--accent-2); border-color:var(--accent-2); color:#fff}
   .tstart{border:0; background:var(--accent-2); color:#fff; border-radius:999px; padding:15px 18px; font:inherit; font-size:.95rem; font-weight:800; cursor:pointer; box-shadow:0 12px 26px -14px rgba(255,106,0,.7)}
+  .tstart.stickybar{position:sticky; bottom:14px; z-index:6; width:100%; margin-top:14px}
   .tstart.ghost{background:none; color:var(--accent-2); border:1px solid var(--line); box-shadow:none}
   .tstart:disabled{opacity:.45; box-shadow:none}
   .thist{display:flex; align-items:baseline; gap:8px; font-size:.84rem}
@@ -766,9 +767,16 @@
   var viewRestored = false;
   var testPriority = null;   /* deck|id keys the paper must include (weak-areas paper) */
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
-  var APP_BUILD = '2026-10-14 07:00';
-  var BUILD_NOTE = 'The big one: the app no longer downloads every card on every load — 2.6 MB is now about 57 KB. Cards load only when you actually use them.';
+  var APP_BUILD = '2026-10-14 09:00';
+  var BUILD_NOTE = 'Student-first changes: a Today card that says what to do, clearer home numbers, full-year PYQ papers, and the test builder’s Start button always in reach.';
   var CHANGELOG = [
+    { build:'2026-10-14 09:00', title:'What to do today, in one tap', items:[
+      'A new Today card sits at the top of Home: how many cards to review, how many are new, and one button that takes you straight there. The rest of Home is now context, not a decision.',
+      'Home numbers were mixing units (499 cards vs 497 decks) and read like a paradox. They are now both cards: "To review 2" and "New 497".',
+      'PYQ section now offers the full paper for a year \u2014 every subject together, like the real exam.',
+      'The test builder\u2019s Start button stays in reach while you scroll, and the jargon "Custom mode" is now "Start a test".',
+      'The error log offers a draft line from the explanation \u2014 editing beats a blank box.'
+    ]},
     { build:'2026-10-14 07:00', title:'2.6 MB down to about 57 KB', items:[
       'Opening the app used to download every card of every deck \u2014 about 2.6 MB each time. The library only needs the counts, which now come from a small catalogue.',
       'Cards are fetched per deck when you open one, and the question pool loads once when you open Test. Same screens, same behaviour, roughly 45x less data on a normal open.',
@@ -3045,6 +3053,39 @@
   }
 
 
+  /* ---- "Today" -----------------------------------------------------------
+     The home showed six cards of numbers and left the student to decide what
+     to actually do. This is the one thing at the top: what is worth doing
+     right now, and a single button that takes them there. */
+  function todayCard(t){
+    var d = document.createElement('div'); d.className = 'card3 todaycard';
+    var h = document.createElement('div'); h.className = 'chead'; h.textContent = 'Today';
+    d.appendChild(h);
+    var _new = Math.max(0, t.cards - t.rated);
+    var _due = Math.max(0, t.due - _new);
+    var line = document.createElement('div'); line.className = 'muted small';
+    line.style.margin = '2px 0 10px';
+    if(_due || _new){
+      line.textContent = (_due ? _due + ' card' + (_due === 1 ? '' : 's') + ' to review' : 'Nothing to review') +
+                         (_new ? ' \u00b7 ' + _new + ' new to learn' : '');
+    } else {
+      line.textContent = 'Nothing due right now \u2014 a good moment for a paper.';
+    }
+    d.appendChild(line);
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'btn primary wide';
+    b.style.margin = '0';
+    if(_due){ b.textContent = 'Review ' + _due + ' card' + (_due === 1 ? '' : 's'); b.onclick = function(){ setTab('revise'); }; }
+    else if(_new){ b.textContent = 'Learn ' + _new + ' new card' + (_new === 1 ? '' : 's'); b.onclick = function(){ setTab('learn'); }; }
+    else { b.textContent = 'Solve a paper'; b.onclick = function(){ setTab('test'); }; }
+    d.appendChild(b);
+    var b2 = document.createElement('button'); b2.type = 'button'; b2.className = 'btn wide';
+    b2.style.margin = '8px 0 0';
+    b2.textContent = 'Or tackle my weak areas';
+    b2.onclick = function(){ pendingScope = null; view = { t:'test', tMode:'build', bMode:'weak' }; render(); window.scrollTo(0,0); };
+    d.appendChild(b2);
+    return d;
+  }
+
   function homeBanner(t){
     var nb = forecastBuckets();
     var d = document.createElement('div'); d.className = 'hband';
@@ -3057,8 +3098,12 @@
       b.onclick = function(){ setTab(to); };
       return b;
     }
-    row.appendChild(cell('Due now', t.due, t.due ? 'tap to revise' : 'nothing due', 'revise'));
-    row.appendChild(cell('Not started', nb.unstarted.length, nb.unstarted.length ? 'tap to learn' : 'all begun', 'learn'));
+    /* Both cells count CARDS. Before, one counted cards and the other decks,
+       so "Due now 499" sat next to "Not started 497" and read like a paradox. */
+    var _new = Math.max(0, t.cards - t.rated);
+    var _review = Math.max(0, t.due - _new);
+    row.appendChild(cell('To review', _review, _review ? 'tap to revise' : 'nothing due', 'revise'));
+    row.appendChild(cell('New', _new, _new ? 'tap to learn' : 'all begun', 'learn'));
     d.appendChild(row);
     var st = document.createElement('div'); st.className = 'stats';
     st.textContent = t.cards + ' cards \u00b7 ' + t.rated + ' seen \u00b7 ' + Math.max(0, t.cards - t.rated) + ' remaining \u00b7 ' + pctOf(t.rated, t.cards) + '% covered';
@@ -3183,6 +3228,7 @@
     var c = $('content'); c.textContent = '';
     var t = statTotals();
     if(!IS_OWNER) c.appendChild(publicNote());
+    c.appendChild(todayCard(t));
     c.appendChild(homeBanner(t));
     var _rc = recentCard(); if(_rc) c.appendChild(_rc);
     c.appendChild(streakLine());
@@ -5239,7 +5285,7 @@
       pendingScope = null;
     }
     var card = document.createElement('div'); card.className = 'tcard';
-    var startBtn = document.createElement('button'); startBtn.type = 'button'; startBtn.className = 'tstart'; startBtn.textContent = 'Start test';
+    var startBtn = document.createElement('button'); startBtn.type = 'button'; startBtn.className = 'tstart stickybar'; startBtn.textContent = 'Start test';
     function toggle(arr, v){ var i = arr.indexOf(v); if(i < 0) arr.push(v); else arr.splice(i, 1); }
     function chipRow(label, opts, arr, hint){
       var lb = document.createElement('div'); lb.className = 'tlabel';
@@ -5441,7 +5487,7 @@
     sub.textContent = 'Timed, exam-style practice from your decks. Pick a mode.';
     wrap.appendChild(sub);
     var modes = document.createElement('div'); modes.className = 'tmodes';
-    modes.appendChild(testModeTile({ title:'Custom mode', desc:'Build a paper from any scope \u2014 subjects, systems, chapters, any mix.', soon:false, onTap:function(){ view = { t:'test', tMode:'build', bMode:'custom' }; render(); window.scrollTo(0,0); } }));
+    modes.appendChild(testModeTile({ title:'Start a test', desc:'Pick your subjects, systems and length \u2014 or just hit start for a sensible paper.', soon:false, onTap:function(){ view = { t:'test', tMode:'build', bMode:'custom' }; render(); window.scrollTo(0,0); } }));
     modes.appendChild(testModeTile({ title:'Subject test', desc:'A timed paper from one whole subject, at its real weight in the exam you pick.', soon:false, onTap:function(){ view = { t:'test', tMode:'build', bMode:'subject' }; render(); window.scrollTo(0,0); } }));
     modes.appendChild(testModeTile({ title:'Real Exam Grand Test', desc:'A timed paper built to a real exam pattern — NEET-PG, INI-CET or RUHS-MO.', soon:false, onTap:function(){ view = { t:'test', tMode:'grand' }; render(); window.scrollTo(0,0); } }));
     modes.appendChild(testModeTile({ title:'Weak areas', desc:'Built from your real accuracy \u2014 every question you missed, worst first, plus the chapters you are weakest in.', soon:false, onTap:function(){ view = { t:'test', tMode:'build', bMode:'weak' }; render(); window.scrollTo(0,0); } }));
@@ -5584,6 +5630,32 @@
       var years = {};
       Object.keys(pyqIndex).forEach(function(subj){ (pyqIndex[subj] || []).forEach(function(y){ years[y] = 1; }); });
       var yOrder = Object.keys(years).sort().reverse();
+      /* One tap for the thing a student actually wants: the WHOLE paper for a
+         year, all subjects together, exactly like the real exam. */
+      var fpb = document.createElement('div'); fpb.className = 'tsub small';
+      fpb.textContent = 'Or attempt the full paper:';
+      pc.appendChild(fpb);
+      yOrder.forEach(function(y){
+        var keys = Object.keys(pyqDecks).filter(function(k){ return k.slice(-4) === String(y); });
+        var qs = 0; keys.forEach(function(k){ qs += pyqDecks[k].n; });
+        if(!qs) return;
+        var b = document.createElement('button'); b.type = 'button'; b.className = 'btn wide';
+        b.style.margin = '6px 0 0'; b.style.textAlign = 'left';
+        b.textContent = 'Full paper \u00b7 NEET ' + y + '  \u2014  ' + qs + ' Q, all subjects';
+        b.onclick = function(){
+          var ids = [];
+          keys.forEach(function(k){
+            var d = pyqDecks[k].d;
+            (Array.isArray(d.cards) ? d.cards : []).forEach(function(c){ if(isMcq(c)) ids.push(c.id); });
+          });
+          if(!ids.length){ toast('Those questions are still loading \u2014 try again in a moment.'); return; }
+          testPriority = ids.slice(0, 200);
+          testCustom = true; testSelYears = []; testSelSubjects = []; testSelUnits = []; testSelChapters = [];
+          testScope = 'all'; testDeck = ''; testLen = Math.min(200, testPriority.length);
+          testStart();
+        };
+        pc.appendChild(b);
+      });
       yOrder.forEach(function(y){
         var subs = Object.keys(pyqIndex).filter(function(subj){ return (pyqIndex[subj] || []).indexOf(y) >= 0; });
         var yQ = 0, yDecks = 0;
@@ -6474,20 +6546,36 @@
   }
   /* one compact box: write / update / remove your own line */
   function errNoteRow(k, id, container){
-    var cur = (errNotes()[k + '|' + id] || {}).note || '';
+    var saved = (errNotes()[k + '|' + id] || {}).note || '';
+    var cur = saved;
     var _drafts = {};
     try{ _drafts = ls('fd:errdraft', {}) || {}; }catch(e){ _drafts = {}; }
     var _dk = k + '|' + id;
     if(_drafts[_dk] != null && _drafts[_dk] !== '') cur = _drafts[_dk];   /* your in-progress line, not yet saved */
+    /* Nothing saved and nothing drafted? Offer the explanation's first line as a
+       starting draft — editing is far less effort than staring at a blank box. */
+    if(!cur){
+      try{
+        var _card = null;
+        (decksData || []).forEach(function(dd){ if(_card) return; (Array.isArray(dd.cards) ? dd.cards : []).forEach(function(cc){ if(cc && cc.id === id) _card = cc; }); });
+        var _ex = _card && (_card.explain || _card.a || '');
+        if(typeof _ex === 'string' && _ex.trim()){
+          var _one = _ex.replace(/\s+/g, ' ').trim();
+          var _stop = _one.search(/[.?!]\s/);
+          if(_stop > 20 && _stop < 140) _one = _one.slice(0, _stop + 1);
+          cur = _one.slice(0, 140);
+        }
+      }catch(e){}
+    }
     var wrap = document.createElement('div'); wrap.className = 'errn';
     var ta = document.createElement('textarea'); ta.className = 'errnote'; ta.rows = 2;
     ta.placeholder = 'Your line \u2014 own words, minimum. e.g. "Kussmaul sign \u2192 constrictive pericarditis"';
     ta.value = cur;
     ta.oninput = function(){ try{ var d = ls('fd:errdraft', {}) || {}; if(ta.value.trim()){ d[_dk] = ta.value; } else { delete d[_dk]; } ss('fd:errdraft', d); }catch(e){} };
     var save = document.createElement('button'); save.type = 'button'; save.className = 'btn sm';
-    save.textContent = cur ? 'Update' : 'Save to error log';
+    save.textContent = saved ? 'Update' : 'Save to error log';
     var del = document.createElement('button'); del.type = 'button'; del.className = 'btn sm';
-    del.textContent = 'Remove'; del.style.display = cur ? '' : 'none';
+    del.textContent = 'Remove'; del.style.display = saved ? '' : 'none';
     save.onclick = function(){
       var txt = ta.value.trim();
       if(!txt){ toast('Write your line first.'); return; }
