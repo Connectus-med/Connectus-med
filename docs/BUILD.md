@@ -47,7 +47,7 @@ The library shows its own build (a header chip and the ☰ menu), and a `✓ Upd
 node tests/regression.js src/library.html
 ```
 
-Needs `puppeteer-core` and a Chromium on the box (`CHROME=/path/to/chromium` to override).
+18 checks. Needs `puppeteer-core` and a Chromium on the box (`CHROME=/path/to/chromium` to override).
 
 It boots the app headlessly against a **synthetic fixture** (`tests/fixtures.json` — 4 subjects, 500 labelled MCQs; regenerate with `python3 tests/gen_fixture.py`) and checks the things that have actually broken before:
 
@@ -65,6 +65,7 @@ It boots the app headlessly against a **synthetic fixture** (`tests/fixtures.jso
 12. INI-CET = 200 Q in 4 sections of 50, +1 / −⅓ → 0.67 / 200
 13. RUHS-MO = 100 Q, no sections, +1 no negative → 1 / 100
 14. the error log opens with a palette, holding only wrong + marked
+15. a **deleted** card is kept out of the test pool — i.e. the library really did read per-card state back from the cloud (this is the check that would have caught the missing `card_id` in the deck_state pull)
 
 Exit code is non-zero on any FAIL.
 
