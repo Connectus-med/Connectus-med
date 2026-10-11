@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-15 02:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-15 04:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -787,8 +787,15 @@
   var testPriority = null;   /* deck|id keys the paper must include (weak-areas paper) */
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var APP_BUILD = '2026-10-14 09:00';
-  var BUILD_NOTE = 'Every pre-start screen now shows how the paper is put together - subject by subject, and how many come from each.';
+  var BUILD_NOTE = 'PYQ questions are counted and labelled: every paper shows how many past-year questions are in it, and a switch keeps them in or out.';
   var CHANGELOG = [
+    { build:'2026-10-15 04:00', title:'PYQ questions, counted and switchable', items:[
+      'Every pre-start paper now says how much of it is past-year material, in plain numbers: \u201cPYQ: 6 of these 50 come from past-year papers \u00b7 64 PYQ questions in the bank\u201d.',
+      'A new Question bank switch sits with that line on every mode \u2014 Start a test, Subject test, Real Exam Grand Test, Weak areas and Find a question. Include PYQ questions (the default) or Topic decks only.',
+      'The switch is remembered on your device, and it changes the pool immediately: the deck count, the subject table and the PYQ line all move together.',
+      'PYQ decks were always part of the bank \u2014 they just were not labelled anywhere, so they looked missing. Now they are named.',
+      'NEET-PG Papers is selectable as a unit, so you can build a past-year-only paper directly.',
+    ]},
     { build:'2026-10-15 02:00', title:'See how a paper is put together, before you start', items:[
       'Start a test, Subject test, Weak areas, Find a question and a single deck\u2019s setup now show a subject-wise table before the paper begins: which subjects it draws from, how many questions come from each, and how many that subject has in your library.',
       'Real Exam Grand Test already had this table for a full paper; it now shows it for a single-subject paper too.',
@@ -2172,6 +2179,7 @@
       clear(); if(done) done();
     }).catch(function(){ clear(); if(done) done(); });
   }
+  try{ var _tp = ls('fd:testpyq', null); if(_tp === true || _tp === false) testWithPyq = _tp; }catch(e){}
   var _allHydrated = false;
   function ensureCards(done){
     if(_allHydrated || (decksData || []).every(function(d){ return Array.isArray(d.cards) && d.cards.length; })){
@@ -4786,7 +4794,7 @@
      MCQs in the content yet, so a question shows the card front, you reveal the
      answer, and you mark yourself right or wrong. Every wrong card goes to the
      error log, and you can re-practise just those. */
-  var testRun = null, testTimerId = null, testScope = 'all', testLen = 200, testDeck = '', testExam = 'NEET-PG', testSections = true, testSeed = 0, testUntimed = false, testCustom = false, testSelSubjects = [], testSelUnits = [], testSelChapters = [], testSelYears = [];
+  var testRun = null, testTimerId = null, testScope = 'all', testLen = 200, testDeck = '', testExam = 'NEET-PG', testSections = true, testSeed = 0, testUntimed = false, testWithPyq = true, testCustom = false, testSelSubjects = [], testSelUnits = [], testSelChapters = [], testSelYears = [];
 
   function flatText(v){
     if(v == null) return '';
@@ -4817,6 +4825,32 @@
      pool screen never has to wait for the card bodies to arrive - which is why
      they used to read "0 Q" until hydration finished. Falls back to counting the
      cards when the count is not known. */
+  /* PYQ decks are ordinary MCQ decks filed under the 'NEET-PG Papers' unit.
+     They are part of the bank, so they flow into every test mode - the switch
+     only lets you keep them out when you want a pure topic paper. */
+  function isPyqDeck(d){ return !!(d && d.deck_key && d.deck_key.indexOf('PYQ_') === 0); }
+  function deckAllowed(d){ return !!(d && d.deck_key) && (testWithPyq || !isPyqDeck(d)); }
+  /* the switch, rendered on every pre-start screen */
+  function pyqSwitch(el){
+    var wrap = document.createElement('div'); wrap.className = 'pyqsw';
+    var lab = document.createElement('div'); lab.className = 'tlabel'; lab.textContent = 'Question bank';
+    wrap.appendChild(lab);
+    var row = document.createElement('div'); row.className = 'tchips';
+    [['on', 'Include PYQ questions'], ['off', 'Topic decks only']].forEach(function(o){
+      var b = document.createElement('button'); b.type = 'button';
+      b.className = 'tchip' + ((testWithPyq ? 'on' : 'off') === o[0] ? ' on' : '');
+      b.textContent = o[1];
+      b.onclick = function(){ testWithPyq = (o[0] === 'on'); try{ ss('fd:testpyq', testWithPyq); }catch(e){} render(); };
+      row.appendChild(b);
+    });
+    wrap.appendChild(row);
+    var note = document.createElement('div'); note.className = 'tsub small';
+    note.textContent = testWithPyq
+      ? 'Past-year (PYQ) papers are counted as questions, so they take their share of the paper.'
+      : 'Past-year questions are left out - the paper comes only from the topic decks.';
+    wrap.appendChild(note);
+    el.appendChild(wrap);
+  }
   function mcqCount(d){
     if(!d) return 0;
     if(typeof d.mcqs === 'number') return d.mcqs;
@@ -5098,13 +5132,14 @@
     /* Two shapes arrive here: a pool item (one MCQ, with .s and .tag) and a deck
        row (the whole deck, with .subject and an mcq count). Handle both, so the
        builder - which works in decks - reports real subject names too. */
-    var avail = {}, tagAvail = {}, order = [], grand = 0;
+    var avail = {}, tagAvail = {}, order = [], grand = 0, pyqW = 0;
     pool.forEach(function(x){
-      var s, w;
-      if(x && x.deck_key !== undefined){ s = subjOf(x); w = mcqCount(x) || 0; }   /* a deck row */
-      else { s = (x && x.s) || 'Other'; w = 1; }                                  /* one question */
+      var s, w, isP;
+      if(x && x.deck_key !== undefined){ s = subjOf(x); w = mcqCount(x) || 0; isP = isPyqDeck(x); }  /* a deck row */
+      else { s = (x && x.s) || 'Other'; w = 1; isP = (x && x.k && x.k.indexOf('PYQ_') === 0); }        /* one question */
       if(w <= 0) return;
       grand += w;
+      if(isP) pyqW += w;
       if(avail[s] === undefined){ avail[s] = 0; order.push(s); }
       avail[s] += w;
       var g = (x && x.tag) || '';
@@ -5137,6 +5172,15 @@
     [totP, total].forEach(function(v){ var td = document.createElement('td'); td.className = 'n'; td.style.fontWeight = '800'; td.textContent = v; trT.appendChild(td); });
     t.appendChild(trT);
     card.appendChild(t);
+    /* how much of this paper is past-year (PYQ) material, and the switch that
+       decides whether PYQs take part at all */
+    var pyqLine = document.createElement('div'); pyqLine.className = 'tsub small';
+    var inPaperPyq = Math.round(take * pyqW / total);
+    pyqLine.textContent = pyqW
+      ? ('PYQ: ' + inPaperPyq + ' of these ' + take + ' come from past-year papers \u00b7 ' + pyqW + ' PYQ questions in the bank')
+      : 'PYQ: none in this selection.';
+    card.appendChild(pyqLine);
+    pyqSwitch(card);
     /* the hashtag split only means something when we are looking at individual
        questions (they carry a tag); a deck row does not, so skip it there */
     var anyTag = TAGS.some(function(g){ return tagAvail[g]; });
@@ -5214,6 +5258,7 @@
     (decksData || []).forEach(function(d){
       if(!d || !d.deck_key) return;
       if(!IS_OWNER && !UNLOCKED && lockedKeys[d.deck_key]) return;      /* free tier stays intact */
+      if(!deckAllowed(d)) return;                                      /* the PYQ switch */
       if(testDeck && d.deck_key !== testDeck) return;
       var loc = deckLoc[d.deck_key] || {};
       if(scope && scope !== 'all' && loc.s !== scope) return;
@@ -5240,6 +5285,7 @@
     (decksData || []).forEach(function(d){
       if(!d || !d.deck_key) return;
       if(!IS_OWNER && !UNLOCKED && lockedKeys[d.deck_key]) return;
+      if(!deckAllowed(d)) return;                                      /* the PYQ switch */
       var loc = deckLoc[d.deck_key] || {};
       if(scope && scope !== 'all' && loc.s !== scope) return;
       if(testCustom && testSelYears.length && testSelYears.indexOf(subjYearOf(loc.s)) < 0) return;
@@ -5635,6 +5681,7 @@
       if(subs.length && subs.indexOf(loc.s) < 0) return false;
       if(units.length && units.indexOf(loc.u) < 0) return false;
       if(chaps.length && chaps.indexOf(CHAP[d.deck_key] || '') < 0) return false;
+      if(!deckAllowed(d)) return false;
       return mcqCount(d) > 0;
     });
   }
@@ -5666,6 +5713,7 @@
       (decksData || []).forEach(function(d){
         if(!d || !d.deck_key) return;
         if(!IS_OWNER && !UNLOCKED && lockedKeys[d.deck_key]) return;   /* free tier stays intact */
+        if(!deckAllowed(d)) return;                                    /* the PYQ switch */
         var loc = deckLoc[d.deck_key] || {};
         (Array.isArray(d.cards) ? d.cards : []).forEach(function(c){
           if(isMcq(c)) idx.push(mcqItem(c, d.deck_key, loc, d.topic || d.deck_key));
