@@ -841,14 +841,13 @@
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
   var APP_BUILD = '2026-10-16 20:00';
-  var BUILD_NOTE = 'The RUHS-MO paper is rebuilt on the real past-paper weightage and can pick high-yield questions - past-year and core-concept ones first - from the NEET PYQ papers and Qbank.';
+  var BUILD_NOTE = 'A new Strategy tab on Tests reads the exam marking rule and your own papers to tell you when a guess is worth it, the pace the paper allows versus yours, the section plan, where your marks leak, and what skipping has cost you.';
   var CHANGELOG = [
-    { build:'2026-10-16 20:00', title:'RUHS-MO: real weights, and high-yield picking', items:[
-      'The RUHS-MO subject weights were rebuilt from a 700-question RUHS-MO past-paper analysis (2015\u20132024-25, General Knowledge excluded): Medicine is now the heaviest subject (19), ahead of Community Medicine (11); Pharmacology, Pathology, Surgery and the rest follow their real share.',
-      'The RUHS-MO paper now treats the NEET past-year papers and the Qbank decks as one pool and, within each subject, takes the highest-yield questions first - a real past-year question, then a core-concept (MainConcepts) one.',
-      'A High-yield first / Spread evenly switch sits on the RUHS-MO pre-start screen. It is on by default; turn it off for a plain spread. Your choice is remembered on the device.',
-      'A new paper still avoids the questions you saw in the last five, so high-yield only decides among fresh questions.',
-      'Only the RUHS-MO paper changed; NEET-PG and INI-CET are untouched.',
+    { build:'2026-10-16 20:00', title:'A strategy engine that tells you how to score higher', items:[
+      'Tests now has a Strategy tab. It derives the attempt rule from the marking itself: with +4/-1 a blind guess is worth +0.25 so never leave a blank, while with INI-CET a blind guess is neutral so eliminate one option first.',
+      'It compares the pace the paper allows (seconds per question) against your own recent pace, and says whether speed or care is your bigger lever.',
+      'It ranks where your marks leak - subjects by exam weight against your accuracy - and shows what your skipped questions have actually cost you across your papers.',
+      'It ends with a short plan for the next paper and a one-tap button to start that exam paper, and the Grand Test setup links straight to it.',
     ]},
     { build:'2026-10-16 18:00', title:'A tidier Tests tab, a smarter review, and Today lists your mistakes', items:[
       'The Tests tab no longer greets you with one long page - it is split into Paper, Qbank, PYQ and History.',
@@ -2301,6 +2300,7 @@
       clear(); if(done) done();
     }).catch(function(){ clear(); if(done) done(); });
   }
+  try{ var _tp = ls('fd:testpyq', null); if(_tp === true || _tp === false) testWithPyq = _tp; }catch(e){}
   var _allHydrated = false;
   function ensureCards(done){
     if(_allHydrated || (decksData || []).every(function(d){ return Array.isArray(d.cards) && d.cards.length; })){
@@ -4968,9 +4968,7 @@
      MCQs in the content yet, so a question shows the card front, you reveal the
      answer, and you mark yourself right or wrong. Every wrong card goes to the
      error log, and you can re-practise just those. */
-  var testRun = null, testTimerId = null, testScope = 'all', testLen = 200, testDeck = '', testExam = 'NEET-PG', testSections = true, testSeed = 0, testUntimed = false, testWithPyq = true, testHighYield = true, testCustom = false, testSelSubjects = [], testSelUnits = [], testSelChapters = [], testSelYears = [];
-  try{ var _tp = ls('fd:testpyq', null); if(_tp === true || _tp === false) testWithPyq = _tp; }catch(e){}
-  try{ var _hy = ls('fd:testhy', null); if(_hy === true || _hy === false) testHighYield = _hy; }catch(e){}
+  var testRun = null, testTimerId = null, testScope = 'all', testLen = 200, testDeck = '', testExam = 'NEET-PG', testSections = true, testSeed = 0, testUntimed = false, testWithPyq = true, testCustom = false, testSelSubjects = [], testSelUnits = [], testSelChapters = [], testSelYears = [];
   var testPalFilter = 'all';
   var testRevFilter = 'all', testRevCompact = false, testSeg = 'paper';
 
@@ -5156,7 +5154,7 @@
          ['Biochemistry',12],['Anatomy',10],['Physiology',10],['ENT (Otorhinolaryngology)',7],['Ophthalmology',7],
          ['Radiodiagnosis',6],['Forensic Medicine & Toxicology',4],['Psychiatry',3],
          ['Dermatology, Venereology & Leprosy',2],['Orthopaedics',1],['Anaesthesiology',1]] },
-    { k:'RUHS-MO', name:'RUHS-MO', org:'RUHS Rajasthan (MODRE)', q:100, mins:120, pos:1, neg:0, hy:true, cutoffPct:[60,75],
+    { k:'RUHS-MO', name:'RUHS-MO', org:'RUHS Rajasthan (MODRE)', q:100, mins:120, pos:1, neg:0, cutoffPct:[60,75],
       secN:1, secQ:100, secMins:120,
       mark:'+1 correct · no negative marking',
       sec:'One paper, no sections — attempt all',
@@ -5165,14 +5163,14 @@
              '2024: first CBT paper; clinical case-based scenarios start appearing; cut-off 65+.',
              '2025: about half the paper is clinical case-based; Medicine, Pharmacology and Radiology clearly tougher.',
              'PSM and Forensic Medicine have stayed simple and direct every year — easy marks.',
-             'RUHS publishes no official subject-wise split; the weights here are set from a 700-question RUHS-MO past-paper analysis (2015\u20132024-25), General Knowledge excluded.'],
+             'RUHS publishes no official subject-wise split; this table uses past-paper trends.'],
       mix:{'Basics&Fundamentals':0.15,'MainConcepts':0.40,'Integrated&Complex':0.45},
       diff:{easy:0.50,mod:0.38,hard:0.12}, imgShare:0.15, mtfShare:0,
-      w:[['General Medicine',19],['Community Medicine',11],['Pharmacology',10],['Pathology',9],
-         ['General Surgery',6],['Obstetrics & Gynaecology',5],['Physiology',5],['Pediatrics',5],
-         ['Biochemistry',4],['Anatomy',4],['ENT (Otorhinolaryngology)',4],['Radiodiagnosis',4],
-         ['Orthopaedics',3],['Ophthalmology',3],['Forensic Medicine & Toxicology',3],['Microbiology',2],
-         ['Dermatology, Venereology & Leprosy',1],['Psychiatry',1],['Anaesthesiology',1]] }
+      w:[['Community Medicine',20],['General Medicine',16],['General Surgery',13],['Obstetrics & Gynaecology',11],
+         ['Pediatrics',7],['Pharmacology',6],['Forensic Medicine & Toxicology',6],['Pathology',3],['Microbiology',2],
+         ['Anatomy',2],['Physiology',2],['Biochemistry',1],['Orthopaedics',2],['ENT (Otorhinolaryngology)',2],
+         ['Ophthalmology',2],['Psychiatry',2],['Dermatology, Venereology & Leprosy',1],['Anaesthesiology',1],
+         ['Radiodiagnosis',1]] }
   ];
   function examOf(k){ for(var i=0;i<EXAMS.length;i++){ if(EXAMS[i].k === k) return EXAMS[i]; } return EXAMS[0]; }
   function blueprintPlan(len, pool, W){
@@ -5244,45 +5242,6 @@
     shuffleSeed(f, rnd); shuffleSeed(u, rnd);
     return f.concat(u);
   }
-  /* ---------- high-yield selection (RUHS) ----------
-     Treats the NEET past-year papers and the Qbank decks as one pool, and ranks
-     a question by how likely it is to matter in the RUHS paper: a real past-year
-     question first, then a core-concept (MainConcepts) one. Used only for an
-     exam that carries hy:true (RUHS-MO); the subject split still comes from the
-     exam blueprint. Freshness stays the primary key, so a new paper still avoids
-     the last five - high-yield only breaks ties among fresh questions. */
-  function highYieldScore(x){
-    var isP = (x && x.k && x.k.indexOf('PYQ_') === 0) ? 1 : 0;
-    var tw = { 'MainConcepts':1.0, 'Basics&Fundamentals':0.6, 'Integrated&Complex':0.5 };
-    var tg = (x && tw[x.tag] != null) ? tw[x.tag] : 0.5;
-    return isP * 0.6 + tg * 0.4;
-  }
-  function hyFirst(arr, recent, rnd, hyFn){
-    var f = [], u = [];
-    arr.forEach(function(x){ if(recent && recent[x.k + '|' + x.id]) u.push(x); else f.push(x); });
-    function ord(a){ return a.map(function(x){ return { x:x, hy:hyFn(x), r:rnd() * 0.05 }; })
-                       .sort(function(p,q){ if(p.hy !== q.hy) return q.hy - p.hy; return p.r - q.r; })
-                       .map(function(o){ return o.x; }); }
-    return ord(f).concat(ord(u));
-  }
-  function highYieldSwitch(el){
-    var ex = examOf(testExam);
-    if(!ex || !ex.hy) return;
-    var wrap = document.createElement('div'); wrap.className = 'pyqsw';
-    [['on','High-yield first'],['off','Spread evenly']].forEach(function(o){
-      var b = document.createElement('button'); b.type = 'button';
-      b.className = 'tchip' + ((testHighYield ? 'on' : 'off') === o[0] ? ' on' : '');
-      b.textContent = o[1];
-      b.onclick = function(){ testHighYield = (o[0] === 'on'); try{ ss('fd:testhy', testHighYield); }catch(e){} render(); };
-      wrap.appendChild(b);
-    });
-    var note = document.createElement('div'); note.className = 'tsub small';
-    note.textContent = testHighYield
-      ? 'High-yield first: within each subject the paper takes the highest-yield questions from your NEET PYQ papers and Qbank - real past-year questions and core (MainConcepts) ones come first.'
-      : 'Spread evenly: questions are taken across your decks with no yield preference.';
-    wrap.appendChild(note);
-    el.appendChild(wrap);
-  }
   /* ---------- soft targets: difficulty, image, question type ---------- */
   var _needState = null;
   function needInit(total){ _needState = { diff:{ easy:0, mod:0, hard:0 }, img:0, mtf:0, left:(total || 0), imgCarry:0, mtfCarry:0 }; }
@@ -5315,21 +5274,12 @@
     while(used < n && rem.length){ out[rem[i % rem.length].g]++; used++; i++; }
     return out;
   }
-  function spreadTake(arr, want, recent, rnd, targets, needOn, hyFn){
+  function spreadTake(arr, want, recent, rnd, targets, needOn){
     var byDeck = {};
     arr.forEach(function(x){ var k = x.k || '?'; (byDeck[k] = byDeck[k] || []).push(x); });
-    var decks = Object.keys(byDeck), tot = 0, used = 0, rem = [], take = {}, deckW = {};
-    /* high-yield on: a deck's share of the paper follows its yield, so the
-       past-year papers and the core-concept decks carry more of the paper.
-       high-yield off: the share follows the deck's size, as before. */
+    var decks = Object.keys(byDeck), tot = arr.length || 1, used = 0, rem = [], take = {};
     decks.forEach(function(k){
-      var w = 0;
-      if(hyFn){ byDeck[k].forEach(function(x){ w += (hyFn(x) || 0.001); }); } else { w = byDeck[k].length; }
-      deckW[k] = w; tot += w;
-    });
-    tot = tot || 1;
-    decks.forEach(function(k){
-      var w2 = want * deckW[k] / tot, f = Math.floor(w2);
+      var w2 = want * byDeck[k].length / tot, f = Math.floor(w2);
       take[k] = f; used += f; rem.push({ k:k, f: w2 - f });
     });
     rem.sort(function(a,b){ return b.f - a.f; });
@@ -5348,8 +5298,8 @@
       if(needOn){
         a2 = a2.map(function(x){
           var fr = (recent && recent[x.k + '|' + x.id]) ? 0 : 1;
-          return { x:x, fr:fr, hy: (hyFn ? hyFn(x) : 0), s: needScore(x, targets) + rnd() * 0.05 };
-        }).sort(function(a,b){ if(a.fr !== b.fr) return b.fr - a.fr; if(a.hy !== b.hy) return b.hy - a.hy; return b.s - a.s; }).map(function(o){ return o.x; });
+          return { x:x, fr:fr, s: needScore(x, targets) + rnd() * 0.05 };
+        }).sort(function(a,b){ if(a.fr !== b.fr) return b.fr - a.fr; return b.s - a.s; }).map(function(o){ return o.x; });
         /* a scarce bucket must not be swallowed in the first few decks: cap this
            deck's share of it at the rate the paper still needs */
         var leftAll = Math.max(1, _needState.left);
@@ -5375,7 +5325,7 @@
         for(var z3=0; z3<spare.length && kept.length < take[k]; z3++) kept.push(spare[z3]);
         a2 = kept;
       } else {
-        a2 = hyFn ? hyFirst(a2, recent, rnd, hyFn) : freshFirst(a2, recent, rnd);
+        a2 = freshFirst(a2, recent, rnd);
         a2 = a2.slice(0, take[k]);
       }
       a2.forEach(needBump);
@@ -5386,7 +5336,7 @@
   function pickByBlueprint(pool, len, W, mix, opts){
     opts = opts || {};
     var rnd = opts.rnd || Math.random, recent = opts.recent || null;
-    var targets = opts.targets || null, needOn = !!opts.needOn, hyFn = opts.hyFn || null;
+    var targets = opts.targets || null, needOn = !!opts.needOn;
     needInit(len);
     var plan = blueprintPlan(len, pool, W);
     var bySub = {};
@@ -5400,11 +5350,11 @@
         var need = split[g] || 0; if(!need) return;
         var poolG = arr.filter(function(x){ return (x.tag || '') === g; });
         if(!poolG.length) return;
-        spreadTake(poolG, Math.min(need, poolG.length), recent, rnd, targets, needOn, hyFn).forEach(function(x){ seen[x.k + '|' + x.id] = 1; got.push(x); });
+        spreadTake(poolG, Math.min(need, poolG.length), recent, rnd, targets, needOn).forEach(function(x){ seen[x.k + '|' + x.id] = 1; got.push(x); });
       });
       if(got.length < want){
         var rest = arr.filter(function(x){ return !seen[x.k + '|' + x.id]; });
-        got = got.concat(spreadTake(rest, Math.min(want - got.length, rest.length), recent, rnd, targets, needOn, hyFn));
+        got = got.concat(spreadTake(rest, Math.min(want - got.length, rest.length), recent, rnd, targets, needOn));
       }
       out = out.concat(got.slice(0, want));
     });
@@ -5476,7 +5426,6 @@
       : 'PYQ: none in this selection.';
     card.appendChild(pyqLine);
     pyqSwitch(card);
-    highYieldSwitch(card);
     /* the hashtag split only means something when we are looking at individual
        questions (they carry a tag); a deck row does not, so skip it there */
     var anyTag = TAGS.some(function(g){ return tagAvail[g]; });
@@ -5521,7 +5470,6 @@
     var note = document.createElement('div'); note.className = 'tsub small';
     note.textContent = built + ' of ' + ex.w.length + ' subjects are in your library. A subject with no questions is skipped and its share is given to the subjects you do have, in proportion to their weight. Inside a subject the paper is spread across your decks, so one topic cannot take the whole share.';
     card.appendChild(note);
-    highYieldSwitch(card);
     return card;
   }
   function examPatternCard(ex){
@@ -5923,7 +5871,6 @@
         + '  \u00b7  paper of ' + Math.min(S.len, nQ) + '  \u00b7  ' + (S.untimed ? 'untimed' : _ex.mark);
       card.appendChild(info);
       pyqSwitch(card);
-      highYieldSwitch(card);
       /* what this paper will actually be made of */
       try{ card.appendChild(distForPool(pool, Math.min(S.len, nQ), 'How these ' + Math.min(S.len, nQ) + ' questions are chosen')); }catch(e){}
       startBtn.disabled = !nQ;
@@ -6116,7 +6063,7 @@
     sub.textContent = 'Timed, exam-style practice from your decks. Pick a mode.';
     wrap.appendChild(sub);
     var seg = document.createElement('div'); seg.className = 'tchips'; seg.style.margin = '2px 0 10px';
-    [['paper','Paper'],['qbank','Qbank'],['pyq','PYQ'],['history','History']].forEach(function(o){
+    [['paper','Paper'],['qbank','Qbank'],['pyq','PYQ'],['strategy','Strategy'],['history','History']].forEach(function(o){
       var b = document.createElement('button'); b.type = 'button'; b.className = 'tchip' + (testSeg === o[0] ? ' on' : ''); b.textContent = o[1];
       b.onclick = function(){ testSeg = o[0]; renderTest(); window.scrollTo(0,0); };
       seg.appendChild(b);
@@ -6339,6 +6286,7 @@
 
 
     if(testSeg === 'history'){ renderTestHistory(wrap); }
+    else if(testSeg === 'strategy'){ renderStrategy(wrap); }
     box.appendChild(wrap);
   }
 
@@ -6645,6 +6593,10 @@
     }
     wrap.appendChild(examPatternCard(ex));
     pyqSwitch(wrap);
+    var _stb = document.createElement('button'); _stb.type = 'button'; _stb.className = 'tstart ghost'; _stb.style.marginTop = '10px';
+    _stb.textContent = 'See your strategy for this paper';
+    _stb.onclick = function(){ testSeg = 'strategy'; view = { t:'test' }; render(); window.scrollTo(0,0); };
+    wrap.appendChild(_stb);
 
     var tg = document.createElement('div'); tg.className = 'tchips'; tg.style.margin = '8px 0';
     [['timed','Timed \u00b7 exam-like'],['untimed','Untimed \u00b7 study']].forEach(function(o){
@@ -6692,7 +6644,7 @@
       var qs;
       if(onlyErrors && onlyErrors.length){ qs = pool.slice(); shuffleSeed(qs, rnd); }
       else if(testCustom || (testScope && testScope !== 'all')){ shuffleSeed(pool, rnd); qs = pool.slice(0, want); }
-      else { qs = pickByBlueprint(pool, want, ex.w, ex.mix, { rnd:rnd, recent:recent, targets:targets, needOn:needOn, hyFn: (testHighYield && ex.hy) ? highYieldScore : null }).qs; }
+      else { qs = pickByBlueprint(pool, want, ex.w, ex.mix, { rnd:rnd, recent:recent, targets:targets, needOn:needOn }).qs; }
       if(!qs.length){ shuffleSeed(pool, rnd); qs = pool.slice(0, want); }
       if(testPriority && testPriority.length && !(onlyErrors && onlyErrors.length)){
         var _pset = {}; testPriority.forEach(function(x){ _pset[x] = 1; });
@@ -7363,6 +7315,150 @@
     };
     nav.appendChild(nxt); wrap.appendChild(nav);
     box.appendChild(wrap);
+  }
+
+  /* ================= Strategy engine =================
+     Turns the exam's own marking rule and your own papers into concrete advice:
+     the attempt rule (when a guess is worth it), the pace the paper allows versus
+     yours, the section plan, where the marks leak, and what skipping has cost. */
+  function paperAgg(){
+    var papers = ls('fd:testpapers', {}); if(!papers || typeof papers !== 'object' || Array.isArray(papers)) papers = {};
+    var list = Object.keys(papers).map(function(k){ return papers[k]; }).filter(Boolean);
+    var S = 0, A = 0, R = 0, W = 0, n = 0, secs = 0, q = 0, bySub = {};
+    list.forEach(function(p){
+      n++;
+      S += p.skipped || 0; R += p.right || 0; W += p.wrong || 0;
+      A += (p.right || 0) + (p.wrong || 0);
+      secs += p.secs || 0; q += p.n || 0;
+      Object.keys(p.perSubject || {}).forEach(function(sb){
+        var v = p.perSubject[sb]; if(!v) return;
+        var r = bySub[sb] || (bySub[sb] = { total:0, right:0 });
+        r.total += v.total || 0; r.right += v.right || 0;
+      });
+    });
+    return { n:n, S:S, A:A, R:R, W:W, secs:secs, q:q, bySub:bySub };
+  }
+  function strategyFor(examKey){
+    var ex = examOf(examKey || testExam);
+    var k = 4;                                   /* options per question */
+    var blindEV = (1/k) * ex.pos + ((k-1)/k) * ex.neg;
+    var elim1EV = (1/(k-1)) * ex.pos + ((k-2)/(k-1)) * ex.neg;
+    var secPerQ = ex.mins * 60 / ex.q;
+    var ag = paperAgg();
+    var mySecPerQ = ag.q ? ag.secs / ag.q : null;
+    var attAcc = ag.A ? ag.R / ag.A : null;
+    var skipGain = (ag.S && attAcc != null) ? ag.S * (attAcc * ex.pos + (1 - attAcc) * ex.neg) : null;
+    var leak = [];
+    Object.keys(ag.bySub).forEach(function(sb){
+      var v = ag.bySub[sb]; if(!v.total) return;
+      var acc = v.right / v.total, w0 = 0;
+      (ex.w || []).forEach(function(p){ if(p[0] === sb) w0 = p[1]; });
+      leak.push({ s:sb, acc:acc, total:v.total, w:w0, risk:(w0 || 1) * (1 - acc) });
+    });
+    leak.sort(function(a,b){ return b.risk - a.risk; });
+    return { ex:ex, k:k, blindEV:blindEV, elim1EV:elim1EV, secPerQ:secPerQ, mySecPerQ:mySecPerQ, attAcc:attAcc, skipGain:skipGain, ag:ag, leak:leak };
+  }
+  function renderStrategy(wrap){
+    var st = strategyFor(testExam), ex = st.ex;
+    var h = document.createElement('div'); h.className = 'tbig'; h.textContent = 'Strategy'; wrap.appendChild(h);
+    var sub = document.createElement('div'); sub.className = 'tsub';
+    sub.textContent = 'How to actually score higher in a paper - derived from the marking rule and your own attempts.';
+    wrap.appendChild(sub);
+    var erow = document.createElement('div'); erow.className = 'tchips'; erow.style.margin = '6px 0 10px';
+    EXAMS.forEach(function(e){
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'tchip' + (e.k === testExam ? ' on' : ''); b.textContent = e.name;
+      b.onclick = function(){ testExam = e.k; renderTest(); window.scrollTo(0,0); };
+      erow.appendChild(b);
+    });
+    wrap.appendChild(erow);
+
+    /* 1. the one rule that matters most */
+    var c1 = document.createElement('div'); c1.className = 'tcard';
+    var l1 = document.createElement('div'); l1.className = 'tlabel'; l1.textContent = 'The one rule that matters most'; c1.appendChild(l1);
+    var _blind = st.blindEV, _elim = st.elim1EV, rule;
+    if(_blind > 0.01) rule = 'Attempt every question. With ' + ex.mark + ', a blind guess among 4 options is worth ' + (_blind > 0 ? '+' : '') + _blind.toFixed(2) + ' marks in expectation - so never leave a blank.';
+    else if(_elim > 0.01) rule = 'Guess only when you can rule out at least one option. A blind guess is neutral (' + _blind.toFixed(2) + '), but with one option gone it is worth +' + _elim.toFixed(2) + ' - so eliminate, then answer.';
+    else rule = 'Do not guess blindly (' + _blind.toFixed(2) + '). Guess only when you can rule out options - with one gone it is ' + (_elim > 0 ? '+' : '') + _elim.toFixed(2) + '.';
+    var rp = document.createElement('div'); rp.className = 'an-strategy'; rp.textContent = rule; c1.appendChild(rp);
+    wrap.appendChild(c1);
+
+    /* 2. pace */
+    var c2 = document.createElement('div'); c2.className = 'tcard';
+    var l2 = document.createElement('div'); l2.className = 'tlabel'; l2.textContent = 'Pace'; c2.appendChild(l2);
+    var p2 = document.createElement('div'); p2.className = 'tsub small';
+    p2.textContent = 'The paper allows ' + Math.round(st.secPerQ) + ' seconds a question (' + ex.q + ' Q in ' + ex.mins + ' min).'
+      + (st.mySecPerQ
+          ? ' Your recent average is ' + Math.round(st.mySecPerQ) + 's a question'
+            + (st.mySecPerQ > st.secPerQ * 1.1 ? ' - you run slow; sit timed papers until this comes down.' : (st.mySecPerQ < st.secPerQ * 0.85 ? ' - you have room to slow down and read more carefully.' : ' - right on pace.'))
+          : ' Sit a paper and this compares against your own pace.');
+    c2.appendChild(p2);
+    wrap.appendChild(c2);
+
+    /* 3. section plan */
+    var c3 = document.createElement('div'); c3.className = 'tcard';
+    var l3 = document.createElement('div'); l3.className = 'tlabel'; l3.textContent = 'Section plan'; c3.appendChild(l3);
+    var p3 = document.createElement('div'); p3.className = 'tsub small';
+    p3.textContent = ex.secN > 1
+      ? ('The real paper locks each section (' + ex.secN + ' x ' + ex.secQ + ' Q, ' + Math.round(ex.secMins) + ' min each). Never let a section end with a blank you could have guessed, and do not carry a hard question across a boundary.')
+      : 'One paper, no sections - attempt everything, then spend the last minutes on what you flagged.';
+    c3.appendChild(p3);
+    wrap.appendChild(c3);
+
+    /* 4. where the marks leak */
+    var c4 = document.createElement('div'); c4.className = 'tcard';
+    var l4 = document.createElement('div'); l4.className = 'tlabel'; l4.textContent = 'Where your marks leak'; c4.appendChild(l4);
+    if(st.leak.length){
+      var n4 = document.createElement('div'); n4.className = 'tsub small'; n4.style.margin = '0 0 6px';
+      n4.textContent = 'Ranked by exam weight against your accuracy across your papers.';
+      c4.appendChild(n4);
+      st.leak.slice(0, 5).forEach(function(x){
+        var r = document.createElement('div'); r.className = 'thist';
+        var a = document.createElement('span'); a.className = 'thist-d'; a.textContent = x.s + (x.w ? '  (' + x.w + 'Q weight)' : '');
+        var b = document.createElement('span'); b.className = 'thist-s'; b.textContent = Math.round(x.acc * 100) + '%';
+        var c = document.createElement('span'); c.className = 'thist-t'; c.textContent = x.total + ' Q';
+        r.appendChild(a); r.appendChild(b); r.appendChild(c); c4.appendChild(r);
+      });
+    } else {
+      var e4 = document.createElement('div'); e4.className = 'tsub small'; e4.textContent = 'Sit a paper and your weakest subjects surface here.';
+      c4.appendChild(e4);
+    }
+    wrap.appendChild(c4);
+
+    /* 5. skip vs guess, from your own data */
+    var c5 = document.createElement('div'); c5.className = 'tcard';
+    var l5 = document.createElement('div'); l5.className = 'tlabel'; l5.textContent = 'Skip vs guess - from your own papers'; c5.appendChild(l5);
+    var p5 = document.createElement('div'); p5.className = 'tsub small';
+    if(st.ag.n && st.attAcc != null){
+      p5.textContent = 'Across ' + st.ag.n + ' paper' + (st.ag.n === 1 ? '' : 's') + ' you skipped ' + st.ag.S + ' question' + (st.ag.S === 1 ? '' : 's')
+        + ' and got ' + Math.round(st.attAcc * 100) + '% of what you attempted right.'
+        + (st.skipGain != null ? ' Attempting those skips at that accuracy would have been worth about ' + (st.skipGain > 0 ? '+' : '') + st.skipGain.toFixed(1) + ' marks.' : '');
+    } else {
+      p5.textContent = 'Sit a paper and this shows what your skipped questions have actually cost you.';
+    }
+    c5.appendChild(p5);
+    wrap.appendChild(c5);
+
+    /* 6. your plan for the next paper */
+    var c6 = document.createElement('div'); c6.className = 'tcard';
+    var l6 = document.createElement('div'); l6.className = 'tlabel'; l6.textContent = 'Your plan for the next paper'; c6.appendChild(l6);
+    var tips = [];
+    tips.push(_blind > 0.01 ? 'Leave nothing blank - guess when unsure.' : 'Eliminate at least one option before you answer.');
+    tips.push('Cap yourself at about ' + Math.round(st.secPerQ) + 's a question; flag and move on.');
+    if(st.mySecPerQ && st.mySecPerQ > st.secPerQ * 1.1) tips.push('Sit the next paper timed - speed is your biggest leak right now.');
+    if(st.leak.length) tips.push('After the paper, redo your wrong questions in ' + st.leak[0].s + ' (weakest by weight).');
+    if(st.skipGain != null && st.skipGain > 0) tips.push('Attempt the borderline ones - your skips have been costing you marks.');
+    var ul = document.createElement('div');
+    tips.slice(0, 5).forEach(function(t){
+      var li = document.createElement('div'); li.className = 'an-row';
+      var d = document.createElement('span'); d.className = 'an-lab'; d.textContent = t; li.appendChild(d);
+      ul.appendChild(li);
+    });
+    c6.appendChild(ul);
+    var go = document.createElement('button'); go.type = 'button'; go.className = 'btn primary wide'; go.style.marginTop = '10px';
+    go.textContent = 'Start a ' + ex.name + ' paper now';
+    go.onclick = function(){ testExam = ex.k; view = { t:'test', tMode:'grand' }; render(); window.scrollTo(0,0); };
+    c6.appendChild(go);
+    wrap.appendChild(c6);
   }
 
   /* ---------- mistake-analysis engine ---------- */
