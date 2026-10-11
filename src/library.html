@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-15 00:30' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-15 02:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -787,8 +787,14 @@
   var testPriority = null;   /* deck|id keys the paper must include (weak-areas paper) */
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var APP_BUILD = '2026-10-14 09:00';
-  var BUILD_NOTE = 'Question counts are back, and the verify chip now sits at the bottom of a card, right under Prev / Flip / Next.';
+  var BUILD_NOTE = 'Every pre-start screen now shows how the paper is put together - subject by subject, and how many come from each.';
   var CHANGELOG = [
+    { build:'2026-10-15 02:00', title:'See how a paper is put together, before you start', items:[
+      'Start a test, Subject test, Weak areas, Find a question and a single deck\u2019s setup now show a subject-wise table before the paper begins: which subjects it draws from, how many questions come from each, and how many that subject has in your library.',
+      'Real Exam Grand Test already had this table for a full paper; it now shows it for a single-subject paper too.',
+      'When the paper is drawn from individual questions (Find a question), the hashtag split is shown as well - Basics, MainConcepts and Integrated.',
+      'The numbers add up to the paper you are about to sit, so the basis is never a mystery.',
+    ]},
     { build:'2026-10-15 00:30', title:'The verify chip moves down', items:[
       'On every card, the Verified / Unverified chip has moved out of the card\u2019s top row to a row of its own at the bottom, just under Prev / Flip / Next.',
       'The top row of a card is clean again - just the Question or Answer label and the hashtag.',
@@ -5076,6 +5082,73 @@
     shuffleSeed(out, rnd);
     return { qs: out, plan: plan };
   }
+  /* What a paper of `want` questions drawn from `pool` is actually made of.
+     Every pre-start screen shows this, so the basis of the paper is never a
+     mystery: which subjects the questions come from, how many of each, and the
+     hashtag split. A blueprint paper (Real Exam) uses distTable instead, which
+     shows the exam's own weight table. */
+  function distForPool(pool, want, title){
+    var card = document.createElement('div'); card.className = 'tcard';
+    var total = (pool || []).length;
+    var take = Math.min(want || total, total);
+    var lb = document.createElement('div'); lb.className = 'tlabel';
+    lb.textContent = title || ('How the ' + take + ' question' + (take === 1 ? '' : 's') + ' are chosen');
+    card.appendChild(lb);
+    if(!total){ var e0 = document.createElement('div'); e0.className = 'tsub small'; e0.textContent = 'Nothing to draw from yet.'; card.appendChild(e0); return card; }
+    /* Two shapes arrive here: a pool item (one MCQ, with .s and .tag) and a deck
+       row (the whole deck, with .subject and an mcq count). Handle both, so the
+       builder - which works in decks - reports real subject names too. */
+    var avail = {}, tagAvail = {}, order = [], grand = 0;
+    pool.forEach(function(x){
+      var s, w;
+      if(x && x.deck_key !== undefined){ s = subjOf(x); w = mcqCount(x) || 0; }   /* a deck row */
+      else { s = (x && x.s) || 'Other'; w = 1; }                                  /* one question */
+      if(w <= 0) return;
+      grand += w;
+      if(avail[s] === undefined){ avail[s] = 0; order.push(s); }
+      avail[s] += w;
+      var g = (x && x.tag) || '';
+      if(g) tagAvail[g] = (tagAvail[g] || 0) + 1;
+    });
+    if(!grand){ var e1 = document.createElement('div'); e1.className = 'tsub small'; e1.textContent = 'Nothing to draw from yet.'; card.appendChild(e1); return card; }
+    total = grand;
+    take = Math.min(want || total, total);
+    lb.textContent = title || ('How the ' + take + ' question' + (take === 1 ? '' : 's') + ' are chosen');
+    var rows = order.map(function(s){
+      return { s:s, av:avail[s], inP: Math.round(take * avail[s] / total) };
+    }).sort(function(a,b){ return b.av - a.av || (a.s < b.s ? -1 : 1); });
+    var t = document.createElement('table'); t.className = 'tdist';
+    var hr = document.createElement('tr');
+    [['Subject',0],['In paper',1],['In library',1]].forEach(function(hh){
+      var th = document.createElement('th'); if(hh[1]) th.className = 'n'; th.textContent = hh[0]; hr.appendChild(th);
+    });
+    t.appendChild(hr);
+    var totP = 0;
+    rows.forEach(function(r){
+      totP += r.inP;
+      var tr = document.createElement('tr');
+      var c1 = document.createElement('td'); c1.className = 's'; c1.textContent = r.s; tr.appendChild(c1);
+      var c2 = document.createElement('td'); c2.className = 'n hi'; c2.textContent = r.inP; tr.appendChild(c2);
+      var c3 = document.createElement('td'); c3.className = 'n'; c3.textContent = r.av; tr.appendChild(c3);
+      t.appendChild(tr);
+    });
+    var trT = document.createElement('tr');
+    var cT = document.createElement('td'); cT.textContent = 'Total'; cT.style.fontWeight = '800'; trT.appendChild(cT);
+    [totP, total].forEach(function(v){ var td = document.createElement('td'); td.className = 'n'; td.style.fontWeight = '800'; td.textContent = v; trT.appendChild(td); });
+    t.appendChild(trT);
+    card.appendChild(t);
+    /* the hashtag split only means something when we are looking at individual
+       questions (they carry a tag); a deck row does not, so skip it there */
+    var anyTag = TAGS.some(function(g){ return tagAvail[g]; });
+    if(anyTag){
+      var tl = document.createElement('div'); tl.className = 'tsub small';
+      tl.textContent = 'By hashtag: ' + TAGS.map(function(g){
+        return g + ' ' + Math.round(take * (tagAvail[g] || 0) / total);
+      }).join('  \u00b7  ');
+      card.appendChild(tl);
+    }
+    return card;
+  }
   function distTable(len, pool, ex){
     ex = ex || EXAMS[0];
     var plan = blueprintPlan(len, pool, ex.w), avail = {};
@@ -5461,6 +5534,8 @@
         + ((S.years.length || S.subs.length || S.units.length || S.chaps.length) ? '' : ' \u2014 the whole tree')
         + '  \u00b7  paper of ' + Math.min(S.len, nQ) + '  \u00b7  ' + (S.untimed ? 'untimed' : _ex.mark);
       card.appendChild(info);
+      /* what this paper will actually be made of */
+      try{ card.appendChild(distForPool(pool, Math.min(S.len, nQ), 'How these ' + Math.min(S.len, nQ) + ' questions are chosen')); }catch(e){}
       startBtn.disabled = !nQ;
       startBtn.textContent = nQ ? ('Start test \u00b7 ' + Math.min(S.len, nQ) + ' Q') : 'No questions here yet';
     }
@@ -5621,6 +5696,9 @@
       });
       act.textContent = 'Practise these ' + Math.min(out.length, 50) + (out.length > 50 ? ' of ' + out.length : '');
       act.disabled = false;
+      try{ var oldd = res.parentNode.querySelector('.tfinddist'); if(oldd) oldd.remove();
+        var db = distForPool(out, Math.min(out.length, 50), 'How these ' + Math.min(out.length, 50) + ' matches are chosen');
+        db.classList.add('tfinddist'); res.parentNode.insertBefore(db, act); }catch(e){}
     }
     inp.oninput = function(){ if(timer) clearTimeout(timer); timer = setTimeout(run, 180); };
     inp.onkeydown = function(e){ if(e.key === 'Enter'){ if(timer) clearTimeout(timer); run(); } };
@@ -5873,6 +5951,8 @@
     (decksData || []).forEach(function(x){ if(x && x.deck_key === dk) d = x; });
     var loc = deckLoc[dk] || {};
     var n = d ? mcqCount(d) : 0;
+    /* the split below needs this deck's card bodies; fetch them once, then re-render */
+    if(!_allHydrated && typeof ensureCards === 'function'){ ensureCards(function(){ try{ render(); }catch(e){} }); }
     var back = document.createElement('button'); back.type = 'button'; back.className = 'tend'; back.textContent = '\u2039 Test modes';
     back.onclick = function(){ view = { t:'test' }; render(); window.scrollTo(0,0); };
     wrap.appendChild(back);
@@ -5904,6 +5984,13 @@
     exNote.textContent = 'Marking and time follow the exam you pick here.';
     c.appendChild(exNote);
     wrap.appendChild(c);
+    try{
+      var _mcqsD = (d && Array.isArray(d.cards)) ? d.cards.filter(isMcq) : [];
+      if(_mcqsD.length){
+        wrap.appendChild(distForPool(_mcqsD.map(function(cc){ return mcqItem(cc, dk, loc, d.topic || dk); }), n,
+                                     'How these ' + n + ' questions are chosen'));
+      }
+    }catch(e){}
     var start = document.createElement('button'); start.type = 'button'; start.className = 'tstart'; start.textContent = 'Start test';
     start.disabled = !n;
     start.onclick = function(){ testDeck = dk; testScope = 'all'; testStart(); };
@@ -6103,6 +6190,7 @@
       var only = document.createElement('div'); only.className = 'tsub small';
       only.textContent = 'Single-subject paper — every question comes from ' + testScope + '.';
       wrap.appendChild(only);
+      wrap.appendChild(distForPool(pool, want, 'How these ' + Math.min(want, pool.length) + ' questions are chosen'));
     } else {
       wrap.appendChild(distTable(want, pool, ex));
     }
