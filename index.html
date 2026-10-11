@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-16 16:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-16 18:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -840,9 +840,17 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-16 16:00';
-  var BUILD_NOTE = 'The result now shows where your marks went, how you sit against an indicative cut-off, and your slowest questions; and a paper lets you cross out options, jump to the next unanswered, filter the navigator, and retake the same questions.';
+  var APP_BUILD = '2026-10-16 18:00';
+  var BUILD_NOTE = 'The Tests tab is split into Paper, Qbank, PYQ and History; the review filters to wrong, marked or skipped and can be compact; the reveal gate stops only on the ones you got wrong or marked; the builder and Grand Test gained exam-weight and Untimed; the PYQ switch is on every pre-start screen; and Home Today lists your mistakes too.';
   var CHANGELOG = [
+    { build:'2026-10-16 18:00', title:'A tidier Tests tab, a smarter review, and Today lists your mistakes', items:[
+      'The Tests tab no longer greets you with one long page - it is split into Paper, Qbank, PYQ and History.',
+      'The result review can be filtered to Wrong, Marked or Skipped and switched to a Compact view, so a 200-question review is quick to triage.',
+      'The one-by-one review now only stops for the questions you got wrong or marked; a correct one reveals straight away, and Reveal all turns the gate off for the whole paper.',
+      'The builder offers a one-tap Use exam weight length for a subject paper, and the Grand Test now has an Untimed option.',
+      'The Question bank switch - include PYQ or topic decks only - now appears on every pre-start screen.',
+      'Home Today now also lists your unwritten mistakes, so the day starts with review, new cards, mistakes and a paper in one place.',
+    ]},
     { build:'2026-10-16 16:00', title:'Marks feedback and a faster paper', items:[
       'After a paper, the result now shows Where your marks went - each subject sorted by the marks it cost you, against that subject weight in the exam - plus where your score sits against an indicative cut-off band.',
       'A new Slowest questions card shows where your time actually went, so a long question you got and a long question you missed are easy to tell apart.',
@@ -3275,6 +3283,18 @@
     b2.textContent = 'Or tackle my weak areas';
     b2.onclick = function(){ pendingScope = null; view = { t:'test', tMode:'build', bMode:'weak' }; render(); window.scrollTo(0,0); };
     d.appendChild(b2);
+    var _mist = 0; try{ _mist = unNotedMistakes().length; }catch(e){}
+    if(_mist){
+      var b3 = document.createElement('button'); b3.type = 'button'; b3.className = 'btn wide'; b3.style.margin = '8px 0 0';
+      b3.textContent = 'Redo ' + _mist + ' mistake' + (_mist === 1 ? '' : 's');
+      b3.onclick = function(){
+        testPriority = unNotedMistakes().slice(0, 60).map(function(x){ return x.k; });
+        testCustom = true; testSelYears = []; testSelSubjects = []; testSelUnits = []; testSelChapters = [];
+        testScope = 'all'; testDeck = ''; testLen = Math.min(50, _mist);
+        view = { t:'test' }; testStart();
+      };
+      d.appendChild(b3);
+    }
     return d;
   }
 
@@ -4944,6 +4964,7 @@
      error log, and you can re-practise just those. */
   var testRun = null, testTimerId = null, testScope = 'all', testLen = 200, testDeck = '', testExam = 'NEET-PG', testSections = true, testSeed = 0, testUntimed = false, testWithPyq = true, testCustom = false, testSelSubjects = [], testSelUnits = [], testSelChapters = [], testSelYears = [];
   var testPalFilter = 'all';
+  var testRevFilter = 'all', testRevCompact = false, testSeg = 'paper';
 
   /* Extraction sometimes left HTML entities in the text (\&lt; for <, \&gt; for >,
      \&amp; for &). They must never reach the screen, so every string that flows
@@ -5829,11 +5850,21 @@
       inp.onblur = function(){ inp.value = S.len; draw(); };
       lrow.appendChild(inp);
       card.appendChild(lrow);
+      if(S.mode === 'subject' && S.subs.length === 1){
+        var _w2 = 0; (_ex.w || []).forEach(function(p){ if(p[0] === S.subs[0]) _w2 = p[1]; });
+        if(_w2){
+          var wb = document.createElement('button'); wb.type = 'button'; wb.className = 'tchip'; wb.style.marginTop = '8px';
+          wb.textContent = 'Use exam weight \u00b7 ' + _w2 + ' Q';
+          wb.onclick = function(){ S.len = _w2; draw(); };
+          card.appendChild(wb);
+        }
+      }
       var info = document.createElement('div'); info.className = 'tsub small';
       info.textContent = pool.length + ' deck' + (pool.length === 1 ? '' : 's') + ' \u00b7 ' + nQ + ' MCQs available'
         + ((S.years.length || S.subs.length || S.units.length || S.chaps.length) ? '' : ' \u2014 the whole tree')
         + '  \u00b7  paper of ' + Math.min(S.len, nQ) + '  \u00b7  ' + (S.untimed ? 'untimed' : _ex.mark);
       card.appendChild(info);
+      pyqSwitch(card);
       /* what this paper will actually be made of */
       try{ card.appendChild(distForPool(pool, Math.min(S.len, nQ), 'How these ' + Math.min(S.len, nQ) + ' questions are chosen')); }catch(e){}
       startBtn.disabled = !nQ;
@@ -5959,6 +5990,7 @@
     var act = document.createElement('button'); act.type = 'button'; act.className = 'tstart'; act.textContent = 'Practise these'; act.disabled = true;
     card.appendChild(act);
     wrap.appendChild(card);
+    pyqSwitch(wrap);
     box.appendChild(wrap);
     var idx = null, hits = [], timer = null;
     function buildIndex(){
@@ -6024,15 +6056,23 @@
     var sub = document.createElement('div'); sub.className = 'tsub';
     sub.textContent = 'Timed, exam-style practice from your decks. Pick a mode.';
     wrap.appendChild(sub);
+    var seg = document.createElement('div'); seg.className = 'tchips'; seg.style.margin = '2px 0 10px';
+    [['paper','Paper'],['qbank','Qbank'],['pyq','PYQ'],['history','History']].forEach(function(o){
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'tchip' + (testSeg === o[0] ? ' on' : ''); b.textContent = o[1];
+      b.onclick = function(){ testSeg = o[0]; renderTest(); window.scrollTo(0,0); };
+      seg.appendChild(b);
+    });
+    wrap.appendChild(seg);
     var modes = document.createElement('div'); modes.className = 'tmodes';
     modes.appendChild(testModeTile({ title:'Start a test', desc:'Pick your subjects, systems and length \u2014 or just hit start for a sensible paper.', soon:false, onTap:function(){ view = { t:'test', tMode:'build', bMode:'custom' }; render(); window.scrollTo(0,0); } }));
     modes.appendChild(testModeTile({ title:'Subject test', desc:'A timed paper from one whole subject, at its real weight in the exam you pick.', soon:false, onTap:function(){ view = { t:'test', tMode:'build', bMode:'subject' }; render(); window.scrollTo(0,0); } }));
     modes.appendChild(testModeTile({ title:'Real Exam Grand Test', desc:'A timed paper built to a real exam pattern — NEET-PG, INI-CET or RUHS-MO.', soon:false, onTap:function(){ view = { t:'test', tMode:'grand' }; render(); window.scrollTo(0,0); } }));
     modes.appendChild(testModeTile({ title:'Weak areas', desc:'Built from your real accuracy \u2014 every question you missed, worst first, plus the chapters you are weakest in.', soon:false, onTap:function(){ view = { t:'test', tMode:'build', bMode:'weak' }; render(); window.scrollTo(0,0); } }));
     modes.appendChild(testModeTile({ title:'Find a question', desc:'Search every question in your bank by word or phrase \u2014 then practise just those.', soon:false, onTap:function(){ view = { t:'test', tMode:'find' }; render(); window.scrollTo(0,0); } }));
-    wrap.appendChild(modes);
+    if(testSeg === 'paper'){ wrap.appendChild(modes); }
 
     /* Qbank — the WHOLE MBBS tree: Year → Subject → Unit → Chapter → deck, collapsible */
+    if(testSeg === 'qbank'){
     var qdecks = [];
     (decksData || []).forEach(function(d){
       if(!d || !d.deck_key) return;
@@ -6149,8 +6189,10 @@
       }
       wrap.appendChild(qc);
     }
+    }
 
     /* PYQs — NEET papers in the KB, filed under the same MBBS hierarchy */
+    if(testSeg === 'pyq'){
     var pyqIndex = (PYQ_INDEX && Object.keys(PYQ_INDEX).length) ? PYQ_INDEX : {};
     var pyqDecks = {};
     (decksData || []).forEach(function(d){
@@ -6234,9 +6276,10 @@
       });
       wrap.appendChild(pc);
     }
+    }
 
 
-    renderTestHistory(wrap);
+    if(testSeg === 'history'){ renderTestHistory(wrap); }
     box.appendChild(wrap);
   }
 
@@ -6294,6 +6337,7 @@
                                      'How these ' + n + ' questions are chosen'));
       }
     }catch(e){}
+    pyqSwitch(wrap);
     var start = document.createElement('button'); start.type = 'button'; start.className = 'tstart'; start.textContent = 'Start test';
     start.disabled = !n;
     start.onclick = function(){ testDeck = dk; testScope = 'all'; testStart(); };
@@ -6541,7 +6585,17 @@
       wrap.appendChild(distTable(want, pool, ex));
     }
     wrap.appendChild(examPatternCard(ex));
+    pyqSwitch(wrap);
 
+    var tg = document.createElement('div'); tg.className = 'tchips'; tg.style.margin = '8px 0';
+    [['timed','Timed \u00b7 exam-like'],['untimed','Untimed \u00b7 study']].forEach(function(o){
+      var b = document.createElement('button'); b.type = 'button';
+      b.className = 'tchip' + (((testUntimed ? 'untimed' : 'timed')) === o[0] ? ' on' : '');
+      b.textContent = o[1];
+      b.onclick = function(){ testUntimed = (o[0] === 'untimed'); renderTest(); window.scrollTo(0,0); };
+      tg.appendChild(b);
+    });
+    wrap.appendChild(tg);
     var start = document.createElement('button'); start.type = 'button'; start.className = 'tstart';
     start.textContent = 'Start ' + ex.name + ' paper'; start.disabled = !can;
     start.onclick = function(){ testStart(); };
@@ -7194,12 +7248,16 @@
     back.onclick = function(){ view = { t: 'test', tResult: res }; renderTestResult(); window.scrollTo(0, 0); };
     top.appendChild(back);
     var qn = document.createElement('span'); qn.className = 'tqn'; qn.textContent = 'Review ' + (r1.i + 1) + ' / ' + res.review.length; top.appendChild(qn);
+    var ra = document.createElement('button'); ra.type = 'button'; ra.className = 'tend'; ra.textContent = r1.revealAll ? 'Gate on' : 'Reveal all';
+    ra.onclick = function(){ r1.revealAll = !r1.revealAll; renderReview1(); };
+    top.appendChild(ra);
     wrap.appendChild(top);
     var pb = document.createElement('div'); pb.className = 'tprog';
     var pi = document.createElement('i'); pi.style.width = Math.round((r1.i + 1) / res.review.length * 100) + '%'; pb.appendChild(pi); wrap.appendChild(pb);
 
     var item = res.review[r1.i], q = item.q, ok = ansCorrect(q, item.picked);
-    var revealed = !!r1.revealed[r1.i];
+    var needsGate = (!ok || item.mark);
+    var revealed = !needsGate || !!r1.revealed[r1.i] || !!r1.revealAll;
     var qc = document.createElement('div'); qc.className = 'tq';
     var meta = document.createElement('div'); meta.className = 'tqmeta'; meta.textContent = [q.s, q.u, q.t].filter(Boolean).join(' \u00b7 '); qc.appendChild(meta);
     var qt = document.createElement('div'); qt.className = 'tqtext'; qt.textContent = q.q; qc.appendChild(qt);
@@ -7449,21 +7507,37 @@
       var rv = document.createElement('div'); rv.className = 'tcard';
       var vl = document.createElement('div'); vl.className = 'tlabel'; vl.textContent = 'Review'; rv.appendChild(vl);
       rv.appendChild(qLegend([['right','correct'],['wrong','wrong'],['skip','not attempted'],['mark','marked']]));
+      var _frow = document.createElement('div'); _frow.className = 'tchips'; _frow.style.margin = '4px 0 8px';
+      [['all','All'],['wrong','Wrong'],['mark','Marked'],['skip','Skipped']].forEach(function(o){
+        var b = document.createElement('button'); b.type = 'button'; b.className = 'tchip' + (testRevFilter === o[0] ? ' on' : ''); b.textContent = o[1];
+        b.onclick = function(){ testRevFilter = o[0]; qimgRefreshResult(); };
+        _frow.appendChild(b);
+      });
+      var _cb = document.createElement('button'); _cb.type = 'button'; _cb.className = 'tchip' + (testRevCompact ? ' on' : '');
+      _cb.textContent = testRevCompact ? 'Compact' : 'Full';
+      _cb.onclick = function(){ testRevCompact = !testRevCompact; qimgRefreshResult(); };
+      _frow.appendChild(_cb);
+      rv.appendChild(_frow);
       res.review.forEach(function(item, i){
         var q = item.q, ok = ansCorrect(q, item.picked);
         var eb = document.createElement('div'); eb.className = 'terr'; eb.id = 'rvi' + i;
         _palItems.push({ n:i+1, status:((item.picked == null) ? 'skip' : (ok ? 'right' : 'wrong')), mark:!!item.mark, el:(function(id){ return function(){ return document.getElementById(id); }; })('rvi' + i) });
+        if(testRevFilter === 'wrong' && ok) return;
+        if(testRevFilter === 'mark' && !item.mark) return;
+        if(testRevFilter === 'skip' && item.picked != null) return;
         var m = document.createElement('div'); m.className = 'terr-m';
         m.textContent = 'Q' + (i+1) + ' \u00b7 ' + (q.id || '') + ' \u00b7 ' + [q.s, q.t].filter(Boolean).join(' \u00b7 ') + ' \u00b7 ' + (item.picked==null ? 'not attempted' : (ok ? 'correct' : 'wrong'));
         eb.appendChild(m);
         var qq = document.createElement('div'); qq.className = 'terr-q'; qq.textContent = q.q; eb.appendChild(qq);
-        qimgBlock(q.k, q.id, 'q', 'Question image', eb, qimgRefreshResult);
-        var _qi2 = qImgEl(q.img); if(_qi2) eb.appendChild(_qi2);
-        rvOptions(q, item.picked, eb);
-        if(q.explain){ var ex = document.createElement('div'); ex.className = 'rvexp'; ex.textContent = q.explain; eb.appendChild(ex); }
-        qimgBlock(q.k, q.id, 'e', 'Explanation images', eb, qimgRefreshResult);
-        var _sl1 = srcLine(q); if(_sl1) eb.appendChild(_sl1);
-        if(!ok || item.mark){ errNoteRow(q.k, q.id, eb); }
+        if(!testRevCompact){
+          qimgBlock(q.k, q.id, 'q', 'Question image', eb, qimgRefreshResult);
+          var _qi2 = qImgEl(q.img); if(_qi2) eb.appendChild(_qi2);
+          rvOptions(q, item.picked, eb);
+          if(q.explain){ var ex = document.createElement('div'); ex.className = 'rvexp'; ex.textContent = q.explain; eb.appendChild(ex); }
+          qimgBlock(q.k, q.id, 'e', 'Explanation images', eb, qimgRefreshResult);
+          var _sl1 = srcLine(q); if(_sl1) eb.appendChild(_sl1);
+          if(!ok || item.mark){ errNoteRow(q.k, q.id, eb); }
+        }
         rv.appendChild(eb);
       });
       wrap.appendChild(rv);
