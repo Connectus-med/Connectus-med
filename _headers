@@ -1,0 +1,14 @@
+# Cloudflare Pages headers (ignored by GitHub Pages - harmless there)
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+
+# the loader must never go stale in a browser cache
+/
+  Cache-Control: no-cache
+
+/index.html
+  Cache-Control: no-cache
+
+/loader.html
+  Cache-Control: no-cache
