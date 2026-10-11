@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-17 18:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-17 20:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -847,9 +847,14 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-17 18:00';
-  var BUILD_NOTE = 'Removed a Netlify-injected third-party script that was baked into the app, and stopped the whole screen re-rendering every time you return to the app - the last source of the blink.';
+  var APP_BUILD = '2026-10-17 20:00';
+  var BUILD_NOTE = 'Fixed the question navigator on the result and error-log screens: it was pinned at a fixed 56px while the app bar is 69-76px tall, so the bar covered the top of every chip. It now sits exactly below the bar.';
   var CHANGELOG = [
+    { build:'2026-10-17 20:00', title:'Fixed: the question navigator was clipped by the top bar', items:[
+      'Fixed the question navigator on the result and error-log screens - it showed as a clipped row of half-chips at the top-left. It was pinned at a fixed 56px while the app bar is 69-76px tall, so the bar covered the top of every chip.',
+      'It now measures the real app bar and sits exactly below it, full width; in the wide layout it starts after the left tab bar, and the content below is padded so nothing hides under it.',
+      'It also re-fits when you rotate or resize.',
+    ]},
     { build:'2026-10-17 18:00', title:'Removed the 3rd-party script; no re-render on return', items:[
       'Found and removed a Netlify script that had been baked into the app file - a third-party script that had no business being inside the app.',
       'Fixed the last source of the blink: the app re-drew the whole screen every time you returned to it. It now only refreshes the sync label, and re-draws only when the data actually changed.',
@@ -6750,10 +6755,27 @@
 
   /* ---------- the right-edge question palette ---------- */
   var _qpalSpy = null;
+  var _qpalResize = null;
+  /* The navigator must sit BELOW the app bar, not under it. It used to be pinned at
+     top:56px, but the bar is 69-76px tall, so the bar covered the top of every chip.
+     Measure the real bar (and the left tab bar in the wide layout) and place it. */
+  function qpalFit(){
+    var pal = document.querySelector('.qpal'); if(!pal) return;
+    var ab = document.querySelector('.appbar');
+    var top = ab ? Math.ceil(ab.getBoundingClientRect().height) : 56;
+    var left = 0;
+    try{ var tb = document.getElementById('tabbar'); if(tb && window.innerWidth >= 600 && tb.offsetWidth) left = Math.round(tb.offsetWidth); }catch(e){}
+    if(!left && window.innerWidth >= 600) left = 96;   /* wide layout: tab bar is a 96px left column */
+    pal.style.top = top + 'px';
+    pal.style.left = left + 'px';
+    try{ var m = document.querySelector('main'); if(m) m.style.paddingTop = (top + pal.offsetHeight + 8) + 'px'; }catch(e){}
+  }
   function clearQPal(){
     try{ if(_qpalSpy){ window.removeEventListener('scroll', _qpalSpy); _qpalSpy = null; } }catch(e){}
     var old = document.querySelector('.qpal'); if(old && old.parentNode) old.parentNode.removeChild(old);
     document.body.classList.remove('qpal-on');
+    try{ if(_qpalResize){ window.removeEventListener('resize', _qpalResize); _qpalResize = null; } }catch(e){}
+    try{ var _qm = document.querySelector('main'); if(_qm) _qm.style.paddingTop = ''; }catch(e){}
   }
   function mountQPal(items){
     clearQPal();
@@ -6770,6 +6792,8 @@
     });
     document.body.appendChild(pal);
     document.body.classList.add('qpal-on');
+    qpalFit();
+    if(!_qpalResize){ _qpalResize = function(){ try{ qpalFit(); }catch(e){} }; window.addEventListener('resize', _qpalResize); }
     var ticking = false;
     _qpalSpy = function(){
       if(ticking) return; ticking = true;
