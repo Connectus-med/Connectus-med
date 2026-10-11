@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-16 10:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-16 12:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -661,6 +661,9 @@
   .thist-btn:hover{color:var(--accent-2)}
   .thist-off{opacity:.6; cursor:default}
   .thist-rev{color:var(--accent-2); font-size:.72rem; font-weight:800; flex:none}
+  /* pre-launch gate: nothing for non-owners yet */
+  body.launch-closed #tabbar{display:none!important}
+  body.launch-closed main{padding-bottom:calc(24px + env(safe-area-inset-bottom,0px))!important}
 </style>
 </head>
 <body>
@@ -822,9 +825,15 @@
   var viewRestored = false;
   var testPriority = null;   /* deck|id keys the paper must include (weak-areas paper) */
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
-  var APP_BUILD = '2026-10-16 10:00';
-  var BUILD_NOTE = 'Past papers re-open for a full review, marked + missed questions re-practise in one tap, 1 image on a question and 3 on its explanation, a reveal-gated one-by-one review, and a new Analysis block on the Error log.';
+  var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
+  var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
+  var APP_BUILD = '2026-10-16 12:00';
+  var BUILD_NOTE = 'The library is owner-only for now, while it is still being prepared - guests and customers see a short not-open-yet notice, and the owner keeps everything.';
   var CHANGELOG = [
+    { build:'2026-10-16 12:00', title:'Not open to everyone yet', items:[
+      'The library is owner-only while it is still being prepared: signing out, or signing in with an account that is not the owner, now shows a short "not open yet" notice instead of the catalogue. Nothing is offered to free or paid visitors until it is opened.',
+      'The owner is unaffected - the full library, tests, review, error log and analysis all work exactly as before. Opening the app to everyone is a one-line change.',
+    ]},
     { build:'2026-10-16 10:00', title:'Past papers re-open, mistake analysis, and images in review', items:[
       'Past tests can now be re-opened: tap any row under Past tests to see the whole paper again - every question, your answer, the correct answer and the explanation - exactly as after submit.',
       'From any result, one tap practises just the questions you marked plus the ones you got wrong. Marked questions are included now, not only the missed ones.',
@@ -2278,6 +2287,8 @@
     });
   }
   function load(){
+    LAUNCH_CLOSED = false;
+    try{ document.body.classList.remove('launch-closed'); }catch(e){}
     lastLoadAt = Date.now();
     setDot('on');
     ensureAuth().then(function(){
@@ -2463,6 +2474,8 @@
     try{ ss('fd:builder', { custom:testCustom, exam:testExam, len:testLen, y:testSelYears, s:testSelSubjects, u:testSelUnits, c:testSelChapters }); }catch(e){}
     try{ ss('fd:view', view); }catch(e){}
     try{ clearQPal(); }catch(e){}
+    document.body.classList.toggle('launch-closed', !!(LAUNCH_CLOSED && !IS_OWNER));
+    if(LAUNCH_CLOSED && !IS_OWNER){ showClosed(); updateFab(); paintTabs(); return; }
     if(view.t === 'subject') renderSubject(view.y, view.s);
     else if(view.t === 'revise') renderRevise();
     else if(view.t === 'learn') renderLearn();
@@ -4167,7 +4180,22 @@
     }).then(function(r){ return r.json(); });
   }
 
+  function showClosed(){
+    try{ document.body.classList.add('launch-closed'); }catch(e){}
+    var c = $('content'); if(!c) return; c.textContent = '';
+    var wrap = document.createElement('div'); wrap.className = 'card3'; wrap.style.marginTop = '18px';
+    var h = document.createElement('div'); h.className = 'big'; h.textContent = 'Connectus is not open yet'; wrap.appendChild(h);
+    var p = document.createElement('div'); p.className = 'muted'; p.style.marginTop = '8px';
+    p.textContent = 'The library is still being prepared, so it is not open to everyone yet. Thank you for your patience.';
+    wrap.appendChild(p);
+    var n = document.createElement('div'); n.className = 'muted small'; n.style.marginTop = '10px';
+    n.textContent = 'Already have access? Sign in from the profile button at the top-right.';
+    wrap.appendChild(n);
+    c.appendChild(wrap);
+  }
   function loadPublic(){
+    if(LAUNCH_OWNER_ONLY && !IS_OWNER){ LAUNCH_CLOSED = true; showClosed(); return; }
+    LAUNCH_CLOSED = false;
     setDot('');
     $('content').textContent = '';
     apiJson('?api=catalog').then(function(x){
