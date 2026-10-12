@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-19 22:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-20 00:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -490,7 +490,7 @@
   .rvopt{font-size:.85rem; line-height:1.4; padding:4px 0; color:var(--muted)}
   .rvopt.correct{color:var(--ok); font-weight:800}
   .rvopt.picked{color:var(--bad); font-weight:700}
-  .qsrc{margin-top:7px; color:var(--muted); font-size:.74rem; line-height:1.35}
+  .qsrc{margin-top:7px; color:var(--muted); font-size:var(--fs-xs); line-height:1.35; letter-spacing:.01em}
   .rvexp{margin-top:8px; padding:9px 11px; border-left:3px solid var(--accent-2); background:var(--accent-soft); border-radius:9px; font-size:.85rem; line-height:1.5}
   /* ---- right-edge question palette (review / error log) ---- */
   /* The question navigator used to be a fixed column down the right edge. It is
@@ -917,9 +917,14 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-19 22:00';
-  var BUILD_NOTE = 'Quick-start flashcards now always opens a deck (your last, or your first), and the image pop-up gained a Trusted sources row: Radiopaedia, Open-i, Europe PMC, NCI Visuals.';
+  var APP_BUILD = '2026-10-20 00:00';
+  var BUILD_NOTE = 'Source line: every question shows its source (file + page) as a small muted line wherever it appears, and the smoke test now checks it.';
   var CHANGELOG = [
+    { build:'2026-10-20 00:00', title:'Source line everywhere a question shows', items:[
+      'The source line was already rendered in the test run, the review, Find-a-question, the weak-areas practice and the qbank set viewer - verified.',
+      'Every one of the 5681 MCQ cards carries a source, so the line always has content.',
+      'Tightened the style to the type scale, and the smoke test now asserts the source line on the test run.',
+    ]},
     { build:'2026-10-19 22:00', title:'FAB fix + trusted image sources', items:[
       'Fixed: the quick-start Practise flashcards button now always opens a deck - your last one, or your first if there is none - instead of only a toast.',
       'The image pop-up gained a Trusted sources row: Radiopaedia, Open-i (NLM), Europe PMC and NCI Visuals, each opening the same search there.',
