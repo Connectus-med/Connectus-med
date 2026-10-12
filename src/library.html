@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-19 18:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-19 20:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -917,9 +917,14 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-19 18:00';
-  var BUILD_NOTE = 'Visuals are now matched to the term: a movement or clinical sign leads with a GIF/video and an animated Google link, static terms lead with pictures, and tiny or irrelevant results are filtered out.';
+  var APP_BUILD = '2026-10-19 20:00';
+  var BUILD_NOTE = 'Back button now steps back through the app screens instead of exiting. And the term list is verified against Wikimedia: every term returns pictures, and 13 movement signs have GIFs.';
   var CHANGELOG = [
+    { build:'2026-10-19 20:00', title:'Back button + verified term list', items:[
+      'The system back button now walks back through the app - Test to Home to exit - instead of dropping you straight out.',
+      'The term list is verified against Wikimedia: 249 terms checked, every one returns pictures, none dead.',
+      '13 movement signs have GIFs on Commons, so the moving-picture section has real content for them.',
+    ]},
     { build:'2026-10-19 18:00', title:'Visuals matched to the term', items:[
       'A movement or clinical sign (tremor, nystagmus, gait...) now leads with a moving picture - a GIF or video - not a still image.',
       'The moving search is case-aware too - resting tremor with Parkinson disease.',
@@ -2751,6 +2756,7 @@
     try{ window.__lastRender = view && view.t; }catch(e){}
     try{ ss('fd:builder', { custom:testCustom, exam:testExam, len:testLen, y:testSelYears, s:testSelSubjects, u:testSelUnits, c:testSelChapters }); }catch(e){}
     try{ var _pv = view; if(_pv && (_pv.tResult || _pv.qotd)) _pv = Object.assign({}, _pv, { tResult: null, qotd: null }); ss('fd:view', _pv); }catch(e){}
+    try{ pushNav(view); }catch(e){}
     try{ clearQPal(); }catch(e){}
     document.body.classList.toggle('launch-closed', !!(LAUNCH_CLOSED && !IS_OWNER));
     if(LAUNCH_CLOSED && !IS_OWNER){ showClosed(); updateFab(); paintTabs(); return; }
@@ -9187,6 +9193,20 @@
      is skipped when the current entry already IS the guard (so the history never
      grows). Some Android browsers ignore a pushState fired inside popstate, hence
      the deferred re-arms and the pageshow/visibility re-arm as well. */
+  /* ---- in-app view history: the system back button walks back through screens ---- */
+  var _navKey = null;
+  function lightView(v){
+    var o = { t: (v && v.t) || 'home' };
+    try{ Object.keys(v || {}).forEach(function(k){ if(k === 'tResult' || k === 'qotd') return; o[k] = v[k]; }); }catch(e){}
+    return o;
+  }
+  function pushNav(v){
+    var o = lightView(v), k;
+    try{ k = JSON.stringify(o); }catch(e){ return; }
+    if(k === _navKey) return;
+    _navKey = k;
+    try{ history.pushState({ fdView: o }, ''); }catch(e){}
+  }
   var fdGuardArmed = false;
   function armBackGuard(){
     if(!document.body.classList.contains('deckopen')) return;
@@ -9201,12 +9221,26 @@
     fdGuardArmed = false;
     try{ history.back(); }catch(e){}
   }
-  function onBackAttempt(){
-    if(!document.body.classList.contains('deckopen')){ fdGuardArmed = false; return; }
-    armBackGuard();
-    setTimeout(armBackGuard, 0);
-    setTimeout(armBackGuard, 90);
-    try{ toast('Use the \u2190 Back button in the app to leave the deck.'); }catch(e){}
+  function onBackAttempt(ev){
+    if(document.body.classList.contains('deckopen')){
+      armBackGuard();
+      setTimeout(armBackGuard, 0);
+      setTimeout(armBackGuard, 90);
+      try{ toast('Use the \u2190 Back button in the app to leave the deck.'); }catch(e){}
+      return;
+    }
+    /* not a deck: walk back through the app's own screens */
+    var st = ev && ev.state;
+    if(st && st.fdView){
+      _navKey = null;
+      try{ _navKey = JSON.stringify(st.fdView); }catch(e){}
+      view = st.fdView;
+      try{ render(); }catch(e){}
+      try{ window.scrollTo(0, 0); }catch(e){}
+      return;
+    }
+    /* nothing of ours left on the stack: let the browser leave the app */
+    _navKey = null;
   }
   window.addEventListener('popstate', onBackAttempt);
   window.addEventListener('pageshow', function(){ if(document.body.classList.contains('deckopen')) armBackGuard(); });
