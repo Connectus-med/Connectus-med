@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-20 10:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-20 12:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -745,6 +745,25 @@
   .qotd-opt.wrong{border-color:var(--bad); background:rgba(220,38,38,.12)}
   .qotd-opt:disabled{cursor:default; opacity:1}
   .qotd-exp{font-size:var(--fs-base); line-height:1.6; margin-top:8px; white-space:pre-wrap}
+  /* ---- quick-start motion ---- */
+  @keyframes gwRise{from{opacity:0; transform:translateY(12px)} to{opacity:1; transform:none}}
+  @keyframes gwPop{0%{transform:scale(1)} 45%{transform:scale(1.035)} 100%{transform:scale(1)}}
+  @keyframes gwShake{10%,90%{transform:translateX(-2px)} 30%,70%{transform:translateX(3px)} 50%{transform:translateX(-4px)} 100%{transform:translateX(0)}}
+  @keyframes gwGlow{0%,100%{opacity:.55; transform:scale(1)} 50%{opacity:1; transform:scale(1.12)}}
+  @keyframes gwPulse{0%,100%{box-shadow:0 12px 26px -14px rgba(255,106,0,.7)} 50%{box-shadow:0 14px 34px -10px rgba(255,106,0,.95)}}
+  @keyframes gwBurn{0%,100%{transform:scale(1) rotate(0)} 35%{transform:scale(1.1) rotate(-4deg)} 70%{transform:scale(1.04) rotate(3deg)}}
+  .gw-in{animation:gwRise .38s cubic-bezier(.2,.75,.25,1) both}
+  .gw-d1{animation-delay:.06s} .gw-d2{animation-delay:.12s} .gw-d3{animation-delay:.18s}
+  .gw-opt{animation:gwRise .34s cubic-bezier(.2,.75,.25,1) both}
+  .qotd-opt.right{animation:gwPop .42s cubic-bezier(.2,.75,.25,1)}
+  .qotd-opt.wrong{animation:gwShake .4s ease-in-out}
+  .tstart.gw-go-pulse{animation:gwPulse 2.6s ease-in-out infinite}
+  .gw-flame{display:inline-flex; width:30px; height:30px; align-items:center; justify-content:center; animation:gwBurn 1.9s ease-in-out infinite; transform-origin:50% 80%}
+  .gw-flame svg{width:26px; height:26px; filter:drop-shadow(0 3px 6px rgba(255,120,0,.5))}
+  .gw-head{display:flex; align-items:center; gap:10px; animation:gwRise .38s cubic-bezier(.2,.75,.25,1) both}
+  .gw-goal{height:7px; border-radius:99px; background:var(--line); overflow:hidden; margin:10px 0 2px}
+  .gw-goal>i{display:block; height:100%; border-radius:99px; background:linear-gradient(90deg, var(--accent), var(--accent-2)); width:0; transition:width .7s cubic-bezier(.2,.75,.25,1)}
+  .gw-spark{display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--accent-2); margin-right:6px; animation:gwGlow 1.6s ease-in-out infinite; vertical-align:middle}
   /* quick-actions menu over the FAB */
   .fabmenu{position:fixed; right:16px; bottom:calc(150px + env(safe-area-inset-bottom,0px)); z-index:29; display:none; flex-direction:column; gap:8px; align-items:stretch; width:min(74vw,260px)}
   .fabmenu.open{display:flex}
@@ -919,9 +938,15 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-20 10:00';
-  var BUILD_NOTE = 'Quick start polish: hold the lightning button for the old menu (question of the day, flashcards), a Time for more row that sizes the next step, rotating nudge copy, better haptics, and a Continue card on Home when a session is open.';
+  var APP_BUILD = '2026-10-20 12:00';
+  var BUILD_NOTE = 'Quick start comes alive: a breathing flame and a goal bar in the header, the question card and its options rise in one after another, the right answer pulses with a spark, a wrong pick shakes, and the nudge button breathes.';
   var CHANGELOG = [
+    { build:'2026-10-20 12:00', title:'Quick start: a lively opening', items:[
+      'A breathing flame and a goal bar now sit at the top, so your progress is visible at a glance.',
+      'The question and its options rise in one after another - no more dull cut.',
+      'Right answer pulses with a spark; a wrong pick shakes. You feel the result.',
+      'The nudge button breathes gently, inviting the next step.',
+    ]},
     { build:'2026-10-20 10:00', title:'Quick start: time-aware, resumable', items:[
       'Hold the lightning button to get the old menu back (question of the day, flashcards).',
       'Time for more? Pick 2 min, 5 min, 15 min or 1 h - the next step sizes itself to fit.',
@@ -3140,8 +3165,17 @@
     try{ document.body.classList.remove('testrun'); }catch(e){}
     var st = gatewayState();
     var wrap = document.createElement('div'); wrap.className = 'twrap';
-    var h = document.createElement('div'); h.className = 'tbig'; h.textContent = 'Quick start'; wrap.appendChild(h);
-    var sub = document.createElement('div'); sub.className = 'tsub'; sub.textContent = 'One question at a time \u2014 ' + gwCounters() + '.'; wrap.appendChild(sub);
+    var head = document.createElement('div'); head.className = 'gw-head';
+    var fl = document.createElement('span'); fl.className = 'gw-flame';
+    fl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2.5c.7 3.2-.7 4.6-2.1 6C8.4 10 7 11.5 7 14a5 5 0 0 0 10 0c0-1.6-.6-2.9-1.4-4-.3.9-.9 1.5-1.7 1.7.6-2.4-.2-5-1.9-6.7-.3-.3-.7-.6-1-1.5Z" fill="#f97316"/><path d="M12 21a4.6 4.6 0 0 1-4.6-4.6c0-1.9 1-3 2.2-4.1.5 1 1.2 1.6 2.2 1.9-.2-1.6.4-3.2 1.6-4.4.2 2.1 1.2 3 2 4 .4.5.6 1.1.6 1.8A4.6 4.6 0 0 1 12 21Z" fill="#fb923c" opacity=".55"/></svg>';
+    head.appendChild(fl);
+    var ht = document.createElement('div');
+    var h = document.createElement('div'); h.className = 'tbig'; h.textContent = 'Quick start'; ht.appendChild(h);
+    var sub = document.createElement('div'); sub.className = 'tsub'; sub.textContent = gwCounters() + '.'; ht.appendChild(sub);
+    head.appendChild(ht); wrap.appendChild(head);
+    var gl = gwGoal(), tn = qotdToday().n, pct = Math.max(4, Math.min(100, Math.round((tn / gl) * 100)));
+    var bar = document.createElement('div'); bar.className = 'gw-goal gw-in gw-d1'; var fill = document.createElement('i'); bar.appendChild(fill); wrap.appendChild(bar);
+    setTimeout(function(){ try{ fill.style.width = pct + '%'; }catch(e){} }, 40);
     if(st.big){ gwBig(wrap, st); c.appendChild(wrap); return; }
     if(st.done){ gwDone(wrap, st); c.appendChild(wrap); return; }
     var q = st.q;
@@ -3153,12 +3187,13 @@
       }
       gwAsk(st); return;
     }
-    var card = document.createElement('div'); card.className = 'tcard';
+    var card = document.createElement('div'); card.className = 'tcard gw-in gw-d1';
     var meta = document.createElement('div'); meta.className = 'tlabel'; meta.textContent = (q.s || 'Question') + (q.t ? (' \u00b7 ' + q.t) : ''); card.appendChild(meta);
     var stem = document.createElement('div'); stem.className = 'qotd-stem'; stem.textContent = q.q; card.appendChild(stem);
     var answered = st.picked != null;
     q.options.forEach(function(o, i){
-      var b = document.createElement('button'); b.type = 'button'; b.className = 'qotd-opt';
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'qotd-opt gw-opt';
+      b.style.animationDelay = (0.06 + i * 0.045) + 's';
       b.textContent = String.fromCharCode(65 + i) + '.  ' + o;
       if(answered){
         b.disabled = true;
@@ -3172,9 +3207,10 @@
     wrap.appendChild(card);
     if(answered){
       var ok = st.picked === q.answer;
-      var rc = document.createElement('div'); rc.className = 'tcard';
+      var rc = document.createElement('div'); rc.className = 'tcard gw-in';
       var rh = document.createElement('div'); rh.className = 'tlabel';
-      rh.textContent = ok ? 'Correct' : ('Not quite \u2014 the answer is ' + String.fromCharCode(65 + q.answer));
+      if(ok){ var sp = document.createElement('span'); sp.className = 'gw-spark'; rh.appendChild(sp); }
+      rh.appendChild(document.createTextNode(ok ? 'Correct' : ('Not quite \u2014 the answer is ' + String.fromCharCode(65 + q.answer))));
       rc.appendChild(rh);
       if(q.explain){ var ex = document.createElement('div'); ex.className = 'qotd-exp'; linkTerms(ex, q.explain, termCtx(q)); rc.appendChild(ex); }
       var sl = srcLine(q); if(sl) rc.appendChild(sl);
@@ -3191,7 +3227,7 @@
       var lbl = gwLabel(st.n, st.time);
       var done = document.createElement('button'); done.type = 'button'; done.className = 'tstart ghost'; done.textContent = 'Done for now';
       done.onclick = function(){ gwBuzz(10); st.done = true; renderGateway(); window.scrollTo(0,0); };
-      var go = document.createElement('button'); go.type = 'button'; go.className = 'tstart'; go.textContent = lbl.t;
+      var go = document.createElement('button'); go.type = 'button'; go.className = 'tstart gw-go-pulse'; go.textContent = lbl.t;
       go.onclick = function(){
         if(lbl.kind === 'big'){ gwBuzz([15,50,15,50,25]); st.big = true; st.done = false; renderGateway(); }
         else { gwBuzz([10,40,10]); gwNext(); }
