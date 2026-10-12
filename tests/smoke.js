@@ -77,6 +77,15 @@ const ck = (n, ok, d) => { out.push({ n, ok: !!ok, d: d == null ? '' : String(d)
   ck('Owner opens', await clickTxt('Owner'), ''); await alive('Owner');
   await tab('home'); await alive('back home');
 
+  // a question must always carry its source line
+  await tab('test');
+  await clickTxt('Start a test'); await w(700);
+  await page.evaluate(() => { const b = [...document.querySelectorAll('.tstart')].find(x => /Start/.test(x.textContent)); if (b) b.click(); });
+  await w(1800);
+  const srcOk = await page.evaluate(() => { const e = document.querySelector('.qsrc'); return !!e && /^Source: /.test(e.textContent); });
+  ck('test run shows the source line', srcOk, '');
+  await tab('home');
+
   ck('no page errors across the whole sweep', errs.length === 0, errs.slice(0, 3).join(' | '));
 
   await browser.close();
