@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-20 08:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-20 10:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -424,6 +424,8 @@
   .tnum{width:80px; padding:7px 10px; border-radius:var(--cap); border:1px solid var(--line); font:inherit; font-size:.9rem; text-align:center; background:var(--panel); color:inherit}
   .tchip{border:1px solid var(--line); background:var(--bg); color:var(--ink); border-radius:999px; padding:9px 16px; font:inherit; font-size:var(--fs-base); font-weight:750; cursor:pointer; min-height:40px; padding-left:17px; padding-right:17px}
   .tchip.on{background:var(--accent-2); border-color:var(--accent-2); color:#fff}
+  .gw-time{display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:2px 0 6px}
+  .gw-time .lb{font-size:var(--fs-xs); color:var(--muted); font-weight:650}
   .tstart{border:0; background:var(--accent-2); color:#fff; border-radius:999px; padding:15px 18px; font:inherit; font-size:var(--fs-md); font-weight:800; cursor:pointer; min-height:48px; box-shadow:0 12px 26px -14px rgba(255,106,0,.7)}
   .tstart.stickybar{position:sticky; bottom:14px; z-index:6; width:100%; margin-top:14px}
   .tstart.ghost{background:none; color:var(--accent-2); border:1px solid var(--line); box-shadow:none}
@@ -917,9 +919,15 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-20 08:00';
-  var BUILD_NOTE = 'Quick start is now a Momentum Gateway: one tap gives you a single MCQ, then Done for now or a growing go button (1 more, 3 more, 10 MCQs), encouragement with your counters, and a hand-off to a subject or grand test.';
+  var APP_BUILD = '2026-10-20 10:00';
+  var BUILD_NOTE = 'Quick start polish: hold the lightning button for the old menu (question of the day, flashcards), a Time for more row that sizes the next step, rotating nudge copy, better haptics, and a Continue card on Home when a session is open.';
   var CHANGELOG = [
+    { build:'2026-10-20 10:00', title:'Quick start: time-aware, resumable', items:[
+      'Hold the lightning button to get the old menu back (question of the day, flashcards).',
+      'Time for more? Pick 2 min, 5 min, 15 min or 1 h - the next step sizes itself to fit.',
+      'The nudge copy rotates, so it never feels like a broken record.',
+      'Leave mid-session and Home shows Continue quick start - you pick up where you left off.',
+    ]},
     { build:'2026-10-20 08:00', title:'Quick start: the Momentum Gateway', items:[
       'The lightning button now opens one MCQ straight away - no menu, no friction.',
       'After answering: Done for now, or a go button that grows - 1 more, 3 more, 10 MCQs on your weak topic.',
@@ -2912,8 +2920,9 @@
     var h = document.createElement('div'); h.className = 'chead'; h.textContent = 'Question of the day'; dc.appendChild(h);
     var sub = document.createElement('div'); sub.className = 'muted small'; sub.style.margin = '0 0 8px';
     var _dn = qotdToday().n || 0;
-    sub.textContent = 'Start with one question \u2014 then, only if you want, a little more.' + (_dn ? ('  ' + _dn + ' done today.') : ''); dc.appendChild(sub);
-    var b = document.createElement('button'); b.className = 'btn primary wide'; b.textContent = 'Quick start \u2014 1 question';
+    var _cont = GW.active && GW.n > 0;
+    sub.textContent = (_cont ? ('You are ' + GW.n + ' in \u2014 pick up where you left off.') : 'Start with one question \u2014 then, only if you want, a little more.') + (_dn ? ('  ' + _dn + ' done today.') : ''); dc.appendChild(sub);
+    var b = document.createElement('button'); b.className = 'btn primary wide'; b.textContent = _cont ? ('Continue quick start \u00b7 ' + GW.n + ' done') : 'Quick start \u2014 1 question';
     b.onclick = openGateway; dc.appendChild(b);
     return dc;
   }
@@ -3088,16 +3097,31 @@
   }
 
   /* ---------- Quick start: the Momentum Gateway (atomic-habits ladder) ---------- */
+  var GW = { n:0, exclude:{}, active:false, time:0 };
+  var GW_COPY = {
+    one:['Come on\u2026 1 more \uD83D\uDD25', 'Keep the streak alive', '1 more \u2014 you are warm', 'One more, then you can stop'],
+    three:['3 more \u2014 a quick set', 'A quick 3, then breathe', '3 more and you are rolling'],
+    ten:['10 MCQs on your weakest topic', '10 on your weak topic', 'A 10-question block']
+  };
+  function gwPick(a, n){ return a[Math.abs(n || 0) % a.length]; }
+  function gwBuzz(p){ try{ if(navigator.vibrate) navigator.vibrate(p); }catch(e){} }
   function gatewayState(){ if(!view.gw) view.gw = { q:null, picked:null, exclude:{}, loading:false, tried:false, n:0, done:false }; return view.gw; }
   function gwStreak(){ var s = ls('fd:streak', null); return (s && s.days) || 0; }
   function gwGoal(){ var g = ls('fd:goal', 30); return (typeof g === 'number' && g > 0) ? g : 30; }
-  function gwLabel(n){
-    if(n < 2) return { t:'Come on\u2026 1 more \uD83D\uDD25', add:1, kind:'more' };
-    if(n < 4) return { t:'3 more \u2014 a quick set', add:3, kind:'more' };
-    if(n < 10) return { t:'10 MCQs on your weakest topic', add:10, kind:'more' };
+  function gwLabel(n, time){
+    if(time){
+      if(time <= 2) return { t:gwPick(GW_COPY.one, n), add:1, kind:'more' };
+      if(time <= 5) return { t:gwPick(GW_COPY.three, n), add:3, kind:'more' };
+      if(time <= 15) return { t:gwPick(GW_COPY.ten, n), add:10, kind:'more' };
+      return { t:'Make a big step \u2192', add:0, kind:'big' };
+    }
+    if(n < 2) return { t:gwPick(GW_COPY.one, n), add:1, kind:'more' };
+    if(n < 4) return { t:gwPick(GW_COPY.three, n), add:3, kind:'more' };
+    if(n < 10) return { t:gwPick(GW_COPY.ten, n), add:10, kind:'more' };
     return { t:'Make a big step \u2192', add:0, kind:'big' };
   }
-  function openGateway(){ view = { t:'gateway', gw:{ q:null, picked:null, exclude:{}, loading:false, tried:false, n:0, done:false } }; render(); window.scrollTo(0,0); }
+  function openGateway(){ GW.active = true; view = { t:'gateway', gw:{ q:null, picked:null, exclude:GW.exclude, loading:false, tried:false, n:GW.n, done:false, big:false, time:GW.time } }; render(); window.scrollTo(0,0); }
+  function gwClose(){ GW.active = false; GW.n = 0; GW.exclude = {}; GW.time = 0; }
   function gwCounters(){
     var t = qotdToday(), bits = [];
     bits.push(t.n ? (t.n + ' done today') : 'first one today');
@@ -3141,7 +3165,7 @@
         if(i === q.answer) b.classList.add('right');
         else if(i === st.picked) b.classList.add('wrong');
       } else {
-        b.onclick = function(){ st.picked = i; st.n++; qotdBump(); renderGateway(); };
+        b.onclick = function(){ st.picked = i; st.n++; GW.n = st.n; qotdBump(); gwBuzz(12); renderGateway(); };
       }
       card.appendChild(b);
     });
@@ -3155,13 +3179,22 @@
       if(q.explain){ var ex = document.createElement('div'); ex.className = 'qotd-exp'; linkTerms(ex, q.explain, termCtx(q)); rc.appendChild(ex); }
       var sl = srcLine(q); if(sl) rc.appendChild(sl);
       wrap.appendChild(rc);
-      var lbl = gwLabel(st.n);
+      var trow = document.createElement('div'); trow.className = 'gw-time';
+      var tlb = document.createElement('span'); tlb.className = 'lb'; tlb.textContent = 'Time for more?'; trow.appendChild(tlb);
+      [[2,'2 min'],[5,'5 min'],[15,'15 min'],[60,'1 h+']].forEach(function(p){
+        var ch = document.createElement('button'); ch.type = 'button'; ch.className = 'chip' + (st.time === p[0] ? ' on' : '');
+        ch.textContent = p[1];
+        ch.onclick = function(){ st.time = (st.time === p[0] ? 0 : p[0]); GW.time = st.time; renderGateway(); };
+        trow.appendChild(ch);
+      });
+      wrap.appendChild(trow);
+      var lbl = gwLabel(st.n, st.time);
       var done = document.createElement('button'); done.type = 'button'; done.className = 'tstart ghost'; done.textContent = 'Done for now';
-      done.onclick = function(){ st.done = true; renderGateway(); window.scrollTo(0,0); };
+      done.onclick = function(){ gwBuzz(10); st.done = true; renderGateway(); window.scrollTo(0,0); };
       var go = document.createElement('button'); go.type = 'button'; go.className = 'tstart'; go.textContent = lbl.t;
       go.onclick = function(){
-        if(lbl.kind === 'big'){ st.big = true; st.done = false; renderGateway(); }
-        else { gwNext(); }
+        if(lbl.kind === 'big'){ gwBuzz([15,50,15,50,25]); st.big = true; st.done = false; renderGateway(); }
+        else { gwBuzz([10,40,10]); gwNext(); }
         window.scrollTo(0,0);
       };
       wrap.appendChild(go); wrap.appendChild(done);
@@ -3237,7 +3270,7 @@
     more.onclick = function(){ st.done = false; renderGateway(); window.scrollTo(0,0); };
     wrap.appendChild(more);
     var fin = document.createElement('button'); fin.type = 'button'; fin.className = 'tstart ghost'; fin.textContent = 'Finish here for now';
-    fin.onclick = function(){ view = { t:'home' }; render(); window.scrollTo(0,0); };
+    fin.onclick = function(){ gwBuzz(18); gwClose(); view = { t:'home' }; render(); window.scrollTo(0,0); };
     wrap.appendChild(fin);
   }
 
@@ -5853,14 +5886,23 @@
         try{ view = { t:'learn' }; render(); window.scrollTo(0,0); }catch(_){}
       }));
     }
-    f.title = 'Quick start';
-    f.onclick = function(e){
-      e.stopPropagation();
+    f.title = 'Quick start \u2014 tap for one question, hold for the menu';
+    var fHold = null, fLong = false;
+    f.addEventListener('pointerdown', function(){
+      fLong = false; try{ clearTimeout(fHold); }catch(_){}
+      fHold = setTimeout(function(){ fLong = true; f.classList.add('zap'); gwBuzz([12,40,12]);
+        setTimeout(function(){ f.classList.remove('zap'); try{ buildMenu(); menu.classList.add('open'); }catch(_){} }, 220); }, 480);
+    });
+    f.addEventListener('pointerup', function(){
+      try{ clearTimeout(fHold); }catch(_){}
+      if(fLong){ fLong = false; return; }
       if(f.classList.contains('zap')) return;
-      f.classList.add('zap');
-      try{ if(navigator.vibrate) navigator.vibrate(30); }catch(_){}
-      setTimeout(function(){ f.classList.remove('zap'); try{ openGateway(); }catch(_){} }, 300);
-    };
+      f.classList.add('zap'); gwBuzz(12);
+      setTimeout(function(){ f.classList.remove('zap'); try{ openGateway(); }catch(_){} }, 240);
+    });
+    f.addEventListener('pointercancel', function(){ try{ clearTimeout(fHold); }catch(_){} fLong = false; });
+    f.addEventListener('pointerleave', function(){ try{ clearTimeout(fHold); }catch(_){} fLong = false; });
+    f.addEventListener('click', function(e){ e.stopPropagation(); });
     document.addEventListener('click', function(ev){ if(!menu.contains(ev.target) && ev.target !== f) closeMenu(); });
     window.__closeFabMenu = closeMenu;
   })();
