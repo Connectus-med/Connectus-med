@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-21 10:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-21 12:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -609,7 +609,7 @@
         rgba(255,208,150,.12) calc(100% - 53px), rgba(255,200,132,.05) calc(100% - 46px),
         rgba(255,180,90,0) calc(100% - 36px));
     animation:fabWave 2.2s linear infinite}
-  body.deckopen #fabWave, body.testrun #fabWave, body.gwopen #fabWave{display:none}
+  body:not(.home) #fabWave{display:none}
   @keyframes fabWave{
     0%,12%{opacity:0; width:56px; height:56px}
     30%{opacity:.4; width:78px; height:78px} 47%{opacity:.36; width:143px; height:143px}
@@ -854,6 +854,8 @@
   <div id="acctIn" class="">
     <button id="passBtn" class="btn wide hidden">Passes / Unlock</button>
     <button id="insightBtn" class="btn wide">Insights</button>
+    <button id="dataSaverBtn" class="btn wide">Data saver \u00b7 off</button>
+    <div id="dataSaverNote" class="muted small" style="margin:2px 12px 8px"></div>
     <button id="doOwnerIn" class="btn wide hidden">Owner access</button>
     <div style="height:10px"></div>
   </div>
@@ -995,9 +997,14 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-21 10:00';
-  var BUILD_NOTE = 'Data discipline: the app now counts exactly how much data it uses today (shown in Settings), auto-sync defaults to every 10 minutes instead of pulling constantly, and unsent changes still push the moment you leave or close the app.';
+  var APP_BUILD = '2026-10-21 12:00';
+  var BUILD_NOTE = 'The hammer shockwave now runs only on the Home screen - it no longer sweeps across Settings or any other screen. A Data saver toggle sits in the profile menu: no background sync and no update checks, for a metered connection.';
   var CHANGELOG = [
+    { build:'2026-10-21 12:00', title:'Wave on Home only, and a Data saver toggle', items:[
+      'The shockwave is Home-only now; other screens stay calm.',
+      'Profile menu has a Data saver switch - background sync and update checks off.',
+      'Your ratings still save locally and push when you leave the app; Sync now always works.',
+    ]},
     { build:'2026-10-21 10:00', title:'How much data, and a calmer sync', items:[
       'Settings now shows Data used today - counted from the real request sizes on this device.',
       'Auto-sync defaults to every 10 minutes; pick 10 min, or any other pace, in Settings.',
@@ -2422,7 +2429,22 @@
     AUTO_SYNC = v; ss('fd:autosync', v); applyAutoSync();
     toast('Auto sync: ' + autoLabel(v));
   }
-  function autoAllowed(){ return AUTO_SYNC !== 'off'; }
+  function autoAllowed(){ return !DATASAVER && AUTO_SYNC !== 'off'; }
+  /* Data saver: the user's switch for a metered connection. Nothing happens in
+     the background - no periodic pull, no update check on focus. Ratings and
+     edits still save locally at once and push when the app is hidden or closed,
+     and Sync now always works. */
+  var DATASAVER = ls('fd:datasaver', false);
+  function renderDataSaver(){
+    var b = $('dataSaverBtn'); if(!b) return;
+    b.textContent = 'Data saver \u00b7 ' + (DATASAVER ? 'ON' : 'off');
+    b.classList.toggle('primary', !!DATASAVER);
+    var n = $('dataSaverNote');
+    if(n) n.textContent = DATASAVER
+      ? 'Background sync and update checks are off. Your changes still save locally and push when you leave the app.'
+      : 'Background sync runs on your Automatic-sync pace (Settings).';
+  }
+  function setDataSaver(v){ DATASAVER = !!v; ss('fd:datasaver', DATASAVER); renderDataSaver(); try{ applyAutoSync(); }catch(e){} }
 
   /* ---- how much data is this using? -------------------------------------
      Every request to our own backend is counted (the on-the-wire size, i.e. the
@@ -2571,9 +2593,10 @@
 
   function openDrawer(){ /* the menu is gone — navigation lives in the bottom bar */ }
   function closeDrawer(){ var d=$('drawer'); if(!d) return; d.classList.remove('open'); d.setAttribute('aria-hidden','true'); syncScrim(); }
-  function openProfile(){ closeDrawer(); $('pmenu').classList.remove('hidden'); syncScrim(); }
+  function openProfile(){ closeDrawer(); $('pmenu').classList.remove('hidden'); try{ renderDataSaver(); }catch(e){} syncScrim(); }
   function closeProfile(){ $('pmenu').classList.add('hidden'); syncScrim(); }
   $('profileBtn').onclick = function(){ if($('pmenu').classList.contains('hidden')) openProfile(); else closeProfile(); };
+  try{ $('dataSaverBtn').onclick = function(){ setDataSaver(!DATASAVER); }; }catch(e){}
   $('scrim').onclick = function(){ closeDrawer(); closeProfile(); };
 
   function subjOf(d){ return (d.subject && String(d.subject).trim()) ? String(d.subject).trim() : 'Unsorted'; }
@@ -2969,6 +2992,7 @@
     try{ pushNav(view); }catch(e){}
     try{ clearQPal(); }catch(e){}
     try{ document.body.classList.remove('gwopen'); }catch(e){}
+    try{ document.body.classList.toggle('home', view.t === 'home'); }catch(e){}
     document.body.classList.toggle('launch-closed', !!(LAUNCH_CLOSED && !IS_OWNER));
     if(LAUNCH_CLOSED && !IS_OWNER){ showClosed(); updateFab(); paintTabs(); return; }
     if(view.t === 'subject') renderSubject(view.y, view.s);
@@ -5245,6 +5269,7 @@
     return true;
   }
   function selfUpdate(force){
+    if(DATASAVER && !force) return;
     var swaps = 0;
     try{ swaps = parseInt(sessionStorage.getItem('fd:selfupdate_n') || '0', 10) || 0; }catch(e){}
     fetch(SB_URL + '/functions/v1/medcircuit?api=version&_=' + Date.now(), { headers: { 'apikey': SB_KEY }, cache: 'no-store' })
