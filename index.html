@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-19 00:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-19 02:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -897,9 +897,14 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-19 00:00';
-  var BUILD_NOTE = 'New mode: Question of the day - the lightning button now starts one weak-area question instantly, with the explanation, and a next-question button that moves to another weak area.';
+  var APP_BUILD = '2026-10-19 02:00';
+  var BUILD_NOTE = 'Fix: Question of the day was reading the bank before the card bodies had loaded, so it wrongly said no questions. It now loads them first, ignores any half-built paper filters, and shows a done-today counter.';
   var CHANGELOG = [
+    { build:'2026-10-19 02:00', title:'Question of the day: fixed + counter', items:[
+      'Fixed: the drill could show no questions because it read the bank before the card bodies loaded. It now loads them first, then draws.',
+      'It also ignores any half-built paper filters, so it always draws from the whole bank.',
+      'A done-today counter now shows on the drill and on the Home card.',
+    ]},
     { build:'2026-10-19 00:00', title:'Question of the day', items:[
       'Tap the lightning button and a single weak-area question opens instantly - no setup, no timer.',
       'Answer it and the explanation appears right there, with the source.',
@@ -2702,8 +2707,18 @@
     paintTabs();
   }
   /* ---------- Question of the day: one weak-area question, instantly ---------- */
+  function qotdToday(){
+    var v = ls('fd:qotd', null);
+    if(!v || typeof v !== 'object' || v.day !== todayStr()) return { day:todayStr(), n:0, total:(v && v.total) || 0 };
+    return v;
+  }
+  function qotdBump(){ var v = qotdToday(); v.day = todayStr(); v.n = (v.n || 0) + 1; v.total = (v.total || 0) + 1; try{ ss('fd:qotd', v); }catch(e){} }
   function qotdPick(exclude){
+    /* the drill draws from the whole bank - save and clear any half-built paper filters */
+    var sv = { deck:testDeck, custom:testCustom, y:testSelYears, s:testSelSubjects, u:testSelUnits, c:testSelChapters };
+    testDeck = ''; testCustom = false; testSelYears = []; testSelSubjects = []; testSelUnits = []; testSelChapters = [];
     var pool = testPool('all').filter(isMcqItem);
+    testDeck = sv.deck; testCustom = sv.custom; testSelYears = sv.y; testSelSubjects = sv.s; testSelUnits = sv.u; testSelChapters = sv.c;
     if(!pool.length) return null;
     var hist = normQStats(), recent = testRecentMap(0), pr = practiceRatingMap();
     var cands = pool.filter(function(x){ return !(exclude && exclude[x.k + '|' + x.id]); });
@@ -2715,26 +2730,32 @@
     });
     return best;
   }
-  function openQotd(){ view = { t:'qotd', qotd:{ q:qotdPick({}), picked:null, exclude:{} } }; render(); window.scrollTo(0,0); }
+  function openQotd(){ view = { t:'qotd' }; render(); window.scrollTo(0,0); }
   function qotdNext(){
     var st = view.qotd || (view.qotd = { q:null, picked:null, exclude:{} });
     if(st.q) st.exclude[st.q.k + '|' + st.q.id] = 1;
     var nx = qotdPick(st.exclude);
     if(!nx){ st.exclude = {}; nx = qotdPick({}); }
     st.q = nx; st.picked = null;
+    if(!nx && !_allHydrated && typeof ensureCards === 'function'){ try{ ensureCards(function(){ try{ renderQotd(); }catch(e){} }); }catch(e){} return; }
     renderQotd(); window.scrollTo(0,0);
   }
   function renderQotd(){
     var c = $('content'); c.textContent = '';
     try{ document.body.classList.remove('testrun'); }catch(e){}
+    if(!_allHydrated && typeof ensureCards === 'function'){ try{ ensureCards(function(){ try{ renderQotd(); }catch(e){} }); }catch(e){} }
     var st = view.qotd || (view.qotd = { q:null, picked:null, exclude:{} });
-    if(!st.q) st.q = qotdPick({});
+    if(!st.q && _allHydrated) st.q = qotdPick({});
     var wrap = document.createElement('div'); wrap.className = 'twrap';
     var h = document.createElement('div'); h.className = 'tbig'; h.textContent = 'Question of the day'; wrap.appendChild(h);
-    var sub = document.createElement('div'); sub.className = 'tsub'; sub.textContent = 'One question from your weak areas. Answer it and see why \u2014 done in a minute.'; wrap.appendChild(sub);
+    var _dn = qotdToday().n || 0;
+    var sub = document.createElement('div'); sub.className = 'tsub';
+    sub.textContent = 'One question from your weak areas. Answer it and see why \u2014 done in a minute.' + (_dn ? ('  Today: ' + _dn + ' done.') : '');
+    wrap.appendChild(sub);
     var q = st.q;
     if(!q){
-      wrap.appendChild(emptyState('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v18M3 12h18"/></svg>', 'No questions yet', 'Add MCQ decks and a question of the day will appear here.'));
+      if(!_allHydrated){ wrap.appendChild(skeleton()); }
+      else { wrap.appendChild(emptyState('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v18M3 12h18"/></svg>', 'No MCQ questions yet', 'This drill uses multiple-choice questions. Add MCQ decks and a question of the day will appear here.')); }
       c.appendChild(wrap); return;
     }
     var card = document.createElement('div'); card.className = 'tcard';
@@ -2749,7 +2770,7 @@
         if(i === q.answer) b.classList.add('right');
         else if(i === st.picked) b.classList.add('wrong');
       } else {
-        b.onclick = function(){ st.picked = i; renderQotd(); };
+        b.onclick = function(){ st.picked = i; qotdBump(); renderQotd(); };
       }
       card.appendChild(b);
     });
@@ -2774,7 +2795,8 @@
     var dc = document.createElement('div'); dc.className = 'card3';
     var h = document.createElement('div'); h.className = 'chead'; h.textContent = 'Question of the day'; dc.appendChild(h);
     var sub = document.createElement('div'); sub.className = 'muted small'; sub.style.margin = '0 0 8px';
-    sub.textContent = 'Short on time? One question from your weak areas, with the explanation \u2014 done in a minute.'; dc.appendChild(sub);
+    var _dn = qotdToday().n || 0;
+    sub.textContent = 'Short on time? One question from your weak areas, with the explanation \u2014 done in a minute.' + (_dn ? ('  ' + _dn + ' done today.') : ''); dc.appendChild(sub);
     var b = document.createElement('button'); b.className = 'btn primary wide'; b.textContent = 'Start a question';
     b.onclick = openQotd; dc.appendChild(b);
     return dc;
