@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-20 20:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-20 22:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -601,20 +601,20 @@
     width:56px; height:56px; border-radius:50%; opacity:0; will-change:width,height,opacity;
     background:
       radial-gradient(closest-side,
-        rgba(255,150,40,0) calc(100% - 30px), rgba(255,196,110,.20) calc(100% - 17px),
-        rgba(255,208,140,.42) calc(100% - 8px), rgba(255,196,110,.18) calc(100% - 2px),
-        rgba(255,170,70,0) 100%),
+        rgba(255,168,70,0) calc(100% - 30px), rgba(255,206,150,.16) calc(100% - 17px),
+        rgba(255,214,168,.34) calc(100% - 8px), rgba(255,206,150,.14) calc(100% - 2px),
+        rgba(255,180,90,0) 100%),
       radial-gradient(closest-side,
-        rgba(255,150,40,0) calc(100% - 74px), rgba(255,188,98,.06) calc(100% - 62px),
-        rgba(255,200,124,.16) calc(100% - 53px), rgba(255,188,98,.06) calc(100% - 46px),
-        rgba(255,170,70,0) calc(100% - 36px));
-    animation:fabWave 2.2s cubic-bezier(.22,.68,.3,1) infinite}
+        rgba(255,168,70,0) calc(100% - 74px), rgba(255,200,132,.05) calc(100% - 62px),
+        rgba(255,208,150,.12) calc(100% - 53px), rgba(255,200,132,.05) calc(100% - 46px),
+        rgba(255,180,90,0) calc(100% - 36px));
+    animation:fabWave 2.2s linear infinite}
   body.deckopen #fabWave, body.testrun #fabWave, body.gwopen #fabWave{display:none}
   @keyframes fabWave{
-    0%,13%{opacity:0; width:60px; height:60px} 17%{opacity:.6; width:110px; height:110px}
-    33%{opacity:.55; width:225px; height:225px} 50%{opacity:.46; width:335px; height:335px}
-    68%{opacity:.32; width:435px; height:435px} 84%{opacity:.16; width:500px; height:500px}
-    100%{opacity:0; width:560px; height:560px}
+    0%,12%{opacity:0; width:56px; height:56px}
+    30%{opacity:.4; width:78px; height:78px} 47%{opacity:.36; width:143px; height:143px}
+    65%{opacity:.3; width:252px; height:252px} 82%{opacity:.19; width:404px; height:404px}
+    100%{opacity:0; width:600px; height:600px}
   }
   body.testrun .instaFab{display:none}
   body.gwopen .instaFab{display:none}
@@ -988,9 +988,14 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-20 20:00';
-  var BUILD_NOTE = 'The ripple is now a soft sound-wave - smooth gradient rings with a faint trailing ring, not a solid band. And it stops the moment you tap the hammer: open quick start and the wave and button step aside.';
+  var APP_BUILD = '2026-10-20 22:00';
+  var BUILD_NOTE = 'The ripple now expands smoothly outward with constant acceleration - no more stop-start. The easing bug that pulsed at every step is gone, and the tint is far lighter, so it invites without ever distracting.';
   var CHANGELOG = [
+    { build:'2026-10-20 22:00', title:'Quick start: a smooth, gentle ripple', items:[
+      'The wave now grows outward with a steady, accelerating push - no more stop-start steps.',
+      'Fixed the root cause: the easing was pulsing at every keyframe.',
+      'The tint is much lighter now - a faint hint, never a distraction.',
+    ]},
     { build:'2026-10-20 20:00', title:'Quick start: a sound-wave ripple', items:[
       'The ripple now reads like a sound wave - soft gradient rings, with a fainter ring trailing behind.',
       'No more solid orange band.',
