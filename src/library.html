@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-21 04:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-21 06:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -782,11 +782,11 @@
   .qotd-exp{font-size:var(--fs-base); line-height:1.6; margin-top:8px}
   /* universal point list: main point = orange dot, sub-point = dash (same as a flashcard back) */
   .pts{list-style:none; margin:6px 0 0; padding:0; display:flex; flex-direction:column; gap:9px}
-  .pts>li{position:relative; padding-left:24px; font-size:1.02rem; line-height:1.42; font-weight:550}
-  .pts>li::before{content:""; position:absolute; left:1px; top:calc(.7em - 4px); width:8px; height:8px; border-radius:50%; background:var(--accent-2)}
+  .pts>li{padding-left:22px; text-indent:-22px; font-size:1.02rem; line-height:1.42; font-weight:550}
+  .pts>li::before{content:""; display:inline-block; vertical-align:middle; width:8px; height:8px; border-radius:50%; background:var(--accent-2); margin-right:14px}
   .pts .sub{list-style:none; margin:8px 0 0; padding:0; display:flex; flex-direction:column; gap:6px}
-  .pts .sub li{position:relative; padding-left:16px; font-size:.95rem; line-height:1.4; font-weight:450; color:var(--muted)}
-  .pts .sub li::before{content:""; position:absolute; left:1px; top:calc(.7em - 1px); width:9px; height:2px; border-radius:2px; background:var(--muted); opacity:.6}
+  .pts .sub li{padding-left:16px; text-indent:-16px; font-size:.95rem; line-height:1.4; font-weight:450; color:var(--muted)}
+  .pts .sub li::before{content:""; display:inline-block; vertical-align:middle; width:9px; height:2px; border-radius:2px; background:var(--muted); opacity:.6; margin-right:7px}
   /* ---- quick-start motion ---- */
   @keyframes gwRise{from{opacity:0; transform:translateY(12px)} to{opacity:1; transform:none}}
   @keyframes gwPop{0%{transform:scale(1)} 45%{transform:scale(1.035)} 100%{transform:scale(1)}}
@@ -995,9 +995,14 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-21 04:00';
-  var BUILD_NOTE = 'Aligned the explanation markers: the orange dot and the grey dash now both sit level with the middle of their text line, consistently - they no longer float high or low.';
+  var APP_BUILD = '2026-10-21 06:00';
+  var BUILD_NOTE = 'Explanation markers now align by real font metrics, so the orange dot and grey dash sit level with the text on every device and font. The bullet characters inside the source explanations are also read properly now, so those long run-on lines split into clean points.';
   var CHANGELOG = [
+    { build:'2026-10-21 06:00', title:'Explanation markers and bullets fixed', items:[
+      'The dot and dash now align using the actual font, not a fixed offset - level on any device.',
+      'Bullets that sit inside the explanation text are now read as real points, so no more run-on lines.',
+      'One shared style in the app and in every deck card.',
+    ]},
     { build:'2026-10-21 04:00', title:'Explanation markers aligned', items:[
       'The orange dot and grey dash now sit level with the middle of the text line.',
       'Both use one shared offset, so a dot and a dash look consistent side by side.',
@@ -3126,19 +3131,22 @@
       return out;
     }
     var flat = t.replace(/\s+/g, ' ').replace(/^Back to Question[^.]*?p\.?\s*\d+\s*/i, '').trim();
-    var sents = splitSentences(flat);
-    if(!sents.length) return [{ t:flat, sub:[] }];
+    var segs = flat.split(/\u2022/).map(function(x){ return x.trim(); }).filter(function(x){ return x; });
+    if(!segs.length) return [{ t:flat, sub:[] }];
     var out = [];
-    sents.forEach(function(sn){
-      var sub = false;
-      if(out.length){
-        if(EXPLAIN_SUB_START.test(sn)) sub = true;
-        else { var w = explainSubject(sn); if(w && w === explainSubject(out[out.length - 1].t)) sub = true; }
-      }
-      if(sub) out[out.length - 1].sub.push(sn);
-      else out.push({ t:sn, sub:[] });
+    segs.forEach(function(seg, si){
+      var sents = splitSentences(seg.replace(/^[-\u2013\u2014]\s*/, ''));
+      sents.forEach(function(sn, i){
+        var sub = false;
+        if(out.length && !(si > 0 && i === 0)){
+          if(EXPLAIN_SUB_START.test(sn)) sub = true;
+          else { var w = explainSubject(sn); if(w && w === explainSubject(out[out.length - 1].t)) sub = true; }
+        }
+        if(sub) out[out.length - 1].sub.push(sn);
+        else out.push({ t:sn, sub:[] });
+      });
     });
-    return out;
+    return out.length ? out : [{ t:flat, sub:[] }];
   }
   var EXPLAIN_SUB_START = /^(it|its|this|these|that|those|they|their|them|he|she|his|her|such|here|there|thus|hence|therefore|however|but|and|also|moreover|furthermore|additionally|besides|so|yet|still|meanwhile|similarly|likewise|conversely|instead|otherwise|overall)\b/i;
   var EXPLAIN_STOP = {the:1,a:1,an:1,in:1,of:1,on:1,for:1,to:1,with:1,by:1,at:1,as:1,from:1,is:1,are:1,was:1,were:1,and:1,or:1,but:1,no:1,not:1,most:1,all:1};
