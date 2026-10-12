@@ -115,6 +115,11 @@ const near = (got, want, tol) => Math.abs(got - want) <= tol;
     await page.evaluate(() => { const b = [...document.querySelectorAll('.tend')].find(x => x.textContent === 'Submit'); if (b) b.click(); });
     await w(900);
   };
+  // the result screen now has two sub-sections; the review work needs the Review tab
+  const showReview = async () => {
+    await page.evaluate(() => { const b = [...document.querySelectorAll('.tchip')].find(x => x.textContent === 'Review'); if (b) b.click(); });
+    await w(500);
+  };
   const setSeed = async v => {
     // the seed box now lives under "Advanced options" on the Real Exam setup
     await page.evaluate(() => { const b = [...document.querySelectorAll('button')].find(x => /Advanced options/.test(x.textContent)); if (b) b.click(); });
@@ -204,6 +209,7 @@ const near = (got, want, tol) => Math.abs(got - want) <= tol;
   await submit();
   const neetScore = await page.evaluate(() => (document.querySelector('.tscore') || {}).textContent);
   check('NEET-PG marking +4 / -1  => 3 / 720', neetScore === '3 / 720', neetScore);
+  await showReview();
   const palOnResult = await page.evaluate(() => document.querySelectorAll('.qpal .qpalcell').length);
   check('review screen shows the question palette', palOnResult === 180, palOnResult);
   await clickTxt('New paper');
@@ -267,6 +273,7 @@ const near = (got, want, tol) => Math.abs(got - want) <= tol;
   const ruhsScore = await page.evaluate(() => (document.querySelector('.tscore') || {}).textContent);
   check('RUHS-MO marking +1, no negative  => 1 / 100', ruhsScore === '1 / 100', ruhsScore);
   // write our own line on the review screen — the error log must show ONLY this
+  await showReview();
   await page.evaluate(() => {
     const ta = document.querySelector('.errnote');
     if (ta) { ta.value = 'regression: my own line'; ta.dispatchEvent(new Event('change')); }
