@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-22 16:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-22 18:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -1041,9 +1041,15 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-22 16:00';
-  var BUILD_NOTE = 'Every card and question now shows its fixed id - the card cid beside its source in the deck, the question qid in Quick start, Question of the day, the review, the error log and Find. A small muted chip, and only you (the owner) see it.';
+  var APP_BUILD = '2026-10-22 18:00';
+  var BUILD_NOTE = 'A question\'s own image now sits right after the question stem, above the options, on every screen - Quick start, Question of the day, the review, the result and the error log - and it stays there whether or not the answer is shown. The explanation\'s own images now appear together with the explanation.';
   var CHANGELOG = [
+    { build:'2026-10-22 18:00', title:'Question image above the options, always', items:[
+      'A question\'s own image now sits right after the question stem, above the options - on Quick start, Question of the day, the review, the result and the error log.',
+      'It shows whether or not you have answered, so you always see the image while reading the question.',
+      'The explanation\'s own images now appear together with the explanation, not away from it.',
+      'In a paper you are sitting, the question image still shows but the attach buttons stay hidden.',
+    ]},
     { build:'2026-10-22 16:00', title:'Every card and question shows its id', items:[
       'A small muted chip beside the source line: a card shows its cid, a question its qid - wherever it appears.',
       'Cards: in the deck and in practice. Questions: Quick start, Question of the day, the review, the error log and Find.',
@@ -3194,6 +3200,7 @@
     var card = document.createElement('div'); card.className = 'tcard';
     var meta = document.createElement('div'); meta.className = 'tlabel'; meta.textContent = (q.s || 'Question') + (q.t ? (' \u00b7 ' + q.t) : ''); card.appendChild(meta);
     var stem = document.createElement('div'); stem.className = 'qotd-stem'; stem.textContent = q.q; card.appendChild(stem);
+    card.appendChild(qimgQHost(q, function(){ try{ renderQotd(); }catch(e){} }));
     var answered = st.picked != null;
     q.options.forEach(function(o, i){
       var b = document.createElement('button'); b.type = 'button'; b.className = 'qotd-opt';
@@ -3215,6 +3222,7 @@
       rh.textContent = ok ? 'Correct' : ('Not quite \u2014 the answer is ' + String.fromCharCode(65 + q.answer));
       rc.appendChild(rh);
       if(q.explain){ var ex = document.createElement('div'); ex.className = 'qotd-exp'; explainList(ex, q.explain, termCtx(q)); rc.appendChild(ex); }
+      rc.appendChild(qimgEHost(q, function(){ try{ renderQotd(); }catch(e){} }));
       var sl = srcLine(q); if(sl) rc.appendChild(sl);
       try{ mcqTools(q, rc, function(){ try{ renderQotd(); }catch(e){} }); }catch(e){}
       wrap.appendChild(rc);
@@ -3455,6 +3463,7 @@
     var card = document.createElement('div'); card.className = 'tcard gw-in gw-d1';
     var meta = document.createElement('div'); meta.className = 'tlabel'; meta.textContent = (q.s || 'Question') + (q.t ? (' \u00b7 ' + q.t) : ''); card.appendChild(meta);
     var stem = document.createElement('div'); stem.className = 'qotd-stem'; stem.textContent = q.q; card.appendChild(stem);
+    card.appendChild(qimgQHost(q, function(){ try{ renderGateway(); }catch(e){} }));
     var answered = st.picked != null;
     q.options.forEach(function(o, i){
       var b = document.createElement('button'); b.type = 'button'; b.className = 'qotd-opt gw-opt';
@@ -3478,6 +3487,7 @@
       rh.appendChild(document.createTextNode(ok ? 'Correct' : ('Not quite \u2014 the answer is ' + String.fromCharCode(65 + q.answer))));
       rc.appendChild(rh);
       if(q.explain){ var ex = document.createElement('div'); ex.className = 'qotd-exp'; explainList(ex, q.explain, termCtx(q)); rc.appendChild(ex); }
+      rc.appendChild(qimgEHost(q, function(){ try{ renderGateway(); }catch(e){} }));
       var sl = srcLine(q); if(sl) rc.appendChild(sl);
       try{ mcqTools(q, rc, function(){ try{ renderGateway(); }catch(e){} }); }catch(e){}
       wrap.appendChild(rc);
@@ -8403,7 +8413,7 @@
     var qc = document.createElement('div'); qc.className = 'tq';
     var meta = document.createElement('div'); meta.className = 'tqmeta'; meta.textContent = [q.s, q.u, q.t].filter(Boolean).join(' \u00b7 '); qc.appendChild(meta);
     var qt = document.createElement('div'); qt.className = 'tqtext'; qt.textContent = q.q; qc.appendChild(qt);
-    if(q.img){ var _qi = qImgEl(q.img); if(_qi) qc.appendChild(_qi); }
+    qc.appendChild(qimgQHost(q, null, true));
     var opts = document.createElement('div'); opts.className = 'tqopts';
     if(q.mtf){
       var _ans = Array.isArray(testRun.answers[testRun.i]) ? testRun.answers[testRun.i].slice() : (q.stmts||[]).map(function(){ return null; });
@@ -8728,7 +8738,8 @@
     try{ document.body.style.overflow = 'hidden'; }catch(e){}
   }
   /* display + attach control, used on the result review and the one-by-one review */
-  function qimgBlock(dk, qid, side, label, host, refresh){
+  function qimgBlock(dk, qid, side, label, host, refresh, readonly){
+    if(readonly && !qimgList(dk, qid, side).length) return;   /* read-only view, nothing to show */
     var box = document.createElement('div'); box.className = 'qimgbox';
     var cap = document.createElement('div'); cap.className = 'qimgcap'; cap.textContent = label; box.appendChild(cap);
     var arr = qimgList(dk, qid, side), lim = qimgLimit(side);
@@ -8737,13 +8748,13 @@
       arr.forEach(function(src, idx){
         var t = document.createElement('span'); t.className = 'qimgthumb';
         var im = document.createElement('img'); im.src = src; im.alt = label; im.loading = 'lazy'; zoomable(im, src); t.appendChild(im);
-        var rm = document.createElement('button'); rm.type = 'button'; rm.className = 'rm'; rm.textContent = '\u00d7'; rm.title = 'Remove';
+        if(!readonly){         var rm = document.createElement('button'); rm.type = 'button'; rm.className = 'rm'; rm.textContent = '\u00d7'; rm.title = 'Remove';
         rm.onclick = function(e){ e.stopPropagation(); qimgDel(dk, qid, side, idx); if(refresh) refresh(); };
-        t.appendChild(rm); th.appendChild(t);
+        t.appendChild(rm); } th.appendChild(t);
       });
       box.appendChild(th);
     }
-    if(arr.length < lim){
+    if(!readonly && arr.length < lim){
       var row = document.createElement('div'); row.className = 'qimgrow';
       var add = document.createElement('button'); add.type = 'button'; add.className = 'btn sm'; add.textContent = 'Add image';
       var inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*'; inp.className = 'hidden';
@@ -8764,10 +8775,20 @@
     ed.onclick = function(e){ e.stopPropagation(); openMcqEdit(q, refresh); };
     row.appendChild(ed);
     host.appendChild(row);
-    if(q.k && q.id){
-      try{ qimgBlock(q.k, q.id, 'q', 'Question image', host, refresh); }catch(e){}
-      try{ qimgBlock(q.k, q.id, 'e', 'Explanation images', host, refresh); }catch(e){}
-    }
+  }
+  /* the question's own image(s) - shown right after the stem, before the options,
+     on every screen, whether or not the answer is revealed. */
+  function qimgQHost(q, refresh, readonly){
+    var host = document.createElement('div'); host.className = 'qimgqhost';
+    if(q && q.img){ var im = qImgEl(q.img); if(im) host.appendChild(im); }
+    if(q && q.k && q.id){ try{ qimgBlock(q.k, q.id, 'q', 'Question image', host, refresh, readonly); }catch(e){} }
+    return host;
+  }
+  /* the explanation's own images - shown together with the explanation */
+  function qimgEHost(q, refresh){
+    var host = document.createElement('div'); host.className = 'qimgehost';
+    if(q && q.k && q.id){ try{ qimgBlock(q.k, q.id, 'e', 'Explanation images', host, refresh); }catch(e){} }
+    return host;
   }
   /* ---- Edit a question, its answer and its explanation -------------------
      Saved onto the deck's own card (same id, so no progress is ever lost) and
@@ -8926,10 +8947,9 @@
     var qc = document.createElement('div'); qc.className = 'tq';
     var meta = document.createElement('div'); meta.className = 'tqmeta'; meta.textContent = [q.s, q.u, q.t].filter(Boolean).join(' \u00b7 '); qc.appendChild(meta);
     var qt = document.createElement('div'); qt.className = 'tqtext'; qt.textContent = q.q; qc.appendChild(qt);
-    var qimgHost = document.createElement('div'); qc.appendChild(qimgHost);
+    qc.appendChild(qimgQHost(q, renderReview1));
     try{ mcqTools(q, qc, renderReview1); }catch(e){}
     var opts = document.createElement('div'); opts.className = 'tqopts';
-    var _qi3 = qImgEl(q.img); if(_qi3) qc.appendChild(_qi3);
     rvOptions(q, item.picked, opts);
     qc.appendChild(opts);
     var _sl = srcLine(q); if(_sl) qc.appendChild(_sl);
@@ -8948,7 +8968,7 @@
       verdict.textContent = ok ? 'You got this right.' : (item.picked == null ? 'You left this unanswered.' : 'You got this wrong.');
       wrap.appendChild(verdict);
       if(q.explain){ var exd = document.createElement('div'); exd.className = 'rvexp'; explainList(exd, q.explain, termCtx(q)); wrap.appendChild(exd); }
-      var eimgHost = document.createElement('div'); wrap.appendChild(eimgHost);
+      wrap.appendChild(qimgEHost(q, renderReview1));
       errNoteRow(q.k, q.id, wrap);
     }
 
@@ -9454,9 +9474,10 @@
         eb.appendChild(m);
         var qq = document.createElement('div'); qq.className = 'terr-q'; qq.textContent = q.q; eb.appendChild(qq);
         if(!testRevCompact){
-          var _qi2 = qImgEl(q.img); if(_qi2) eb.appendChild(_qi2);
+          eb.appendChild(qimgQHost(q, qimgRefreshResult));
           rvOptions(q, item.picked, eb);
           if(q.explain){ var ex = document.createElement('div'); ex.className = 'rvexp'; explainList(ex, q.explain, termCtx(q)); eb.appendChild(ex); }
+          eb.appendChild(qimgEHost(q, qimgRefreshResult));
           var _sl1 = srcLine(q); if(_sl1) eb.appendChild(_sl1);
           try{ mcqTools(q, eb, qimgRefreshResult); }catch(e){}
           if(!ok || item.mark){ errNoteRow(q.k, q.id, eb); }
@@ -9915,9 +9936,10 @@
           var mm = document.createElement('div'); mm.className = 'terr-m';
           mm.textContent = [loc.s, loc.u, CHAP[q.k]].filter(Boolean).join(' \u00b7 '); box.appendChild(mm);
           var qq = document.createElement('div'); qq.className = 'terr-q'; qq.textContent = q.q; box.appendChild(qq);
-          var _qi4 = qImgEl(q.img); if(_qi4) box.appendChild(_qi4);
+          box.appendChild(qimgQHost(q, function(){ try{ renderErrors(); }catch(e){} }));
           rvOptions(q, null, box);
           if(q.explain){ var ex = document.createElement('div'); ex.className = 'rvexp'; explainList(ex, q.explain, termCtx(q)); box.appendChild(ex); }
+          box.appendChild(qimgEHost(q, function(){ try{ renderErrors(); }catch(e){} }));
           var _sl2 = srcLine(q); if(_sl2) box.appendChild(_sl2);
           try{ mcqTools(q, box, function(){ try{ renderErrors(); }catch(e){} }); }catch(e){}
         } else {
