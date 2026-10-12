@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-18 22:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-19 00:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -734,6 +734,13 @@
   .minibar{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; gap:6px; height:100%}
   .minibar .b{width:100%; border-radius:6px 6px 3px 3px; background:var(--accent); min-height:3px}
   .minibar .l{font-size:.66rem; color:var(--muted); font-weight:700}
+  /* question of the day */
+  .qotd-stem{font-size:var(--fs-lg); font-weight:700; line-height:1.45; margin:2px 0 10px}
+  .qotd-opt{display:block; width:100%; text-align:left; border:1px solid var(--line); background:var(--panel-2); color:inherit; border-radius:var(--r-md); padding:12px 14px; margin-top:8px; font:inherit; font-size:var(--fs-md); cursor:pointer; min-height:48px; line-height:1.35}
+  .qotd-opt.right{border-color:var(--ok); background:rgba(16,185,129,.14); font-weight:750}
+  .qotd-opt.wrong{border-color:var(--bad); background:rgba(220,38,38,.12)}
+  .qotd-opt:disabled{cursor:default; opacity:1}
+  .qotd-exp{font-size:var(--fs-base); line-height:1.6; margin-top:8px; white-space:pre-wrap}
 </style>
 </head>
 <body>
@@ -780,7 +787,7 @@
 <main>
   <div id="content"></div>
   <button id="collapseFab" class="fab hidden" aria-label="Collapse all">▴ Collapse all</button>
-  <button id="instaFab" class="instaFab" aria-label="Practice now" title="Practice now">
+  <button id="instaFab" class="instaFab" aria-label="Question of the day" title="Question of the day">
     <span class="zring"></span>
     <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.2 2 4 13.6h5.6L8.6 22 20 10.2h-5.9z"/></svg>
   </button>
@@ -890,9 +897,15 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-18 22:00';
-  var BUILD_NOTE = 'Question engine v2: it now also learns from flashcard practice, the tough threshold is tunable in Settings, and Home shows freshness by subject.';
+  var APP_BUILD = '2026-10-19 00:00';
+  var BUILD_NOTE = 'New mode: Question of the day - the lightning button now starts one weak-area question instantly, with the explanation, and a next-question button that moves to another weak area.';
   var CHANGELOG = [
+    { build:'2026-10-19 00:00', title:'Question of the day', items:[
+      'Tap the lightning button and a single weak-area question opens instantly - no setup, no timer.',
+      'Answer it and the explanation appears right there, with the source.',
+      'Next question moves to a different weak area; Done returns home.',
+      'Also on Home as a card, and under Tests as a mode. Fresh, wrong, tough and shaky cards are chosen first.',
+    ]},
     { build:'2026-10-18 22:00', title:'Question engine v2', items:[
       'The paper engine now also learns from flashcard practice - a card you rated Again or Hard comes back sooner in tests.',
       'Settings has a Question pace control (45s/60s/70s/90s) that sets when a question counts as tough.',
@@ -2664,11 +2677,12 @@
   function render(){
     try{ window.__lastRender = view && view.t; }catch(e){}
     try{ ss('fd:builder', { custom:testCustom, exam:testExam, len:testLen, y:testSelYears, s:testSelSubjects, u:testSelUnits, c:testSelChapters }); }catch(e){}
-    try{ var _pv = view; if(_pv && _pv.tResult) _pv = Object.assign({}, _pv, { tResult: null }); ss('fd:view', _pv); }catch(e){}
+    try{ var _pv = view; if(_pv && (_pv.tResult || _pv.qotd)) _pv = Object.assign({}, _pv, { tResult: null, qotd: null }); ss('fd:view', _pv); }catch(e){}
     try{ clearQPal(); }catch(e){}
     document.body.classList.toggle('launch-closed', !!(LAUNCH_CLOSED && !IS_OWNER));
     if(LAUNCH_CLOSED && !IS_OWNER){ showClosed(); updateFab(); paintTabs(); return; }
     if(view.t === 'subject') renderSubject(view.y, view.s);
+    else if(view.t === 'qotd') renderQotd();
     else if(view.t === 'revise') renderRevise();
     else if(view.t === 'learn') renderLearn();
     else if(view.t === 'test') renderTest();
@@ -2687,6 +2701,85 @@
     try{ ss('fd:scroll', String(window.scrollY || 0)); }catch(e){}
     paintTabs();
   }
+  /* ---------- Question of the day: one weak-area question, instantly ---------- */
+  function qotdPick(exclude){
+    var pool = testPool('all').filter(isMcqItem);
+    if(!pool.length) return null;
+    var hist = normQStats(), recent = testRecentMap(0), pr = practiceRatingMap();
+    var cands = pool.filter(function(x){ return !(exclude && exclude[x.k + '|' + x.id]); });
+    if(!cands.length) cands = pool;
+    var best = null, bw = -1;
+    cands.forEach(function(x){
+      var w = qSelWeight(x, recent, hist, pr) * (0.6 + Math.random() * 0.8);
+      if(w > bw){ bw = w; best = x; }
+    });
+    return best;
+  }
+  function openQotd(){ view = { t:'qotd', qotd:{ q:qotdPick({}), picked:null, exclude:{} } }; render(); window.scrollTo(0,0); }
+  function qotdNext(){
+    var st = view.qotd || (view.qotd = { q:null, picked:null, exclude:{} });
+    if(st.q) st.exclude[st.q.k + '|' + st.q.id] = 1;
+    var nx = qotdPick(st.exclude);
+    if(!nx){ st.exclude = {}; nx = qotdPick({}); }
+    st.q = nx; st.picked = null;
+    renderQotd(); window.scrollTo(0,0);
+  }
+  function renderQotd(){
+    var c = $('content'); c.textContent = '';
+    try{ document.body.classList.remove('testrun'); }catch(e){}
+    var st = view.qotd || (view.qotd = { q:null, picked:null, exclude:{} });
+    if(!st.q) st.q = qotdPick({});
+    var wrap = document.createElement('div'); wrap.className = 'twrap';
+    var h = document.createElement('div'); h.className = 'tbig'; h.textContent = 'Question of the day'; wrap.appendChild(h);
+    var sub = document.createElement('div'); sub.className = 'tsub'; sub.textContent = 'One question from your weak areas. Answer it and see why \u2014 done in a minute.'; wrap.appendChild(sub);
+    var q = st.q;
+    if(!q){
+      wrap.appendChild(emptyState('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v18M3 12h18"/></svg>', 'No questions yet', 'Add MCQ decks and a question of the day will appear here.'));
+      c.appendChild(wrap); return;
+    }
+    var card = document.createElement('div'); card.className = 'tcard';
+    var meta = document.createElement('div'); meta.className = 'tlabel'; meta.textContent = (q.s || 'Question') + (q.t ? (' \u00b7 ' + q.t) : ''); card.appendChild(meta);
+    var stem = document.createElement('div'); stem.className = 'qotd-stem'; stem.textContent = q.q; card.appendChild(stem);
+    var answered = st.picked != null;
+    q.options.forEach(function(o, i){
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'qotd-opt';
+      b.textContent = String.fromCharCode(65 + i) + '.  ' + o;
+      if(answered){
+        b.disabled = true;
+        if(i === q.answer) b.classList.add('right');
+        else if(i === st.picked) b.classList.add('wrong');
+      } else {
+        b.onclick = function(){ st.picked = i; renderQotd(); };
+      }
+      card.appendChild(b);
+    });
+    wrap.appendChild(card);
+    if(answered){
+      var ok = st.picked === q.answer;
+      var rc = document.createElement('div'); rc.className = 'tcard';
+      var rh = document.createElement('div'); rh.className = 'tlabel';
+      rh.textContent = ok ? 'Correct' : ('Not quite \u2014 the answer is ' + String.fromCharCode(65 + q.answer));
+      rc.appendChild(rh);
+      if(q.explain){ var ex = document.createElement('div'); ex.className = 'qotd-exp'; ex.textContent = q.explain; rc.appendChild(ex); }
+      var sl = srcLine(q); if(sl) rc.appendChild(sl);
+      wrap.appendChild(rc);
+      var nb = document.createElement('button'); nb.type = 'button'; nb.className = 'tstart'; nb.textContent = 'Next question \u2014 another weak area';
+      nb.onclick = qotdNext; wrap.appendChild(nb);
+      var dn = document.createElement('button'); dn.type = 'button'; dn.className = 'tstart ghost'; dn.textContent = 'Done';
+      dn.onclick = function(){ view = { t:'home' }; render(); window.scrollTo(0,0); }; wrap.appendChild(dn);
+    }
+    c.appendChild(wrap);
+  }
+  function qotdCard(){
+    var dc = document.createElement('div'); dc.className = 'card3';
+    var h = document.createElement('div'); h.className = 'chead'; h.textContent = 'Question of the day'; dc.appendChild(h);
+    var sub = document.createElement('div'); sub.className = 'muted small'; sub.style.margin = '0 0 8px';
+    sub.textContent = 'Short on time? One question from your weak areas, with the explanation \u2014 done in a minute.'; dc.appendChild(sub);
+    var b = document.createElement('button'); b.className = 'btn primary wide'; b.textContent = 'Start a question';
+    b.onclick = openQotd; dc.appendChild(b);
+    return dc;
+  }
+
   function updateFab(){
     var any = false;
     Object.keys(openMap).forEach(function(k){ if(openMap[k]) any = true; });
@@ -3762,6 +3855,7 @@
     c.appendChild(dailyGoalCard());
     var _rc = recentCard(); if(_rc) c.appendChild(_rc);
     c.appendChild(sectHead('Practice'));
+    c.appendChild(qotdCard());
     c.appendChild(focusNowCard());
     var pdBtn = document.createElement('button'); pdBtn.className = 'btn primary wide'; pdBtn.style.marginTop = '8px';
     pdBtn.textContent = 'Practice all due now'; pdBtn.onclick = function(){ practiceDueAll(); };
@@ -5243,7 +5337,7 @@
   $('deckThemeBtn').onclick = function(){ try{ var f=$('frame'); if(f && f.contentWindow) f.contentWindow.postMessage({fd:'theme'}, '*'); }catch(e){} };
   var viewDeckKey = '';
   function pushLastDeck(d){ if(!session || !d || !d.key) return; try{ post('/rest/v1/settings?on_conflict=user_id,key', { user_id: session.user.id, key:'lastdeck', value: JSON.stringify(d), updated_at: new Date().toISOString() }).catch(function(){}); }catch(e){} }
-  function setLastDeck(key, topic){ if(!key) return; var d={ key:key, topic:topic||key, ts: Date.now() }; try{ ss('fd:lastdeck', d); }catch(e){} pushLastDeck(d);  try{ var _f=$('instaFab'); if(_f) _f.title='Practice ' + (d.topic||d.key); }catch(_){} }
+  function setLastDeck(key, topic){ if(!key) return; var d={ key:key, topic:topic||key, ts: Date.now() }; try{ ss('fd:lastdeck', d); }catch(e){} pushLastDeck(d);  try{ var _f=$('instaFab'); if(_f) _f.title='Question of the day'; }catch(_){} }
   function pullRoundsMap(){ if(!session) return Promise.resolve(); try{ return get('/rest/v1/settings?select=key,value&key=like.rounds:*&user_id=eq.' + session.user.id).then(function(rows){ var m={}; (rows||[]).forEach(function(r){ if(r && r.key){ var n=parseInt(r.value,10)||0; if(n) m[r.key.slice(7)] = n; } }); roundsMap = m; try{ quietRender(); }catch(e){} }).catch(function(){}); }catch(e){ return Promise.resolve(); } }
   function roundsText(k){ var n = roundsMap[k] || 0; return n + (n === 1 ? ' round completed' : ' rounds completed'); }
   function pullLastDeck(){ if(!session) return Promise.resolve(); try{ return get('/rest/v1/settings?select=value&key=eq.lastdeck&user_id=eq.' + session.user.id).then(function(rows){ if(Array.isArray(rows) && rows.length && rows[0].value){ applyCloudLastDeck(JSON.parse(rows[0].value)); try{ quietRender(); }catch(e){} } }).catch(function(){}); }catch(e){ return Promise.resolve(); } }
@@ -5269,20 +5363,17 @@
     var f = $('instaFab'); if(!f) return;
     function lastDeck(){ try{ var d = ls('fd:lastdeck', null); return (d && d.key) ? d : null; }catch(e){ return null; } }
     function nameFor(d){ return (d && (d.topic || d.key)) || ''; }
+    f.title = 'Question of the day';
     f.onclick = function(e){
       e.stopPropagation();
-      var d = lastDeck();
-      if(!d){ toast('Open a deck once \u2014 after that this button resumes it instantly.'); return; }
-      f.title = 'Practice ' + nameFor(d);
       if(f.classList.contains('zap')) return;
       f.classList.add('zap');
       try{ if(navigator.vibrate) navigator.vibrate(30); }catch(_){}
       setTimeout(function(){
         f.classList.remove('zap');
-        try{ openDeck(d.key, nameFor(d)); }catch(_){}
-      }, 520);
+        try{ openQotd(); }catch(_){}
+      }, 480);
     };
-    try{ var d0 = lastDeck(); if(d0) f.title = 'Practice ' + nameFor(d0); }catch(_){}
   })();
 
 
@@ -6551,6 +6642,7 @@
     modes.appendChild(testModeTile({ title:'Start a test', desc:'Pick your subjects, systems and length \u2014 or just hit start for a sensible paper.', soon:false, onTap:function(){ view = { t:'test', tMode:'build', bMode:'custom' }; render(); window.scrollTo(0,0); } }));
     modes.appendChild(testModeTile({ title:'Subject test', desc:'A timed paper from one whole subject, at its real weight in the exam you pick.', soon:false, onTap:function(){ view = { t:'test', tMode:'build', bMode:'subject' }; render(); window.scrollTo(0,0); } }));
     modes.appendChild(testModeTile({ title:'Real Exam Grand Test', desc:'A timed paper built to a real exam pattern — NEET-PG, INI-CET or RUHS-MO.', soon:false, onTap:function(){ view = { t:'test', tMode:'grand' }; render(); window.scrollTo(0,0); } }));
+    modes.appendChild(testModeTile({ title:'Question of the day', desc:'One weak-area question at a time, with the explanation \u2014 perfect for a spare minute.', soon:false, onTap:function(){ openQotd(); } }));
     modes.appendChild(testModeTile({ title:'Stamina drill', desc:'A long mixed set from every subject \u2014 timed, to build the endurance for a full paper.', soon:false, onTap:function(){
       testPriority = null; testCustom = true; testSelYears = []; testSelSubjects = []; testSelUnits = []; testSelChapters = [];
       testScope = 'all'; testDeck = ''; testLen = 60; view = { t:'test' }; testStart();
