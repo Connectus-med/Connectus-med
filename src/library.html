@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-19 10:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-19 12:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -408,7 +408,8 @@
     border:1px solid var(--line); border-radius:10px; padding:9px 10px; background:var(--bg); color:var(--ink)}
   .errrm{margin-top:8px; border:0; background:none; color:var(--bad); font:inherit; font-size:.8rem; font-weight:750; cursor:pointer; padding:0}
   /* grand test */
-  .twrap{display:flex; flex-direction:column; gap:12px}
+  .twrap{display:flex; flex-direction:column; gap:12px; padding-bottom:120px}
+  .tstart.fixbar{position:fixed; left:16px; right:16px; bottom:calc(88px + env(safe-area-inset-bottom,0px)); z-index:7; margin:0; width:auto; box-shadow:0 14px 34px -12px rgba(120,60,10,.6)}
   .tbig{font-size:var(--fs-xl); font-weight:800}
   .tsub{color:var(--muted); font-size:.88rem; line-height:1.45}
   .tsub.small{font-size:var(--fs-sm)}
@@ -581,6 +582,7 @@
   body.deckopen .instaFab{display:none}
   body.testrun .instaFab{display:none}
   body.testrun .collapseFab{display:none}
+  body.testrun #tabbar{display:none}
   .instaFab .zring{position:absolute; inset:0; border-radius:999px; pointer-events:none; opacity:0}
   .instaFab.zap{animation:zapPop .52s ease}
   .instaFab.zap svg{animation:zapBolt .52s ease}
@@ -696,7 +698,7 @@
   .tqsf button.on{background:var(--accent-2); border-color:var(--accent-2); color:#fff}
   /* paper triage */
   .ttri{display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-top:10px}
-  .tqx{margin-left:auto; color:var(--muted); font-weight:800; padding:0 4px; cursor:pointer; flex:none}
+  .tqx{margin-left:auto; color:var(--muted); font-weight:800; padding:0 7px; cursor:pointer; flex:none; border:1px solid var(--line); border-radius:8px; line-height:1.5; min-height:26px}
   .tqopt.struck .tqtext2{text-decoration:line-through; opacity:.5}
   .tqopt.struck .tqlet{opacity:.5}
   /* update-ready pill: the app never reloads itself any more */
@@ -903,9 +905,14 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-19 10:00';
-  var BUILD_NOTE = 'Seed reproducibility restored (a seed rebuilds its exact paper, per exam) and a stable id on the seed box. Both the regression suite (18/18) and a new whole-app smoke test (28/28) now pass.';
+  var APP_BUILD = '2026-10-19 12:00';
+  var BUILD_NOTE = 'UX pass: a always-visible Start button on the test setup screens, the tab bar hidden during a test, and a clearer cross-out control on options.';
   var CHANGELOG = [
+    { build:'2026-10-19 12:00', title:'UX: sticky Start, cleaner test screen', items:[
+      'The Real Exam setup and the paper builder now keep a Start button pinned at the bottom - no more scrolling to begin.',
+      'The bottom tab bar is hidden during a test, so there is less crowding and no accidental taps.',
+      'The cross-out control on each option now looks like a button and is labelled for screen readers.',
+    ]},
     { build:'2026-10-19 10:00', title:'Verified end to end: 18/18 + 28/28', items:[
       'A seed now rebuilds its exact paper again - the adaptive engine had made the draw depend on history.',
       'Added a whole-app smoke test that walks every screen and the key flows before any delivery.',
@@ -6356,7 +6363,7 @@
       pendingScope = null;
     }
     var card = document.createElement('div'); card.className = 'tcard';
-    var startBtn = document.createElement('button'); startBtn.type = 'button'; startBtn.className = 'tstart stickybar'; startBtn.textContent = 'Start test';
+    var startBtn = document.createElement('button'); startBtn.type = 'button'; startBtn.className = 'tstart fixbar'; startBtn.textContent = 'Start test';
     function toggle(arr, v){ var i = arr.indexOf(v); if(i < 0) arr.push(v); else arr.splice(i, 1); }
     function chipRow(label, opts, arr, hint){
       var lb = document.createElement('div'); lb.className = 'tlabel';
@@ -7285,7 +7292,7 @@
       tg.appendChild(b);
     });
     wrap.appendChild(tg);
-    var start = document.createElement('button'); start.type = 'button'; start.className = 'tstart';
+    var start = document.createElement('button'); start.type = 'button'; start.className = 'tstart fixbar';
     start.textContent = 'Start ' + ex.name + ' paper'; start.disabled = !can;
     start.onclick = function(){ testStart(); };
     wrap.appendChild(start);
@@ -7590,7 +7597,7 @@
         var L = document.createElement('span'); L.className = 'tqlet'; L.textContent = String.fromCharCode(65+k);
         var T = document.createElement('span'); T.className = 'tqtext2'; T.textContent = o;
         b.appendChild(L); b.appendChild(T);
-        var x = document.createElement('span'); x.className = 'tqx'; x.textContent = '\u2715'; x.title = 'Cross out this option';
+        var x = document.createElement('span'); x.className = 'tqx'; x.textContent = '\u2715'; x.title = 'Cross out this option'; x.setAttribute('role', 'button'); x.setAttribute('aria-label', 'Cross out this option');
         x.onclick = function(e){ e.stopPropagation(); testStrike(k); };
         b.appendChild(x);
         b.onclick = function(){ testSelect(k); };
