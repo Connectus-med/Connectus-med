@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-20 16:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-20 18:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -600,18 +600,18 @@
   #fabWave::before{content:""; position:absolute; left:0; top:0; transform:translate(-50%,-50%);
     width:56px; height:56px; border-radius:50%; opacity:0; will-change:width,height,opacity;
     background:radial-gradient(closest-side,
-      rgba(255,150,40,0) calc(100% - 36px),
-      rgba(255,186,92,.58) calc(100% - 20px),
-      rgba(255,214,160,1) calc(100% - 6px),
-      rgba(255,178,84,.4) calc(100% - 1px),
+      rgba(255,150,40,0) calc(100% - 34px),
+      rgba(255,186,92,.34) calc(100% - 19px),
+      rgba(255,214,160,.72) calc(100% - 6px),
+      rgba(255,178,84,.24) calc(100% - 1px),
       rgba(255,170,70,0) 100%);
     animation:fabWave 2.2s cubic-bezier(.22,.68,.3,1) infinite}
   body.deckopen #fabWave, body.testrun #fabWave{display:none}
   @keyframes fabWave{
-    0%,13%{opacity:0; width:70px; height:70px} 17%{opacity:1; width:190px; height:190px}
-    33%{opacity:.95; width:410px; height:410px} 50%{opacity:.8; width:630px; height:630px}
-    68%{opacity:.55; width:830px; height:830px} 84%{opacity:.3; width:960px; height:960px}
-    100%{opacity:0; width:1080px; height:1080px}
+    0%,13%{opacity:0; width:60px; height:60px} 17%{opacity:.6; width:110px; height:110px}
+    33%{opacity:.55; width:225px; height:225px} 50%{opacity:.46; width:335px; height:335px}
+    68%{opacity:.32; width:435px; height:435px} 84%{opacity:.16; width:500px; height:500px}
+    100%{opacity:0; width:560px; height:560px}
   }
   body.testrun .instaFab{display:none}
   body.testrun .collapseFab{display:none}
@@ -984,9 +984,14 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-20 16:00';
-  var BUILD_NOTE = 'A realistic hammer now swings on the quick-start button - gradient steel head, wooden grip, shadow - and each strike sends a crisp orange shockwave rippling out across the screen.';
+  var APP_BUILD = '2026-10-20 18:00';
+  var BUILD_NOTE = 'The shockwave is now a gentle ripple: half the spread (it reaches about the middle of the screen) and a much softer tint, so the hammer invites without distracting.';
   var CHANGELOG = [
+    { build:'2026-10-20 18:00', title:'Quick start: a gentler shockwave', items:[
+      'The wave now reaches only about halfway across the screen.',
+      'It is much softer - a hint of orange, not a flash.',
+      'The hammer still swings and strikes; the ripple just stays calm.',
+    ]},
     { build:'2026-10-20 16:00', title:'Quick start: a real hammer and a shockwave', items:[
       'The hammer now looks real: metallic head, wooden grip, and a soft shadow.',
       'Every strike sends a crisp ring of orange light sweeping out across the screen.',
