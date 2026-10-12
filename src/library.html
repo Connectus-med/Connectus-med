@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-20 04:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-20 06:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -917,9 +917,14 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-20 04:00';
-  var BUILD_NOTE = 'Deck card: the Verified/Unverified chip now sits ON the source line, right-aligned (the source shortens with an ellipsis if long).';
+  var APP_BUILD = '2026-10-20 06:00';
+  var BUILD_NOTE = 'Deck card layout: the answer is centred in the room it owns (no dead gap under a short answer), the chrome is tighter, and a long answer still scrolls from its first line.';
   var CHANGELOG = [
+    { build:'2026-10-20 06:00', title:'Deck card: answer centred, more room', items:[
+      'The answer now fills and centres in its own area - a short answer no longer leaves a big empty gap.',
+      'The card chrome is tighter, so the answer gets more of the card.',
+      'A long answer still scrolls from its first line, with the source line and verify chip pinned at the bottom.',
+    ]},
     { build:'2026-10-20 04:00', title:'Deck card: verify chip on the source line', items:[
       'The Verified/Unverified chip is now on the same row as the Source reference, aligned to the right.',
       'A long source shortens with an ellipsis; long-press shows the full text.',
