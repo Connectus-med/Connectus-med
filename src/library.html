@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-19 06:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-19 08:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -903,9 +903,14 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-19 06:00';
-  var BUILD_NOTE = 'Fixed the update mechanism: once the update pill had been armed for one build, the app stopped checking for newer ones in that session, so a new build never reached you. It now re-checks properly.';
+  var APP_BUILD = '2026-10-19 08:00';
+  var BUILD_NOTE = 'Fixed Question of the day: it read a question pool that stays empty until every deck has loaded, so it wrongly said no questions. It now fetches the cards on demand, exactly like the tests do.';
   var CHANGELOG = [
+    { build:'2026-10-19 08:00', title:'Question of the day: pool fixed', items:[
+      'The drill used a pool that stays empty until every deck has been loaded, so it wrongly said no MCQ questions.',
+      'It now pulls the cards on demand - the same path the tests use - so a question always appears.',
+      'Also: the app no longer marks the bank as loaded while it is still empty, which was the underlying cause.',
+    ]},
     { build:'2026-10-19 06:00', title:'Fix: updates could get stuck', items:[
       'The automatic update check compared against the page build, so once it had armed the pill for one build it never looked for a newer one in the same session.',
       'It now re-checks every time and arms the pill for the newest build.',
@@ -2499,10 +2504,11 @@
   try{ var _tp = ls('fd:testpyq', null); if(_tp === true || _tp === false) testWithPyq = _tp; }catch(e){}
   var _allHydrated = false;
   function ensureCards(done){
-    if(_allHydrated || (decksData || []).every(function(d){ return Array.isArray(d.cards) && d.cards.length; })){
+    var ds = decksData || [];
+    if(_allHydrated || (ds.length && ds.every(function(d){ return Array.isArray(d.cards) && d.cards.length; }))){
       _allHydrated = true; if(done) done(); return;
     }
-    hydrateAll(function(){ _allHydrated = true; if(done) done(); });
+    hydrateAll(function(){ if((decksData || []).length) _allHydrated = true; if(done) done(); });
   }
   function hydrateAll(done){
     var keys = (decksData || []).filter(function(d){ return !(Array.isArray(d.cards) && d.cards.length); }).map(function(d){ return d.deck_key; });
@@ -2730,39 +2736,39 @@
     return v;
   }
   function qotdBump(){ var v = qotdToday(); v.day = todayStr(); v.n = (v.n || 0) + 1; v.total = (v.total || 0) + 1; try{ ss('fd:qotd', v); }catch(e){} }
-  function qotdPick(exclude){
-    /* the drill draws from the whole bank - save and clear any half-built paper filters */
+  /* Pick one question. Uses the ASYNC pool the tests use, so the card bodies are
+     fetched on demand - the sync pool is empty until every deck has been hydrated,
+     which is why the drill used to sit on "no questions". */
+  function qotdPick(exclude, cb){
     var sv = { deck:testDeck, custom:testCustom, y:testSelYears, s:testSelSubjects, u:testSelUnits, c:testSelChapters };
     testDeck = ''; testCustom = false; testSelYears = []; testSelSubjects = []; testSelUnits = []; testSelChapters = [];
-    var pool = testPool('all').filter(isMcqItem);
-    testDeck = sv.deck; testCustom = sv.custom; testSelYears = sv.y; testSelSubjects = sv.s; testSelUnits = sv.u; testSelChapters = sv.c;
-    if(!pool.length) return null;
-    var hist = normQStats(), recent = testRecentMap(0), pr = practiceRatingMap();
-    var cands = pool.filter(function(x){ return !(exclude && exclude[x.k + '|' + x.id]); });
-    if(!cands.length) cands = pool;
-    var best = null, bw = -1;
-    cands.forEach(function(x){
-      var w = qSelWeight(x, recent, hist, pr) * (0.6 + Math.random() * 0.8);
-      if(w > bw){ bw = w; best = x; }
-    });
-    return best;
+    var restore = function(){ testDeck = sv.deck; testCustom = sv.custom; testSelYears = sv.y; testSelSubjects = sv.s; testSelUnits = sv.u; testSelChapters = sv.c; };
+    testPoolAsync('all').then(function(pool){
+      restore();
+      pool = (pool || []).filter(isMcqItem);
+      if(!pool.length){ cb(null); return; }
+      var hist = normQStats(), recent = testRecentMap(0), pr = practiceRatingMap();
+      var cands = pool.filter(function(x){ return !(exclude && exclude[x.k + '|' + x.id]); });
+      if(!cands.length) cands = pool;
+      var best = null, bw = -1;
+      cands.forEach(function(x){
+        var w = qSelWeight(x, recent, hist, pr) * (0.6 + Math.random() * 0.8);
+        if(w > bw){ bw = w; best = x; }
+      });
+      cb(best);
+    }).catch(function(){ restore(); cb(null); });
   }
-  function openQotd(){ view = { t:'qotd' }; render(); window.scrollTo(0,0); }
+  function openQotd(){ view = { t:'qotd', qotd:{ q:null, picked:null, exclude:{}, loading:false } }; render(); window.scrollTo(0,0); }
   function qotdNext(){
-    var st = view.qotd || (view.qotd = { q:null, picked:null, exclude:{} });
+    var st = view.qotd || (view.qotd = { q:null, picked:null, exclude:{}, loading:false });
     if(st.q) st.exclude[st.q.k + '|' + st.q.id] = 1;
-    var nx = qotdPick(st.exclude);
-    if(!nx){ st.exclude = {}; nx = qotdPick({}); }
-    st.q = nx; st.picked = null;
-    if(!nx && !_allHydrated && typeof ensureCards === 'function'){ try{ ensureCards(function(){ try{ renderQotd(); }catch(e){} }); }catch(e){} return; }
+    st.q = null; st.picked = null; st.loading = false;
     renderQotd(); window.scrollTo(0,0);
   }
   function renderQotd(){
     var c = $('content'); c.textContent = '';
     try{ document.body.classList.remove('testrun'); }catch(e){}
-    if(!_allHydrated && typeof ensureCards === 'function'){ try{ ensureCards(function(){ try{ renderQotd(); }catch(e){} }); }catch(e){} }
-    var st = view.qotd || (view.qotd = { q:null, picked:null, exclude:{} });
-    if(!st.q && _allHydrated) st.q = qotdPick({});
+    var st = view.qotd || (view.qotd = { q:null, picked:null, exclude:{}, loading:false });
     var wrap = document.createElement('div'); wrap.className = 'twrap';
     var h = document.createElement('div'); h.className = 'tbig'; h.textContent = 'Question of the day'; wrap.appendChild(h);
     var _dn = qotdToday().n || 0;
@@ -2771,9 +2777,17 @@
     wrap.appendChild(sub);
     var q = st.q;
     if(!q){
-      if(!_allHydrated){ wrap.appendChild(skeleton()); }
-      else { wrap.appendChild(emptyState('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v18M3 12h18"/></svg>', 'No MCQ questions yet', 'This drill uses multiple-choice questions. Add MCQ decks and a question of the day will appear here.')); }
-      c.appendChild(wrap); return;
+      wrap.appendChild(skeleton());
+      c.appendChild(wrap);
+      if(!st.loading){
+        st.loading = true;
+        qotdPick({}, function(best){
+          st.loading = false;
+          if(!st.q) st.q = best;
+          renderQotd();
+        });
+      }
+      return;
     }
     var card = document.createElement('div'); card.className = 'tcard';
     var meta = document.createElement('div'); meta.className = 'tlabel'; meta.textContent = (q.s || 'Question') + (q.t ? (' \u00b7 ' + q.t) : ''); card.appendChild(meta);
