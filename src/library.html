@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-21 20:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-21 22:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -1014,9 +1014,14 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-21 20:00';
-  var BUILD_NOTE = 'The picture panel is stripped right back: one text box and one search icon. Type your keywords, tap the icon, and it opens Google Images. No other source, nothing else. The old in-app picture grid, sources and copy buttons are gone.';
+  var APP_BUILD = '2026-10-21 22:00';
+  var BUILD_NOTE = 'The Google Images search now opens in its own small window instead of taking over the whole page. Search again and it reuses the same window, so they do not pile up.';
   var CHANGELOG = [
+    { build:'2026-10-21 22:00', title:'Images open in a small window', items:[
+      'Type your keywords and tap the search icon.',
+      'Google Images opens in its own sized window, centred, not over the whole page.',
+      'Search again and it reuses that same window.',
+    ]},
     { build:'2026-10-21 20:00', title:'Images: just type and search', items:[
       'Every explanation now has one Images button.',
       'Inside is a single text box and a search icon - nothing else.',
@@ -3290,7 +3295,17 @@
     function search(){
       var q = String(inp.value || '').trim();
       if(!q){ try{ inp.focus(); }catch(e){} return; }
-      try{ window.open('https://www.google.com/search?tbm=isch&q=' + encodeURIComponent(q), '_blank', 'noopener'); }catch(e){}
+      var url = 'https://www.google.com/search?tbm=isch&q=' + encodeURIComponent(q);
+      /* open in a small window of its own, not over the whole page */
+      var w = 470, h = 760;
+      var l = Math.max(0, Math.round((screen.width - w) / 2));
+      var t = Math.max(0, Math.round((screen.height - h) / 2));
+      var feat = 'popup=yes,width=' + w + ',height=' + h + ',left=' + l + ',top=' + t + ',scrollbars=yes,resizable=yes,menubar=no,toolbar=no,location=no,status=no';
+      var win = null;
+      try{ win = window.open(url, 'fd_images', feat); }catch(e){}
+      /* if the browser refuses a sized window, still get the user there */
+      if(!win){ try{ win = window.open(url, 'fd_images'); }catch(e){} }
+      if(win && win.focus){ try{ win.focus(); }catch(e){} }
     }
     go.onclick = search;
     inp.addEventListener('keydown', function(e){ if(e.key === 'Enter'){ e.preventDefault(); search(); } });
