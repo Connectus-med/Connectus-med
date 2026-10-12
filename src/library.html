@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-22 14:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-22 16:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -495,6 +495,8 @@
   .rvopt.correct{color:var(--ok); font-weight:800}
   .rvopt.picked{color:var(--bad); font-weight:700}
   .qsrc{margin-top:7px; color:var(--muted); font-size:var(--fs-xs); line-height:1.35; letter-spacing:.01em}
+  /* owner-only fixed-id chip (card cid / question qid) shown beside the source line */
+  .idchip{display:inline-block; margin-left:8px; padding:1px 7px; border:1px solid var(--line); border-radius:999px; font-size:.66rem; font-weight:700; letter-spacing:.05em; color:var(--muted); font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; vertical-align:middle}
   .rvexp{margin-top:8px; padding:9px 11px; border-left:3px solid var(--accent-2); background:var(--accent-soft); border-radius:9px; font-size:.85rem; line-height:1.5}
   /* ---- right-edge question palette (review / error log) ---- */
   /* The question navigator used to be a fixed column down the right edge. It is
@@ -1039,9 +1041,15 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-22 14:00';
-  var BUILD_NOTE = 'Your progress now shows questions beside cards - a new card with your question accuracy, how many answers were right and wrong, how many questions you have attempted, and the time you spent. On a subject page it is scoped to that subject.';
+  var APP_BUILD = '2026-10-22 16:00';
+  var BUILD_NOTE = 'Every card and question now shows its fixed id - the card cid beside its source in the deck, the question qid in Quick start, Question of the day, the review, the error log and Find. A small muted chip, and only you (the owner) see it.';
   var CHANGELOG = [
+    { build:'2026-10-22 16:00', title:'Every card and question shows its id', items:[
+      'A small muted chip beside the source line: a card shows its cid, a question its qid - wherever it appears.',
+      'Cards: in the deck and in practice. Questions: Quick start, Question of the day, the review, the error log and Find.',
+      'The id is the item fixed identity and its progress key, so the same card or question is always recognisable by the same handle.',
+      'Owner-only - customers and guests never see it.',
+    ]},
     { build:'2026-10-22 14:00', title:'Your progress: questions beside cards', items:[
       'A new card in Your progress: your question accuracy, the right and wrong answers, and how many questions you have attempted.',
       'It sits right beside the recall card, so cards and questions are shown together.',
@@ -6361,9 +6369,12 @@
      carried on the item as `src`; this renders it as one small muted line. */
   function srcLine(q){
     var v = q && q.src ? String(q.src).trim() : '';
-    if(!v) return null;
+    /* owner-only: the question's fixed qid, shown beside its source on every screen */
+    var qid = (IS_OWNER && q && q.id) ? String(q.id) : '';
+    if(!v && !qid) return null;
     var el = document.createElement('div'); el.className = 'qsrc';
-    el.textContent = 'Source: ' + v;
+    if(v) el.appendChild(document.createTextNode('Source: ' + v));
+    if(qid){ var ch = document.createElement('span'); ch.className = 'idchip'; ch.textContent = qid; el.appendChild(ch); }
     return el;
   }
   /* true when the picked answer is fully correct (handles MCQ index and MTF statements) */
