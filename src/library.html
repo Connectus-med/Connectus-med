@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-21 00:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-21 02:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -995,9 +995,14 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-21 00:00';
-  var BUILD_NOTE = 'One explanation style everywhere: an MCQ explanation now renders like a flashcard back - a main point with an orange dot and the rest as indented dashes, instead of a block of paragraph text.';
+  var APP_BUILD = '2026-10-21 02:00';
+  var BUILD_NOTE = 'Smarter explanation grouping: a dash now belongs only to the point it explains. A new concept starts its own orange dot, so separate facts no longer get buried under one point.';
   var CHANGELOG = [
+    { build:'2026-10-21 02:00', title:'Smarter explanation points', items:[
+      'Each separate concept now starts its own orange dot point.',
+      'A dash appears only under the point it actually explains - a pronoun or connector, or the same subject.',
+      'So related detail stays with its point, and new facts stand on their own.',
+    ]},
     { build:'2026-10-21 00:00', title:'One explanation style everywhere', items:[
       'Question explanations are now a clean point list, not a paragraph.',
       'The main point carries an orange dot; the supporting lines sit under it with a dash.',
@@ -3118,7 +3123,27 @@
     var flat = t.replace(/\s+/g, ' ').replace(/^Back to Question[^.]*?p\.?\s*\d+\s*/i, '').trim();
     var sents = splitSentences(flat);
     if(!sents.length) return [{ t:flat, sub:[] }];
-    return [{ t:sents[0], sub:sents.slice(1) }];
+    var out = [];
+    sents.forEach(function(sn){
+      var sub = false;
+      if(out.length){
+        if(EXPLAIN_SUB_START.test(sn)) sub = true;
+        else { var w = explainSubject(sn); if(w && w === explainSubject(out[out.length - 1].t)) sub = true; }
+      }
+      if(sub) out[out.length - 1].sub.push(sn);
+      else out.push({ t:sn, sub:[] });
+    });
+    return out;
+  }
+  var EXPLAIN_SUB_START = /^(it|its|this|these|that|those|they|their|them|he|she|his|her|such|here|there|thus|hence|therefore|however|but|and|also|moreover|furthermore|additionally|besides|so|yet|still|meanwhile|similarly|likewise|conversely|instead|otherwise|overall)\b/i;
+  var EXPLAIN_STOP = {the:1,a:1,an:1,in:1,of:1,on:1,for:1,to:1,with:1,by:1,at:1,as:1,from:1,is:1,are:1,was:1,were:1,and:1,or:1,but:1,no:1,not:1,most:1,all:1};
+  function explainSubject(sn){
+    var ws = String(sn || '').replace(/^[^A-Za-z0-9]+/, '').split(/\s+/);
+    for(var i = 0; i < ws.length && i < 4; i++){
+      var w = ws[i].replace(/[^A-Za-z0-9\-\/()]/g, '').toLowerCase();
+      if(w && !EXPLAIN_STOP[w]) return w;
+    }
+    return '';
   }
   function splitSentences(t){
     var out = [], cur = '';
