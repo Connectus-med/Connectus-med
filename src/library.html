@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-20 12:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-20 14:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -580,6 +580,16 @@
     background:linear-gradient(160deg,#ffb03a,#ff6a00); color:#fff; cursor:pointer;
     box-shadow:0 12px 26px -12px rgba(255,106,0,.6); -webkit-tap-highlight-color:transparent}
   .instaFab svg{width:26px; height:26px; display:block; position:relative; z-index:1}
+  /* the quick-start hammer: one swing per cycle, on repeat */
+  .instaFab svg.hm{transform-origin:50% 88%; animation:fabSwing 2.2s cubic-bezier(.34,.86,.3,1) infinite; will-change:transform}
+  @keyframes fabSwing{
+    0%{transform:rotate(0deg)} 8%{transform:rotate(-40deg)} 18%{transform:rotate(14deg)}
+    26%{transform:rotate(-9deg)} 34%{transform:rotate(5deg)} 44%{transform:rotate(0deg)}
+    100%{transform:rotate(0deg)}
+  }
+  .instaFab::after{content:""; position:absolute; inset:-6px; border-radius:999px; pointer-events:none;
+    background:radial-gradient(closest-side, rgba(255,214,140,.85), rgba(255,214,140,0) 72%); opacity:0; animation:fabHit 2.2s ease-out infinite}
+  @keyframes fabHit{0%,15%{opacity:0; transform:scale(.5)} 19%{opacity:.9; transform:scale(1)} 32%{opacity:0; transform:scale(1.35)} 100%{opacity:0}}
   .instaFab:active{transform:translateY(1px)}
   body.deckopen .instaFab{display:none}
   body.testrun .instaFab{display:none}
@@ -830,7 +840,7 @@
   <button id="collapseFab" class="fab hidden" aria-label="Collapse all">▴ Collapse all</button>
   <button id="instaFab" class="instaFab" aria-label="Quick start" title="Quick start">
     <span class="zring"></span>
-    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.2 2 4 13.6h5.6L8.6 22 20 10.2h-5.9z"/></svg>
+    <svg class="hm" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="3.4" y="3.6" width="17.2" height="5.4" rx="1.9"/><rect x="10.6" y="8.6" width="2.8" height="12.4" rx="1.4"/></svg>
   </button>
 </main>
 
@@ -938,9 +948,14 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-20 12:00';
-  var BUILD_NOTE = 'Quick start comes alive: a breathing flame and a goal bar in the header, the question card and its options rise in one after another, the right answer pulses with a spark, a wrong pick shakes, and the nudge button breathes.';
+  var APP_BUILD = '2026-10-20 14:00';
+  var BUILD_NOTE = 'The quick-start button is now a hammer that swings down once every cycle and repeats, with a soft impact glow - a small motion cue that keeps inviting you back.';
   var CHANGELOG = [
+    { build:'2026-10-20 14:00', title:'Quick start: a hammer that swings', items:[
+      'The lightning bolt is now a hammer.',
+      'It winds up and strikes once every couple of seconds, on repeat - a live, inviting cue.',
+      'A soft glow flashes on impact.',
+    ]},
     { build:'2026-10-20 12:00', title:'Quick start: a lively opening', items:[
       'A breathing flame and a goal bar now sit at the top, so your progress is visible at a glance.',
       'The question and its options rise in one after another - no more dull cut.',
