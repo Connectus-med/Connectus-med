@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-20 22:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-21 00:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -779,7 +779,14 @@
   .qotd-opt.right{border-color:var(--ok); background:rgba(16,185,129,.14); font-weight:750}
   .qotd-opt.wrong{border-color:var(--bad); background:rgba(220,38,38,.12)}
   .qotd-opt:disabled{cursor:default; opacity:1}
-  .qotd-exp{font-size:var(--fs-base); line-height:1.6; margin-top:8px; white-space:pre-wrap}
+  .qotd-exp{font-size:var(--fs-base); line-height:1.6; margin-top:8px}
+  /* universal point list: main point = orange dot, sub-point = dash (same as a flashcard back) */
+  .pts{list-style:none; margin:6px 0 0; padding:0; display:flex; flex-direction:column; gap:9px}
+  .pts>li{position:relative; padding-left:24px; font-size:1.02rem; line-height:1.42; font-weight:550}
+  .pts>li::before{content:""; position:absolute; left:1px; top:.52em; width:8px; height:8px; border-radius:50%; background:var(--accent-2)}
+  .pts .sub{list-style:none; margin:8px 0 0; padding:0; display:flex; flex-direction:column; gap:6px}
+  .pts .sub li{position:relative; padding-left:16px; font-size:.95rem; line-height:1.4; font-weight:450; color:var(--muted)}
+  .pts .sub li::before{content:""; position:absolute; left:1px; top:.72em; width:9px; height:2px; border-radius:2px; background:var(--muted); opacity:.6}
   /* ---- quick-start motion ---- */
   @keyframes gwRise{from{opacity:0; transform:translateY(12px)} to{opacity:1; transform:none}}
   @keyframes gwPop{0%{transform:scale(1)} 45%{transform:scale(1.035)} 100%{transform:scale(1)}}
@@ -988,9 +995,14 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-20 22:00';
-  var BUILD_NOTE = 'The ripple now expands smoothly outward with constant acceleration - no more stop-start. The easing bug that pulsed at every step is gone, and the tint is far lighter, so it invites without ever distracting.';
+  var APP_BUILD = '2026-10-21 00:00';
+  var BUILD_NOTE = 'One explanation style everywhere: an MCQ explanation now renders like a flashcard back - a main point with an orange dot and the rest as indented dashes, instead of a block of paragraph text.';
   var CHANGELOG = [
+    { build:'2026-10-21 00:00', title:'One explanation style everywhere', items:[
+      'Question explanations are now a clean point list, not a paragraph.',
+      'The main point carries an orange dot; the supporting lines sit under it with a dash.',
+      'The same look applies in the question of the day, a test review, the error log and a deck card - one universal style.',
+    ]},
     { build:'2026-10-20 22:00', title:'Quick start: a smooth, gentle ripple', items:[
       'The wave now grows outward with a steady, accelerating push - no more stop-start steps.',
       'Fixed the root cause: the easing was pulsing at every keyframe.',
@@ -3006,7 +3018,7 @@
       var rh = document.createElement('div'); rh.className = 'tlabel';
       rh.textContent = ok ? 'Correct' : ('Not quite \u2014 the answer is ' + String.fromCharCode(65 + q.answer));
       rc.appendChild(rh);
-      if(q.explain){ var ex = document.createElement('div'); ex.className = 'qotd-exp'; linkTerms(ex, q.explain, termCtx(q)); rc.appendChild(ex); }
+      if(q.explain){ var ex = document.createElement('div'); ex.className = 'qotd-exp'; explainList(ex, q.explain, termCtx(q)); rc.appendChild(ex); }
       var sl = srcLine(q); if(sl) rc.appendChild(sl);
       wrap.appendChild(rc);
       var nb = document.createElement('button'); nb.type = 'button'; nb.className = 'tstart'; nb.textContent = 'Next question \u2014 another weak area';
@@ -3066,6 +3078,61 @@
     var esc = GLOSSARY.slice().sort(function(a, b){ return b.length - a.length; }).map(function(t){ return t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); });
     _termRe = new RegExp('\\b(' + esc.join('|') + ')\\b', 'gi');
     return _termRe;
+  }
+  /* One explanation style for the whole app: a leading main point (orange dot)
+     and the remaining sentences as sub-points (dash, indented, lighter). */
+  function explainList(el, text, ctx){
+    el.textContent = '';
+    var t = String(text == null ? '' : text).replace(/\r/g, '').trim();
+    if(!t) return el;
+    var items = explainPoints(t);
+    var ul = document.createElement('ul'); ul.className = 'pts';
+    items.forEach(function(it){
+      var li = document.createElement('li');
+      linkTerms(li, it.t, ctx);
+      if(it.sub && it.sub.length){
+        var sub = document.createElement('ul'); sub.className = 'sub';
+        it.sub.forEach(function(x){ var sli = document.createElement('li'); linkTerms(sli, x, ctx); sub.appendChild(sli); });
+        li.appendChild(sub);
+      }
+      ul.appendChild(li);
+    });
+    el.appendChild(ul);
+    return el;
+  }
+  function explainPoints(t){
+    var lines = t.split('\n').map(function(x){ return x.trim(); }).filter(function(x){ return x; });
+    var marked = lines.some(function(l){ return l.charAt(0) === '\u2022' || l.charAt(0) === '-'; });
+    if(marked){
+      var out = [];
+      lines.forEach(function(l){
+        if(l.charAt(0) === '\u2022') out.push({ t:l.slice(1).trim(), sub:[] });
+        else if(l.charAt(0) === '-'){
+          if(out.length) out[out.length - 1].sub.push(l.slice(1).trim());
+          else out.push({ t:l.slice(1).trim(), sub:[] });
+        } else if(out.length && out[out.length - 1].sub.length) out[out.length - 1].sub.push(l);
+        else out.push({ t:l, sub:[] });
+      });
+      return out;
+    }
+    var flat = t.replace(/\s+/g, ' ').replace(/^Back to Question[^.]*?p\.?\s*\d+\s*/i, '').trim();
+    var sents = splitSentences(flat);
+    if(!sents.length) return [{ t:flat, sub:[] }];
+    return [{ t:sents[0], sub:sents.slice(1) }];
+  }
+  function splitSentences(t){
+    var out = [], cur = '';
+    var abbr = /(?:^|\s)(?:p|pp|e\.g|i\.e|no|vs|Dr|Mr|Mrs|Ms|approx|Fig|etc|cf|Prof|St|vol|ed)\.$/i;
+    for(var i = 0; i < t.length; i++){
+      var ch = t[i]; cur += ch;
+      if(ch === '.' || ch === ';' || ch === '!' || ch === '?'){
+        if(ch === '.' && abbr.test(cur.trim())) continue;
+        var nx = t[i + 1];
+        if(nx === undefined || nx === ' '){ out.push(cur.trim()); cur = ''; }
+      }
+    }
+    if(cur.trim()) out.push(cur.trim());
+    return out.filter(function(x){ return x.length > 1; });
   }
   function linkTerms(el, text, ctx){
     var t = String(text == null ? '' : text);
@@ -3289,7 +3356,7 @@
       if(ok){ var sp = document.createElement('span'); sp.className = 'gw-spark'; rh.appendChild(sp); }
       rh.appendChild(document.createTextNode(ok ? 'Correct' : ('Not quite \u2014 the answer is ' + String.fromCharCode(65 + q.answer))));
       rc.appendChild(rh);
-      if(q.explain){ var ex = document.createElement('div'); ex.className = 'qotd-exp'; linkTerms(ex, q.explain, termCtx(q)); rc.appendChild(ex); }
+      if(q.explain){ var ex = document.createElement('div'); ex.className = 'qotd-exp'; explainList(ex, q.explain, termCtx(q)); rc.appendChild(ex); }
       var sl = srcLine(q); if(sl) rc.appendChild(sl);
       wrap.appendChild(rc);
       var trow = document.createElement('div'); trow.className = 'gw-time';
@@ -8562,7 +8629,7 @@
       var verdict = document.createElement('div'); verdict.className = 'tsub';
       verdict.textContent = ok ? 'You got this right.' : (item.picked == null ? 'You left this unanswered.' : 'You got this wrong.');
       wrap.appendChild(verdict);
-      if(q.explain){ var exd = document.createElement('div'); exd.className = 'rvexp'; linkTerms(exd, q.explain, termCtx(q)); wrap.appendChild(exd); }
+      if(q.explain){ var exd = document.createElement('div'); exd.className = 'rvexp'; explainList(exd, q.explain, termCtx(q)); wrap.appendChild(exd); }
       var eimgHost = document.createElement('div'); wrap.appendChild(eimgHost);
       qimgBlock(q.k, q.id, 'e', 'Explanation images', eimgHost, renderReview1);
       errNoteRow(q.k, q.id, wrap);
@@ -9035,7 +9102,7 @@
           qimgBlock(q.k, q.id, 'q', 'Question image', eb, qimgRefreshResult);
           var _qi2 = qImgEl(q.img); if(_qi2) eb.appendChild(_qi2);
           rvOptions(q, item.picked, eb);
-          if(q.explain){ var ex = document.createElement('div'); ex.className = 'rvexp'; linkTerms(ex, q.explain, termCtx(q)); eb.appendChild(ex); }
+          if(q.explain){ var ex = document.createElement('div'); ex.className = 'rvexp'; explainList(ex, q.explain, termCtx(q)); eb.appendChild(ex); }
           qimgBlock(q.k, q.id, 'e', 'Explanation images', eb, qimgRefreshResult);
           var _sl1 = srcLine(q); if(_sl1) eb.appendChild(_sl1);
           if(!ok || item.mark){ errNoteRow(q.k, q.id, eb); }
@@ -9511,7 +9578,7 @@
           var qq = document.createElement('div'); qq.className = 'terr-q'; qq.textContent = q.q; box.appendChild(qq);
           var _qi4 = qImgEl(q.img); if(_qi4) box.appendChild(_qi4);
           rvOptions(q, null, box);
-          if(q.explain){ var ex = document.createElement('div'); ex.className = 'rvexp'; linkTerms(ex, q.explain, termCtx(q)); box.appendChild(ex); }
+          if(q.explain){ var ex = document.createElement('div'); ex.className = 'rvexp'; explainList(ex, q.explain, termCtx(q)); box.appendChild(ex); }
           var _sl2 = srcLine(q); if(_sl2) box.appendChild(_sl2);
         } else {
           var nq = document.createElement('div'); nq.className = 'muted small'; nq.textContent = e.k; box.appendChild(nq);
