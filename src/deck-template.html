@@ -41,8 +41,10 @@
   .tchip.on{background:var(--accent-2); border-color:var(--accent-2); color:#fff}
   .cardtag{font-size:.66rem; font-weight:800; letter-spacing:.02em; padding:4px 10px; border-radius:var(--cap); color:var(--accent-2); background:var(--accent-soft); line-height:1.15; white-space:nowrap}
   .back .cardtag{color:#fff; background:var(--accent-2)}
-  .toprow{position:absolute; top:14px; left:18px; right:16px; display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; z-index:5}
-  .chipgroup{display:flex; align-items:center; justify-content:flex-end; gap:8px; flex-wrap:wrap}
+  .toprow{position:absolute; top:14px; left:18px; right:16px; display:flex; align-items:center; justify-content:flex-start; gap:8px; flex-wrap:wrap; z-index:5}
+  .cidtop{font-size:.66rem; font-weight:800; letter-spacing:.02em; color:var(--muted); opacity:.85; white-space:nowrap}
+  .cidtop:empty{display:none}
+  .chipgroup{display:flex; align-items:center; justify-content:flex-end; gap:8px; flex-wrap:wrap; margin-left:auto}
   .cardtag.tappable{cursor:pointer}
   .card.notice{cursor:default}
   .rate.locked button{opacity:.45; cursor:not-allowed; filter:grayscale(.35)}
@@ -95,13 +97,13 @@
 
   .card{position:relative; width:100%; max-width:680px; height:100%; cursor:pointer}
   .face{position:absolute; inset:0; background:var(--panel); border:1px solid var(--line);
-    border-radius:var(--radius); padding:52px 24px 24px; display:flex; flex-direction:column; justify-content:center;
+    border-radius:var(--radius); padding:46px 18px 14px; display:flex; flex-direction:column; justify-content:center;
     box-shadow:0 22px 48px -20px rgba(120,60,10,.34), 0 6px 16px -8px rgba(120,60,10,.18);
     -webkit-backface-visibility:hidden; backface-visibility:hidden; overflow:hidden}
   .inner{flex:0 1 auto; min-height:0; max-height:100%; overflow:auto; overscroll-behavior:contain; -webkit-overflow-scrolling:touch}
   /* the answer takes the room; source / my note / improvements sit as one footer at the bottom */
   .back .inner{flex:1 1 auto; display:flex; flex-direction:column; min-height:0; overflow:hidden}
-  #a{flex:1 1 auto; min-height:0; overflow:auto; overscroll-behavior:contain; -webkit-overflow-scrolling:touch}
+  #a{flex:1 1 auto; min-height:0; overflow:auto; overscroll-behavior:contain; -webkit-overflow-scrolling:touch; display:flex; flex-direction:column; justify-content:safe center}
   .card:not(.flipped) .back{display:none}
   .card.flipped .front{display:none}
   .card.flipped .back{animation:flipin .34s ease}
@@ -115,16 +117,16 @@
   .vbadge.on{background:#16a34a; color:#fff}
   /* the verify chip lives at the bottom, beside the controls - not in the card's
      top row, where it crowded the Question/Answer tag */
-  .vrow{grid-column:1 / -1; display:flex; justify-content:center; align-items:center; margin-top:9px}
+  .vrow{display:flex; justify-content:flex-start; align-items:center; margin-top:7px}
   .vrow .vbadge{cursor:pointer}
   .vrow:empty, .vrow.hidden{display:none}
   .lead{font-size:1.34rem; line-height:1.45; font-weight:700; letter-spacing:-.01em; margin:0}
   .back .lead{font-weight:600}
   .pts{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:11px}
-  .pts>li{position:relative; padding-left:24px; font-size:1.08rem; line-height:1.4; font-weight:550}
-  .pts>li::before{content:""; position:absolute; left:1px; top:.52em; width:8px; height:8px; border-radius:50%; background:var(--accent-2)}
+  .pts>li{padding-left:22px; text-indent:-22px; font-size:1.08rem; line-height:1.4; font-weight:550}
+  .pts>li::before{content:""; display:inline-block; vertical-align:middle; width:8px; height:8px; border-radius:50%; background:var(--accent-2); margin-right:14px}
   .pts .sub{list-style:none; margin:8px 0 0; padding:0; display:flex; flex-direction:column; gap:6px}
-  .pts .sub li{position:relative; padding-left:16px; font-size:.96rem; line-height:1.38; font-weight:450; color:var(--muted)}
+  .pts .sub li{padding-left:16px; text-indent:-16px; font-size:.96rem; line-height:1.38; font-weight:450; color:var(--muted)}
   .tblwrap{margin:8px 0; max-width:100%}
   .tbl{border-collapse:separate; border-spacing:0; width:max-content; min-width:100%; font-size:.9rem; line-height:1.35}
   .tbl th, .tbl td{border-bottom:1px solid var(--line); border-right:1px solid var(--line);
@@ -140,7 +142,7 @@
   .tbl tbody td:first-child{z-index:1}
   .pts > li.tblrow{padding-left:0}
   .pts > li.tblrow::before{display:none}
-  .pts .sub li::before{content:""; position:absolute; left:1px; top:.72em; width:9px; height:2px; border-radius:2px; background:var(--muted); opacity:.6}
+  .pts .sub li::before{content:""; display:inline-block; vertical-align:middle; width:9px; height:2px; border-radius:2px; background:var(--muted); opacity:.6; margin-right:7px}
   .blank{display:inline-block; min-width:4ch; height:1.02em; vertical-align:-.13em;
     background:var(--accent-soft); border-bottom:2px solid var(--accent-2); border-radius:5px}
   .hl{background:var(--accent-soft); color:var(--accent-2); font-weight:800; border-radius:5px; padding:0 .26em}
@@ -159,7 +161,9 @@
   .occbox{position:absolute; border-radius:6px; background:var(--accent-2); color:#fff; font-size:.7rem;
     font-weight:700; display:flex; align-items:center; justify-content:center; padding:2px; overflow:hidden}
   .occbox.revealed{background:var(--accent-soft); color:var(--accent-2); border:1px solid var(--accent-2)}
-  .src{margin-top:4px; font-size:.75rem; color:var(--muted); font-weight:500}
+  .src{margin-top:6px; font-size:.72rem; color:var(--muted); font-weight:500; display:flex; align-items:center; gap:8px; justify-content:space-between; flex-wrap:nowrap}
+  .srctxt{flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .src .vbadge{flex:none; font-size:.62rem; padding:3px 9px}
   .cid{margin-top:3px; font-size:.7rem; font-weight:700; color:var(--muted); letter-spacing:.02em; opacity:.9}
   .note{margin-top:4px; padding:8px 12px; border-left:3px solid var(--accent-2); background:var(--accent-soft);
     border-radius:8px; font-size:.85rem; line-height:1.4; white-space:pre-wrap; overflow-wrap:anywhere}
@@ -344,8 +348,8 @@
 <main>
   <div class="scene">
     <div class="card" id="card">
-      <div class="face front"><div class="toprow"><span class="tag">Question</span><span class="chipgroup"><span class="cardtag tappable" id="chipF"></span></span></div><div class="inner" id="q"></div></div>
-      <div class="face back"><div class="toprow"><span class="tag">Answer</span><span class="chipgroup"><span class="cardtag tappable" id="chipB"></span></span></div><div class="inner"><div id="a"></div><div id="note"></div><div class="src" id="src"></div></div></div>
+      <div class="face front"><div class="toprow"><span class="tag">Question</span><span class="cidtop" id="idF"></span><span class="chipgroup"><span class="cardtag tappable" id="chipF"></span></span></div><div class="inner" id="q"></div></div>
+      <div class="face back"><div class="toprow"><span class="tag">Answer</span><span class="cidtop" id="idB"></span><span class="chipgroup"><span class="cardtag tappable" id="chipB"></span></span></div><div class="inner"><div id="a"></div><div id="note"></div><div class="src" id="src"><span class="srctxt" id="srcTxt"></span><span class="vbadge" id="vbadgeF"></span></div></div></div>
     </div>
   </div>
   <div class="controls">
@@ -353,7 +357,6 @@
     <button id="flip" class="btn primary">Flip</button>
     <button id="next" class="btn">Next &#8594;</button>
   </div>
-  <div class="vrow" id="vrow"><span class="vbadge" id="vbadgeF"></span></div>
   <div class="rate hidden" id="rate">
     <button class="btn" data-r="0"><b>Again</b><small>&le;10%</small></button>
     <button class="btn" data-r="1"><b>Hard</b><small>upto 30%</small></button>
@@ -514,7 +517,7 @@ const SETNAME = (SET === 1 ? 'Basics & Fundamentals' : SET === 2 ? 'Main Concept
     });
   }
 
-  var card = $('card'), qEl = $('q'), aEl = $('a'), srcEl = $('src'), noteEl = $('note');
+  var card = $('card'), qEl = $('q'), aEl = $('a'), srcEl = $('srcTxt'), noteEl = $('note');
   var rateBox = $('rate'), ivBox = $('intervals'), resultsBox = $('results');
   var sheet = $('cardsheet'), editor = $('editor'), confirmBox = $('confirm');
 
@@ -648,11 +651,12 @@ const SETNAME = (SET === 1 ? 'Basics & Fundamentals' : SET === 2 ? 'Main Concept
     });
     wrap.appendChild(dia); el.appendChild(wrap);
   }
-  function mcqRender(el, c, reveal, e){
+  function mcqRender(el, c, reveal, e, frontImgs){
     el.textContent='';
     var stem=document.createElement('div'); stem.className='lead';
     stem.textContent=sym(String((e && e.q!=null) ? e.q : (c.q||'')));
     el.appendChild(stem);
+    if(frontImgs && frontImgs.length){ frontImgs.forEach(function(src){ var fi=document.createElement('img'); fi.className='cardimg'; fi.src=src; el.appendChild(fi); }); }
     var opts=(c.options||[]), ans=(typeof c.answer==='number')? c.answer : 0;
     var list=document.createElement('div'); list.className='mcqopts';
     opts.forEach(function(o,k){
@@ -669,8 +673,96 @@ const SETNAME = (SET === 1 ? 'Basics & Fundamentals' : SET === 2 ? 'Main Concept
       line.textContent='Correct: '+String.fromCharCode(65+ans)+') '+sym(String(opts[ans]!=null?opts[ans]:''));
       el.appendChild(line);
       var ex=(e && e.explain!=null) ? e.explain : (c.explain||'');
-      if(ex){ var d=document.createElement('div'); d.className='mcqexp'; d.textContent=sym(String(ex)); el.appendChild(d); }
+      if(ex){ var d=document.createElement('div'); d.className='mcqexp'; renderExplainPts(d, String(ex)); el.appendChild(d); }
     }
+  }
+  /* One explanation style everywhere: a leading main point (orange dot) and the
+     remaining sentences as sub-points (dash, indented, lighter). */
+  function renderExplainPts(el, text){
+    el.textContent='';
+    var items=explainPts(String(text==null?'':text));
+    var ul=document.createElement('ul'); ul.className='pts';
+    items.forEach(function(it){
+      var li=document.createElement('li'); li.textContent=sym(it.t);
+      if(it.sub && it.sub.length){
+        var sub=document.createElement('ul'); sub.className='sub';
+        it.sub.forEach(function(x){ var sl=document.createElement('li'); sl.textContent=sym(x); sub.appendChild(sl); });
+        li.appendChild(sub);
+      }
+      ul.appendChild(li);
+    });
+    el.appendChild(ul);
+    return el;
+  }
+  function explainPts(t){
+    t=String(t||'').replace(/\r/g,'').trim();
+    if(!t) return [];
+    var lines=t.split('\n').map(function(x){return x.trim();}).filter(function(x){return x;});
+    var marked=lines.some(function(l){ return l.charAt(0)==='\u2022' || l.charAt(0)==='-'; });
+    if(marked){
+      var out=[];
+      lines.forEach(function(l){
+        if(l.charAt(0)==='\u2022') out.push({t:l.slice(1).trim(), sub:[]});
+        else if(l.charAt(0)==='-'){ if(out.length) out[out.length-1].sub.push(l.slice(1).trim()); else out.push({t:l.slice(1).trim(), sub:[]}); }
+        else if(out.length && out[out.length-1].sub.length) out[out.length-1].sub.push(l);
+        else out.push({t:l, sub:[]});
+      });
+      return out;
+    }
+    var norm = String(t).replace(/^Back to Question[^.]*?p\.?\s*\d+\s*/i, '').replace(/\r/g, '').replace(/\s*\u2022\s*/g, '\n');
+    var segs = [];
+    norm.split('\n').map(function(x){ return x.trim(); }).filter(function(x){ return x; }).forEach(function(line){
+      var re = /(^|[.\s])([A-Z][A-Za-z0-9()\-\u2013\u2019\/]*(?:\s+[A-Za-z0-9()\-\u2013\u2019\/]+){0,3}):(?=\s|$)/g, last = 0, m;
+      while((m = re.exec(line))){
+        var st = m.index + m[1].length;
+        if(st > last) segs.push(line.slice(last, st).trim());
+        segs.push(m[2].trim() + ':');
+        last = m.index + m[0].length;
+      }
+      if(last < line.length) segs.push(line.slice(last).trim());
+    });
+    segs = segs.filter(function(x){ return x; });
+    if(!segs.length) return [{t:flat, sub:[]}];
+    var out = [], inLabel = false;
+    segs.forEach(function(seg){
+      if(/^[A-Z][^.:\u2022\n]{2,60}?:$/.test(seg)){ out.push({t:seg, sub:[]}); inLabel = true; return; }
+      var sents = splitSents(seg.replace(/^[-\u2013\u2014]\s*/, ''));
+      sents.forEach(function(sn){
+        var sub = false;
+        if(out.length){
+          if(inLabel) sub = true;
+          else if(EXPLAIN_SUB_START.test(sn)) sub = true;
+          else { var w = explainSubject(sn); if(w && w === explainSubject(out[out.length-1].t)) sub = true; }
+        }
+        if(sub) out[out.length-1].sub.push(sn);
+        else { out.push({t:sn, sub:[]}); inLabel = false; }
+      });
+    });
+    return out.length ? out : [{t:flat, sub:[]}];
+  }
+  var EXPLAIN_SUB_START = /^(it|its|this|these|that|those|they|their|them|he|she|his|her|such|here|there|thus|hence|therefore|however|but|and|also|moreover|furthermore|additionally|besides|so|yet|still|meanwhile|similarly|likewise|conversely|instead|otherwise|overall)\b/i;
+  var EXPLAIN_STOP = {the:1,a:1,an:1,in:1,of:1,on:1,for:1,to:1,with:1,by:1,at:1,as:1,from:1,is:1,are:1,was:1,were:1,and:1,or:1,but:1,no:1,not:1,most:1,all:1};
+  function explainSubject(sn){
+    var ws = String(sn || '').replace(/^[^A-Za-z0-9]+/, '').split(/\s+/);
+    for(var i = 0; i < ws.length && i < 4; i++){
+      var w = ws[i].replace(/[^A-Za-z0-9\-\/()]/g, '').toLowerCase();
+      if(w && !EXPLAIN_STOP[w]) return w;
+    }
+    return '';
+  }
+  function splitSents(t){
+    var out=[], cur='';
+    var abbr=/(?:^|\s)(?:p|pp|e\.g|i\.e|no|vs|Dr|Mr|Mrs|Ms|approx|Fig|etc|cf|Prof|St|vol|ed)\.$/i;
+    for(var i=0;i<t.length;i++){
+      var ch=t[i]; cur+=ch;
+      if(ch==='.'||ch===';'||ch==='!'||ch==='?'){
+        if(ch==='.' && abbr.test(cur.trim())) continue;
+        var nx=t[i+1];
+        if(nx===undefined||nx===' '){ out.push(cur.trim()); cur=''; }
+      }
+    }
+    if(cur.trim()) out.push(cur.trim());
+    return out.filter(function(x){ return x.length>1; });
   }
   function contentToText(c){ return sym(contentToTextRaw(c)); }
   function parseText(str){
@@ -860,13 +952,13 @@ const SETNAME = (SET === 1 ? 'Basics & Fundamentals' : SET === 2 ? 'Main Concept
     qEl.textContent=''; aEl.textContent=''; srcEl.textContent=''; noteEl.textContent='';
     if(type==='cloze'){ var t=(e.text!=null? e.text : c.text); clozeRender(qEl,t,false); clozeRender(aEl,t,true); }
     else if(type==='occlusion'){ occlusionRender(qEl,c,false,e.q); occlusionRender(aEl,c,true,e.q); }
-    else if(type==='mcq'){ mcqRender(qEl,c,false,e); mcqRender(aEl,c,true,e); }
+    else if(type==='mcq'){ mcqRender(qEl,c,false,e,imgList(id,'f')); mcqRender(aEl,c,true,e,imgList(id,'f')); }
     else { renderContent(qEl, e.q!=null? parseText(e.q) : c.q); renderContent(aEl, e.a!=null? parseText(e.a) : c.a); }
-    (function(){ imgList(id,'f').forEach(function(src){ var im=document.createElement('img'); im.className='cardimg'; im.src=src; qEl.appendChild(im); }); imgList(id,'b').forEach(function(src){ var im2=document.createElement('img'); im2.className='cardimg'; im2.src=src; aEl.appendChild(im2); }); })();
+    (function(){ if(type!=='mcq'){ imgList(id,'f').forEach(function(src){ var im=document.createElement('img'); im.className='cardimg'; im.src=src; qEl.appendChild(im); }); } imgList(id,'b').forEach(function(src){ var im2=document.createElement('img'); im2.className='cardimg'; im2.src=src; aEl.appendChild(im2); }); })();
     renderNote(id, e);
     renderImpr(id);
-    if(c.src){ var b=document.createElement('b'); b.textContent='Source: '; srcEl.appendChild(b); srcEl.appendChild(document.createTextNode(c.src)); }
-    if(c.id){ var idEl=document.createElement('div'); idEl.className='cid'; idEl.textContent = 'ID: ' + c.id; srcEl.appendChild(idEl); }
+    if(c.src){ var b=document.createElement('b'); b.textContent='Source: '; srcEl.appendChild(b); srcEl.appendChild(document.createTextNode(c.src)); srcEl.title='Source: '+c.src; }
+    ['idF','idB'].forEach(function(x){ var el=$(x); if(el) el.textContent = c.id ? ('ID: ' + c.id) : ''; });
     card.classList.remove('flipped');
     renderRating(id);
     renderBadge(id);
