@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-19 12:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-19 14:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -749,6 +749,18 @@
   .fabitem{display:block; width:100%; text-align:left; border:1px solid var(--line); background:var(--panel); color:var(--ink); border-radius:var(--r-md); padding:11px 14px; box-shadow:var(--el-2); font:inherit; cursor:pointer; min-height:52px}
   .fabitem b{display:block; font-size:var(--fs-md); font-weight:800}
   .fabitem span{display:block; font-size:var(--fs-sm); color:var(--muted); margin-top:2px}
+  /* tappable key terms + the image pop-up */
+  .term{text-decoration:underline dotted; text-decoration-color:var(--accent-2); text-underline-offset:2px; cursor:pointer; font-weight:600}
+  .term:active{opacity:.6}
+  #termModal{position:fixed; inset:0; z-index:80; display:none; align-items:flex-end; justify-content:center; background:rgba(0,0,0,.45)}
+  #termModal.open{display:flex}
+  .termpanel{background:var(--panel); color:var(--ink); width:min(560px,100%); max-height:84vh; overflow:auto; border-radius:20px 20px 0 0; padding:16px 16px calc(20px + env(safe-area-inset-bottom,0px)); border-top:1px solid var(--line); box-shadow:0 -18px 40px -22px rgba(0,0,0,.5)}
+  .termhead{display:flex; align-items:center; gap:10px; margin-bottom:6px}
+  .termhead b{flex:1; font-size:var(--fs-lg); font-weight:800}
+  .termx{border:0; background:var(--bg); color:var(--ink); border-radius:999px; width:36px; height:36px; font-size:1.1rem; cursor:pointer; flex:none}
+  .termimgs{display:flex; flex-direction:column; gap:10px; margin-top:8px}
+  .termimgs img{width:100%; border-radius:12px; border:1px solid var(--line); background:var(--bg)}
+  .termnote{font-size:var(--fs-sm); color:var(--muted); margin-top:8px}
 </style>
 </head>
 <body>
@@ -905,9 +917,15 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-19 12:00';
-  var BUILD_NOTE = 'UX pass: a always-visible Start button on the test setup screens, the tab bar hidden during a test, and a clearer cross-out control on options.';
+  var APP_BUILD = '2026-10-19 14:00';
+  var BUILD_NOTE = 'New: tappable key terms in every explanation. Tap a dotted-underlined term and a pop-up shows pictures from Wikimedia Commons, plus an Open in Google Images link.';
   var CHANGELOG = [
+    { build:'2026-10-19 14:00', title:'Tappable terms: image pop-up', items:[
+      'Key medical terms in an explanation are now dotted-underlined - tap one to open a picture.',
+      'The pop-up shows pictures from Wikimedia Commons (free, reusable, embeddable) and an Open in Google Images link.',
+      'Google Images cannot be embedded in an app, so it opens in a new tab - the honest route.',
+      'Offline or no picture found: the pop-up says so, and still offers the Google Images link.',
+    ]},
     { build:'2026-10-19 12:00', title:'UX: sticky Start, cleaner test screen', items:[
       'The Real Exam setup and the paper builder now keep a Start button pinned at the bottom - no more scrolling to begin.',
       'The bottom tab bar is hidden during a test, so there is less crowding and no accidental taps.',
@@ -2830,7 +2848,7 @@
       var rh = document.createElement('div'); rh.className = 'tlabel';
       rh.textContent = ok ? 'Correct' : ('Not quite \u2014 the answer is ' + String.fromCharCode(65 + q.answer));
       rc.appendChild(rh);
-      if(q.explain){ var ex = document.createElement('div'); ex.className = 'qotd-exp'; ex.textContent = q.explain; rc.appendChild(ex); }
+      if(q.explain){ var ex = document.createElement('div'); ex.className = 'qotd-exp'; linkTerms(ex, q.explain); rc.appendChild(ex); }
       var sl = srcLine(q); if(sl) rc.appendChild(sl);
       wrap.appendChild(rc);
       var nb = document.createElement('button'); nb.type = 'button'; nb.className = 'tstart'; nb.textContent = 'Next question \u2014 another weak area';
@@ -2849,6 +2867,93 @@
     var b = document.createElement('button'); b.className = 'btn primary wide'; b.textContent = 'Start a question';
     b.onclick = openQotd; dc.appendChild(b);
     return dc;
+  }
+
+  /* ---- tappable key terms -> image pop-up ---- */
+  var GLOSSARY = ['jugular foramen','glomus jugulare','glomus tympanicum','glomus tumour','glomus tumor','paraganglioma','tympanic membrane','middle ear','inner ear','external ear','promontory','carotid body','carotid sinus','jugular bulb','cranial nerve','facial nerve','vestibulocochlear nerve','cochlea','semicircular canal','eustachian tube','ossicles','malleus','incus','stapes','red reflex','otoscopy','pulsatile tinnitus','tinnitus','hearing loss','catecholamine','phaeochromocytoma','pheochromocytoma','neuroblastoma','carcinoid','thyroid gland','parathyroid','pituitary','adrenal gland','kidney','nephron','glomerulus','liver','hepatocyte','gallbladder','pancreas','spleen','stomach','duodenum','jejunum','ileum','colon','appendix','aorta','pulmonary artery','left ventricle','right atrium','mitral valve','aortic valve','tricuspid valve','coronary artery','carotid artery','femoral artery','brachial plexus','median nerve','ulnar nerve','radial nerve','sciatic nerve','spinal cord','cerebrum','cerebellum','brainstem','medulla oblongata','thalamus','hypothalamus','corpus callosum','hippocampus','frontal lobe','parietal lobe','temporal lobe','occipital lobe','optic nerve','retina','cornea','lens','iris','vitreous','macula','trachea','bronchus','alveolus','pleura','diaphragm','lung','larynx','epiglottis','pharynx','tonsil','oesophagus','uterus','ovary','fallopian tube','prostate','testis','epididymis','urethra','bladder','ureter','sacrum','vertebra','clavicle','scapula','humerus','radius','ulna','femur','tibia','fibula','patella','calcaneus','sternum','mandible','maxilla','zygomatic','sphenoid','ethmoid','temporal bone','occipital bone','frontal bone','foramen ovale','foramen magnum','cavernous sinus','circle of willis','portal vein','hepatic vein','renal artery','renal vein','lymph node','thoracic duct','bone marrow','thymus','epidermis','dermis','melanocyte','sebaceous gland','hair follicle','nephrotic syndrome','cirrhosis','pneumonia','tuberculosis','meningitis','encephalitis','myocardial infarction','heart failure','atrial fibrillation','stroke','asthma','diabetes mellitus','hypothyroidism','hyperthyroidism','cushing syndrome','addison disease','rheumatoid arthritis','systemic lupus erythematosus','gout','osteoporosis','anaemia','leukaemia','lymphoma','thrombocytopenia','haemophilia','dengue','malaria','typhoid','leprosy','tetanus','rabies','cholera','carcinoma','sarcoma','metastasis','histopathology','angiography','ultrasound','computed tomography','magnetic resonance imaging','electrocardiogram','electroencephalogram','spirometry','endoscopy','bronchoscopy','colonoscopy','lumbar puncture'];
+  var _termRe = null;
+  function termRe(){
+    if(_termRe) return _termRe;
+    var esc = GLOSSARY.slice().sort(function(a, b){ return b.length - a.length; }).map(function(t){ return t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); });
+    _termRe = new RegExp('\\b(' + esc.join('|') + ')\\b', 'gi');
+    return _termRe;
+  }
+  function linkTerms(el, text){
+    var t = String(text == null ? '' : text);
+    el.textContent = '';
+    if(!t) return el;
+    var re = termRe(), last = 0, m;
+    re.lastIndex = 0;
+    while((m = re.exec(t))){
+      if(m.index > last) el.appendChild(document.createTextNode(t.slice(last, m.index)));
+      var b = document.createElement('span'); b.className = 'term'; b.textContent = m[0];
+      b.setAttribute('role', 'button'); b.setAttribute('tabindex', '0');
+      b.onclick = function(e){ e.stopPropagation(); openTerm(this.textContent); };
+      el.appendChild(b);
+      last = m.index + m[0].length;
+    }
+    if(last < t.length) el.appendChild(document.createTextNode(t.slice(last)));
+    return el;
+  }
+  function termModal(){
+    var m = $('termModal');
+    if(m) return m;
+    m = document.createElement('div'); m.id = 'termModal';
+    m.onclick = function(e){ if(e.target === m) closeTerm(); };
+    document.body.appendChild(m);
+    return m;
+  }
+  function closeTerm(){ var m = $('termModal'); if(m) m.classList.remove('open'); }
+  function openTerm(term){
+    var m = termModal();
+    m.textContent = '';
+    var panel = document.createElement('div'); panel.className = 'termpanel';
+    var head = document.createElement('div'); head.className = 'termhead';
+    var b = document.createElement('b'); b.textContent = term; head.appendChild(b);
+    var x = document.createElement('button'); x.type = 'button'; x.className = 'termx'; x.textContent = '\u2715'; x.setAttribute('aria-label', 'Close'); x.onclick = closeTerm; head.appendChild(x);
+    panel.appendChild(head);
+    var note = document.createElement('div'); note.className = 'termnote'; note.textContent = 'Looking for a picture\u2026'; panel.appendChild(note);
+    var imgs = document.createElement('div'); imgs.className = 'termimgs'; panel.appendChild(imgs);
+    var g = document.createElement('a'); g.className = 'btn wide'; g.style.marginTop = '12px'; g.style.display = 'block'; g.style.textAlign = 'center';
+    g.href = 'https://www.google.com/search?tbm=isch&q=' + encodeURIComponent(term); g.target = '_blank'; g.rel = 'noopener';
+    g.textContent = 'Open in Google Images'; panel.appendChild(g);
+    var src = document.createElement('div'); src.className = 'termnote'; src.textContent = 'Pictures from Wikimedia Commons (free, reusable).'; panel.appendChild(src);
+    m.appendChild(panel); m.classList.add('open');
+    termImages(term, function(list){
+      imgs.textContent = '';
+      if(list && list.length){
+        note.textContent = 'Tap a picture to open it full size.';
+        list.forEach(function(u){
+          var a = document.createElement('a'); a.href = u; a.target = '_blank'; a.rel = 'noopener';
+          var im = document.createElement('img'); im.loading = 'lazy'; im.alt = term; im.src = u;
+          im.onerror = function(){ a.remove(); };
+          a.appendChild(im); imgs.appendChild(a);
+        });
+      } else {
+        note.textContent = 'No picture found here \u2014 try Google Images below.';
+      }
+    });
+  }
+  function termImages(term, cb){
+    var url = 'https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=' + encodeURIComponent(term)
+            + '&gsrnamespace=6&gsrlimit=6&prop=imageinfo&iiprop=url&iiurlwidth=420&format=json&origin=*';
+    var ctl = null; try{ ctl = new AbortController(); }catch(e){}
+    var timer = setTimeout(function(){ try{ if(ctl) ctl.abort(); }catch(e){} }, 12000);
+    fetch(url, { signal: ctl ? ctl.signal : undefined })
+      .then(function(r){ clearTimeout(timer); return r.ok ? r.json() : null; })
+      .then(function(j){
+        var out = [];
+        try{
+          var pages = (j && j.query && j.query.pages) || {};
+          Object.keys(pages).forEach(function(k){
+            var ii = pages[k].imageinfo && pages[k].imageinfo[0];
+            var u = ii && (ii.thumburl || ii.url);
+            if(u && /\.(jpe?g|png|gif|webp|svg)/i.test(u)) out.push(u);
+          });
+        }catch(e){}
+        cb(out);
+      })
+      .catch(function(){ clearTimeout(timer); cb(null); });
   }
 
   function updateFab(){
@@ -8012,7 +8117,7 @@
       var verdict = document.createElement('div'); verdict.className = 'tsub';
       verdict.textContent = ok ? 'You got this right.' : (item.picked == null ? 'You left this unanswered.' : 'You got this wrong.');
       wrap.appendChild(verdict);
-      if(q.explain){ var exd = document.createElement('div'); exd.className = 'rvexp'; exd.textContent = q.explain; wrap.appendChild(exd); }
+      if(q.explain){ var exd = document.createElement('div'); exd.className = 'rvexp'; linkTerms(exd, q.explain); wrap.appendChild(exd); }
       var eimgHost = document.createElement('div'); wrap.appendChild(eimgHost);
       qimgBlock(q.k, q.id, 'e', 'Explanation images', eimgHost, renderReview1);
       errNoteRow(q.k, q.id, wrap);
@@ -8485,7 +8590,7 @@
           qimgBlock(q.k, q.id, 'q', 'Question image', eb, qimgRefreshResult);
           var _qi2 = qImgEl(q.img); if(_qi2) eb.appendChild(_qi2);
           rvOptions(q, item.picked, eb);
-          if(q.explain){ var ex = document.createElement('div'); ex.className = 'rvexp'; ex.textContent = q.explain; eb.appendChild(ex); }
+          if(q.explain){ var ex = document.createElement('div'); ex.className = 'rvexp'; linkTerms(ex, q.explain); eb.appendChild(ex); }
           qimgBlock(q.k, q.id, 'e', 'Explanation images', eb, qimgRefreshResult);
           var _sl1 = srcLine(q); if(_sl1) eb.appendChild(_sl1);
           if(!ok || item.mark){ errNoteRow(q.k, q.id, eb); }
@@ -8961,7 +9066,7 @@
           var qq = document.createElement('div'); qq.className = 'terr-q'; qq.textContent = q.q; box.appendChild(qq);
           var _qi4 = qImgEl(q.img); if(_qi4) box.appendChild(_qi4);
           rvOptions(q, null, box);
-          if(q.explain){ var ex = document.createElement('div'); ex.className = 'rvexp'; ex.textContent = q.explain; box.appendChild(ex); }
+          if(q.explain){ var ex = document.createElement('div'); ex.className = 'rvexp'; linkTerms(ex, q.explain); box.appendChild(ex); }
           var _sl2 = srcLine(q); if(_sl2) box.appendChild(_sl2);
         } else {
           var nq = document.createElement('div'); nq.className = 'muted small'; nq.textContent = e.k; box.appendChild(nq);
