@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-20 02:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-20 04:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -917,9 +917,14 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-20 02:00';
-  var BUILD_NOTE = 'Deck cards: the question ID now sits in the top row beside the Question/Answer chip, and the Verified/Unverified chip sits right under the source line - both aligned.';
+  var APP_BUILD = '2026-10-20 04:00';
+  var BUILD_NOTE = 'Deck card: the Verified/Unverified chip now sits ON the source line, right-aligned (the source shortens with an ellipsis if long).';
   var CHANGELOG = [
+    { build:'2026-10-20 04:00', title:'Deck card: verify chip on the source line', items:[
+      'The Verified/Unverified chip is now on the same row as the Source reference, aligned to the right.',
+      'A long source shortens with an ellipsis; long-press shows the full text.',
+      'The card ID stays in the top row beside the Question/Answer chip.',
+    ]},
     { build:'2026-10-20 02:00', title:'Deck card: ID on top, verify under the source', items:[
       'The card ID moved from the footer to the top row, aligned beside the Question/Answer chip.',
       'The Verified/Unverified chip now sits directly under the Source line, aligned - where you cross-verify.',
