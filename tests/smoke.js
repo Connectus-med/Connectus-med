@@ -86,6 +86,20 @@ const ck = (n, ok, d) => { out.push({ n, ok: !!ok, d: d == null ? '' : String(d)
   ck('test run shows the source line', srcOk, '');
   await tab('home');
 
+  // dark mode must never leave a text field unreadable (the .tfind/.errnote bug class)
+  await page.evaluate(() => { document.body.classList.add('dark'); });
+  const darkFields = await page.evaluate(() => {
+    const bad = [];
+    document.querySelectorAll('input, textarea').forEach(el => {
+      if (el.type === 'hidden' || !el.offsetParent) return;
+      const c = getComputedStyle(el).color;      // light ink in dark mode, dark ink in light
+      if (c === 'rgb(32, 22, 15)') bad.push(el.className || el.tagName);
+    });
+    return bad;
+  });
+  ck('dark mode: no unreadable text field', darkFields.length === 0, darkFields.join(', '));
+  await page.evaluate(() => { document.body.classList.remove('dark'); });
+
   ck('no page errors across the whole sweep', errs.length === 0, errs.slice(0, 3).join(' | '));
 
   await browser.close();
