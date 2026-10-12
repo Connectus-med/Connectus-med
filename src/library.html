@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-21 12:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-21 14:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -581,15 +581,17 @@
     box-shadow:0 12px 26px -12px rgba(255,106,0,.6); -webkit-tap-highlight-color:transparent}
   .instaFab svg{width:26px; height:26px; display:block; position:relative; z-index:1}
   /* the quick-start hammer: one swing per cycle, on repeat */
-  .instaFab svg.hm{transform-origin:50% 90%; filter:drop-shadow(0 3px 4px rgba(90,45,0,.35)); will-change:transform;
-    animation:fabSwing 2.2s cubic-bezier(.34,.86,.3,1) infinite}
+  .instaFab svg.hm{transform-origin:50% 90%; filter:drop-shadow(0 3px 4px rgba(90,45,0,.35)); will-change:transform}
+  /* one swing, only on tap */
+  .instaFab.hit svg.hm{animation:fabSwing 1s cubic-bezier(.34,.86,.3,1) 1}
   @keyframes fabSwing{
     0%{transform:rotate(0deg)} 10%{transform:rotate(-44deg)} 20%{transform:rotate(17deg)}
     25%{transform:rotate(11deg)} 32%{transform:rotate(-7deg)} 40%{transform:rotate(4deg)}
     48%{transform:rotate(0deg)} 100%{transform:rotate(0deg)}
   }
+  .instaFab.hit::after{animation:fabHit 1s ease-out 1}
   .instaFab::after{content:""; position:absolute; inset:-6px; border-radius:999px; pointer-events:none;
-    background:radial-gradient(closest-side, rgba(255,214,140,.85), rgba(255,214,140,0) 72%); opacity:0; animation:fabHit 2.2s ease-out infinite}
+    background:radial-gradient(closest-side, rgba(255,214,140,.85), rgba(255,214,140,0) 72%); opacity:0}
   @keyframes fabHit{0%,15%{opacity:0; transform:scale(.5)} 19%{opacity:.9; transform:scale(1)} 32%{opacity:0; transform:scale(1.35)} 100%{opacity:0}}
   .instaFab:active{transform:translateY(1px)}
   body.deckopen .instaFab{display:none}
@@ -597,6 +599,7 @@
      Size (not scale) is animated, so the ring edge stays sharp at every radius. */
   #fabWave{position:fixed; right:calc(16px + 28px); bottom:calc(84px + 28px + env(safe-area-inset-bottom,0px));
     width:0; height:0; pointer-events:none; z-index:27}
+  #fabWave.hit::before{animation:fabWave 1s cubic-bezier(.22,.68,.3,1) 1}
   #fabWave::before{content:""; position:absolute; left:0; top:0; transform:translate(-50%,-50%);
     width:56px; height:56px; border-radius:50%; opacity:0; will-change:width,height,opacity;
     background:
@@ -608,7 +611,7 @@
         rgba(255,168,70,0) calc(100% - 74px), rgba(255,200,132,.05) calc(100% - 62px),
         rgba(255,208,150,.12) calc(100% - 53px), rgba(255,200,132,.05) calc(100% - 46px),
         rgba(255,180,90,0) calc(100% - 36px));
-    animation:fabWave 2.2s linear infinite}
+    opacity:0}
   body:not(.home) #fabWave{display:none}
   @keyframes fabWave{
     0%,12%{opacity:0; width:56px; height:56px}
@@ -997,9 +1000,14 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-21 12:00';
-  var BUILD_NOTE = 'The hammer shockwave now runs only on the Home screen - it no longer sweeps across Settings or any other screen. A Data saver toggle sits in the profile menu: no background sync and no update checks, for a metered connection.';
+  var APP_BUILD = '2026-10-21 14:00';
+  var BUILD_NOTE = 'The hammer and its shockwave no longer move on their own - nothing animates at rest any more. Tap the button and it swings once, sends one wave, and stops. The strike lands before the question opens, so you actually see it.';
   var CHANGELOG = [
+    { build:'2026-10-21 14:00', title:'Motion only when you tap', items:[
+      'At rest the hammer is perfectly still - no more idle swinging or waves.',
+      'Tap it and it swings once and sends one wave, then stops.',
+      'The strike lands first, then your question opens.',
+    ]},
     { build:'2026-10-21 12:00', title:'Wave on Home only, and a Data saver toggle', items:[
       'The shockwave is Home-only now; other screens stay calm.',
       'Profile menu has a Data saver switch - background sync and update checks off.',
@@ -6193,12 +6201,23 @@
       fHold = setTimeout(function(){ fLong = true; f.classList.add('zap'); gwBuzz([12,40,12]);
         setTimeout(function(){ f.classList.remove('zap'); try{ buildMenu(); menu.classList.add('open'); }catch(_){} }, 220); }, 480);
     });
+    function fabPlayOnce(){
+      /* one swing + one shockwave, on tap only - replayable on the next tap */
+      try{
+        var wv = document.getElementById('fabWave');
+        f.classList.remove('hit'); if(wv) wv.classList.remove('hit');
+        void f.offsetWidth;                       /* force a reflow so it replays */
+        f.classList.add('hit'); if(wv) wv.classList.add('hit');
+        setTimeout(function(){ f.classList.remove('hit'); if(wv) wv.classList.remove('hit'); }, 1200);
+      }catch(_){}
+    }
     f.addEventListener('pointerup', function(){
       try{ clearTimeout(fHold); }catch(_){}
       if(fLong){ fLong = false; return; }
       if(f.classList.contains('zap')) return;
       f.classList.add('zap'); gwBuzz(12);
-      setTimeout(function(){ f.classList.remove('zap'); try{ openGateway(); }catch(_){} }, 240);
+      try{ fabPlayOnce(); }catch(_){}
+      setTimeout(function(){ f.classList.remove('zap'); try{ openGateway(); }catch(_){} }, 560);
     });
     f.addEventListener('pointercancel', function(){ try{ clearTimeout(fHold); }catch(_){} fLong = false; });
     f.addEventListener('pointerleave', function(){ try{ clearTimeout(fHold); }catch(_){} fLong = false; });
