@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-21 14:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-21 16:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -783,6 +783,16 @@
   .qotd-opt.wrong{border-color:var(--bad); background:rgba(220,38,38,.12)}
   .qotd-opt:disabled{cursor:default; opacity:1}
   .qotd-exp{font-size:var(--fs-base); line-height:1.6; margin-top:8px}
+  .expbar{display:flex; justify-content:flex-end; margin:0 0 2px}
+  .expimg{display:inline-flex; align-items:center; gap:6px; border:1px solid var(--line); background:var(--panel-2); color:var(--accent-2);
+    border-radius:999px; padding:5px 12px 5px 9px; font:inherit; font-size:var(--fs-sm); font-weight:750; cursor:pointer}
+  .expimg svg{width:16px; height:16px}
+  .expimg:active{transform:translateY(1px)}
+  .termfind{display:flex; gap:8px; margin:10px 0 2px}
+  .terminput{flex:1; min-width:0; border:1px solid var(--line); background:var(--panel-2); color:inherit; border-radius:999px; padding:10px 14px; font:inherit; font-size:var(--fs-sm)}
+  .termgo{border:0; background:var(--accent-2); color:#fff; border-radius:999px; padding:10px 16px; font:inherit; font-weight:800; font-size:var(--fs-sm); cursor:pointer}
+  .termcell{position:relative}
+  .termcopy{position:absolute; right:6px; bottom:6px; border:0; background:rgba(20,14,8,.78); color:#fff; border-radius:999px; padding:5px 10px; font:inherit; font-size:.72rem; font-weight:750; cursor:pointer}
   /* universal point list: main point = orange dot, sub-point = dash (same as a flashcard back) */
   .pts{list-style:none; margin:6px 0 0; padding:0; display:flex; flex-direction:column; gap:9px}
   .pts>li{padding-left:22px; text-indent:-22px; font-size:1.02rem; line-height:1.42; font-weight:550}
@@ -1000,9 +1010,15 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-21 14:00';
-  var BUILD_NOTE = 'The hammer and its shockwave no longer move on their own - nothing animates at rest any more. Tap the button and it swings once, sends one wave, and stops. The strike lands before the question opens, so you actually see it.';
+  var APP_BUILD = '2026-10-21 16:00';
+  var BUILD_NOTE = 'The dotted-underlined terms are gone. Instead, every explanation now has one Picture button: tap it, type any detail, and the pictures appear - each with Copy, so you can paste them straight into your notes. Google Images opens in one tap.';
   var CHANGELOG = [
+    { build:'2026-10-21 16:00', title:'Picture search, not dotted underlines', items:[
+      'Explanations are plain text again - no more underlined terms everywhere.',
+      'One Picture button sits at the top of each explanation.',
+      'Type any detail and the pictures appear, each with a Copy button.',
+      'Google Images opens in one tap, for the full result.',
+    ]},
     { build:'2026-10-21 14:00', title:'Motion only when you tap', items:[
       'At rest the hammer is perfectly still - no more idle swinging or waves.',
       'Tap it and it swings once and sends one wave, then stops.',
@@ -3149,8 +3165,8 @@
   function termCtx(q){
     if(!q) return '';
     var s = '';
-    if(typeof q.answer === 'number' && q.options && q.options[q.answer]) s = String(q.options[q.answer]);
-    if(!s && q.t) s = String(q.t);
+    if(q.t) s = String(q.t);
+    if(!s && typeof q.answer === 'number' && q.options && q.options[q.answer]) s = String(q.options[q.answer]);
     if(!s && q.s) s = String(q.s);
     s = s.replace(/[^A-Za-z0-9 /-]/g, ' ').replace(/\s+/g, ' ').trim();
     var words = s.split(' ').filter(Boolean);
@@ -3176,14 +3192,22 @@
     el.textContent = '';
     var t = String(text == null ? '' : text).replace(/\r/g, '').trim();
     if(!t) return el;
+    /* one clear action instead of dotted-underlining every term: a magnifier that
+       opens a picture search, prefilled with this case, and lets you edit it. */
+    var bar = document.createElement('div'); bar.className = 'expbar';
+    var ib = document.createElement('button'); ib.type = 'button'; ib.className = 'expimg';
+    ib.title = 'Find a picture'; ib.setAttribute('aria-label', 'Find a picture');
+    ib.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.6 15.6 21 21"/></svg><span>Picture</span>';
+    ib.onclick = function(e){ e.stopPropagation(); try{ openTerm(ctx || '', ''); }catch(_){} };
+    bar.appendChild(ib); el.appendChild(bar);
     var items = explainPoints(t);
     var ul = document.createElement('ul'); ul.className = 'pts';
     items.forEach(function(it){
       var li = document.createElement('li');
-      linkTerms(li, it.t, ctx);
+      li.textContent = it.t;
       if(it.sub && it.sub.length){
         var sub = document.createElement('ul'); sub.className = 'sub';
-        it.sub.forEach(function(x){ var sli = document.createElement('li'); linkTerms(sli, x, ctx); sub.appendChild(sli); });
+        it.sub.forEach(function(x){ var sli = document.createElement('li'); sli.textContent = x; sub.appendChild(sli); });
         li.appendChild(sub);
       }
       ul.appendChild(li);
@@ -3288,6 +3312,32 @@
     return m;
   }
   function closeTerm(){ var m = $('termModal'); if(m) m.classList.remove('open'); }
+  function fill(panel, q, ctx){
+    var dyn = isDynamicTerm(q);
+    if(dyn){
+      termSection(panel, 'Moving picture (GIF / video)', q, q, 'gif');
+      termSection(panel, 'Still pictures', q, q, 'static');
+      var ga = document.createElement('a'); ga.className = 'btn wide'; ga.style.marginTop = '14px'; ga.style.display = 'block'; ga.style.textAlign = 'center';
+      ga.href = 'https://www.google.com/search?tbm=isch&tbs=itp:animated&q=' + encodeURIComponent(q); ga.target = '_blank'; ga.rel = 'noopener';
+      ga.textContent = 'Find a GIF / video (Google, animated)';
+      panel.appendChild(ga);
+    } else {
+      termSection(panel, 'Pictures', q, q, 'static');
+    }
+  }
+  /* copy a picture straight to the clipboard (Wikimedia serves CORS, so this works) */
+  function copyPic(url, btn){
+    var old = btn.textContent; btn.textContent = '\u2026';
+    fetch(url, { mode: 'cors' }).then(function(r){ return r.blob(); }).then(function(bl){
+      var type = (bl.type && /^image\//.test(bl.type)) ? bl.type : 'image/png';
+      if(!window.ClipboardItem || !navigator.clipboard || !navigator.clipboard.write) throw new Error('no clipboard');
+      return navigator.clipboard.write([ new ClipboardItem({ [type]: bl }) ]);
+    }).then(function(){
+      btn.textContent = 'Copied \u2713'; setTimeout(function(){ btn.textContent = old; }, 1300);
+    }).catch(function(){
+      btn.textContent = 'Tap image \u2192 long-press'; setTimeout(function(){ btn.textContent = old; }, 1800);
+    });
+  }
   function termSection(panel, title, query, term, kind){
     var h = document.createElement('div'); h.className = 'tlabel'; h.style.marginTop = '12px'; h.textContent = title; panel.appendChild(h);
     var note = document.createElement('div'); note.className = 'termnote'; note.textContent = 'Looking for a picture\u2026'; panel.appendChild(note);
@@ -3295,12 +3345,17 @@
     termImages(query, function(list){
       imgs.textContent = '';
       if(list && list.length){
-        note.textContent = (kind === 'gif' ? 'Tap to open the full animation.' : 'Tap a picture to open it full size.');
+        note.textContent = (kind === 'gif' ? 'Tap to open the full animation \u00b7 Copy to paste it anywhere.' : 'Tap to open full size \u00b7 Copy to paste it anywhere.');
         list.forEach(function(u){
+          var cell = document.createElement('div'); cell.className = 'termcell';
           var a = document.createElement('a'); a.href = u; a.target = '_blank'; a.rel = 'noopener';
           var im = document.createElement('img'); im.loading = 'lazy'; im.alt = term; im.src = u;
-          im.onerror = function(){ a.remove(); };
-          a.appendChild(im); imgs.appendChild(a);
+          im.onerror = function(){ cell.remove(); };
+          a.appendChild(im); cell.appendChild(a);
+          var cp = document.createElement('button'); cp.type = 'button'; cp.className = 'termcopy'; cp.textContent = 'Copy';
+          cp.onclick = function(e){ e.preventDefault(); e.stopPropagation(); copyPic(u, cp); };
+          cell.appendChild(cp);
+          imgs.appendChild(cell);
         });
       } else {
         note.textContent = (kind === 'gif' ? 'No animation found here \u2014 try the GIF / video link below.' : 'No picture found here \u2014 try Google Images below.');
@@ -3312,28 +3367,34 @@
     m.textContent = '';
     var panel = document.createElement('div'); panel.className = 'termpanel';
     var head = document.createElement('div'); head.className = 'termhead';
-    var b = document.createElement('b'); b.textContent = term; head.appendChild(b);
+    var b = document.createElement('b'); b.textContent = 'Find a picture'; head.appendChild(b);
     var x = document.createElement('button'); x.type = 'button'; x.className = 'termx'; x.textContent = '\u2715'; x.setAttribute('aria-label', 'Close'); x.onclick = closeTerm; head.appendChild(x);
     panel.appendChild(head);
-    var specific = termQuery(term, ctx);
-    var dyn = isDynamicTerm(term);
+    /* type any detail and the pictures follow - the box starts with this case */
+    var box = document.createElement('div'); box.className = 'termfind';
+    var inp = document.createElement('input'); inp.type = 'search'; inp.className = 'terminput'; inp.placeholder = 'e.g. aortic dissection CT';
+    inp.value = String(termQuery(term, ctx) || term || '');
+    var go = document.createElement('button'); go.type = 'button'; go.className = 'termgo'; go.textContent = 'Search';
+    box.appendChild(inp); box.appendChild(go); panel.appendChild(box);
+    var body = document.createElement('div');
+    panel.appendChild(body);
+    function run(){ var q = String(inp.value || '').trim(); body.textContent = ''; if(!q) return; fill(body, q, ctx); }
+    go.onclick = run;
+    inp.addEventListener('keydown', function(e){ if(e.key === 'Enter'){ e.preventDefault(); run(); } });
+    run();
+    var specific = String(inp.value || '').trim();
+    var dyn = isDynamicTerm(specific);
     if(dyn){
       var subD = document.createElement('div'); subD.className = 'termnote';
       subD.textContent = 'This is a movement / clinical sign \u2014 it makes most sense as a moving picture.'; panel.appendChild(subD);
-      termSection(panel, 'Moving picture (GIF / video)', specific, term, 'gif');
-      termSection(panel, 'Still pictures', specific, term, 'static');
+      termSection(panel, 'Moving picture (GIF / video)', specific, specific, 'gif');
+      termSection(panel, 'Still pictures', specific, specific, 'static');
       var ga = document.createElement('a'); ga.className = 'btn wide'; ga.style.marginTop = '14px'; ga.style.display = 'block'; ga.style.textAlign = 'center';
       ga.href = 'https://www.google.com/search?tbm=isch&tbs=itp:animated&q=' + encodeURIComponent(specific); ga.target = '_blank'; ga.rel = 'noopener';
       ga.textContent = 'Find a GIF / video (Google, animated)';
       panel.appendChild(ga);
     } else {
-      if(ctx && specific.toLowerCase() !== term.toLowerCase()){
-        var sub = document.createElement('div'); sub.className = 'termnote'; sub.textContent = 'Searching for the findings in this case: \u201c' + specific + '\u201d'; panel.appendChild(sub);
-        termSection(panel, 'In this case', specific, term, 'static');
-        termSection(panel, 'General', term, term, 'static');
-      } else {
-        termSection(panel, 'Pictures', term, term, 'static');
-      }
+      termSection(panel, 'Pictures', specific, specific, 'static');
     }
     var moreH = document.createElement('div'); moreH.className = 'tlabel'; moreH.style.marginTop = '16px'; moreH.textContent = 'Trusted sources'; panel.appendChild(moreH);
     var moreN = document.createElement('div'); moreN.className = 'termnote'; moreN.textContent = 'Prefer a medical atlas? These open the same search there.'; panel.appendChild(moreN);
