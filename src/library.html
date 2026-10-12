@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-22 04:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-22 06:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -730,7 +730,15 @@
   body.launch-closed #tabbar{display:none!important}
   body.launch-closed main{padding-bottom:calc(24px + env(safe-area-inset-bottom,0px))!important}
   /* question images + MTF (multiple true-false) */
-  .tqimg{display:block; max-width:100%; margin-top:10px; border-radius:12px; border:1px solid var(--line)}
+  .tqimg{display:block; max-width:100%; margin-top:10px; border-radius:12px; border:1px solid var(--line); cursor:zoom-in}
+  .qimgthumb img{cursor:zoom-in}
+  /* tap an image to see it big */
+  #imgZoom{position:fixed; inset:0; z-index:80; background:rgba(10,7,4,.92); display:none; align-items:center; justify-content:center; padding:14px; cursor:zoom-out}
+  #imgZoom.open{display:flex}
+  #imgZoom img{max-width:100%; max-height:100%; border-radius:12px; box-shadow:0 24px 70px rgba(0,0,0,.6)}
+  #imgZoom .izx{position:absolute; top:calc(12px + env(safe-area-inset-top,0px)); right:14px; width:44px; height:44px; border-radius:999px;
+    border:0; background:rgba(255,255,255,.18); color:#fff; font-size:1.15rem; font-weight:800; cursor:pointer}
+  #imgZoom .izhint{position:absolute; bottom:calc(16px + env(safe-area-inset-bottom,0px)); left:0; right:0; text-align:center; color:rgba(255,255,255,.7); font-size:.78rem}
   .tqstmt{display:flex; gap:10px; align-items:flex-start; padding:10px 0; border-top:1px solid var(--line)}
   .tqstmt:first-child{border-top:0}
   .tqstmt-t{flex:1; line-height:1.45}
@@ -1015,9 +1023,14 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-22 04:00';
-  var BUILD_NOTE = 'Find a question searches again. The screen was searching an empty bank unless another screen had already pulled the questions in, so a fresh visit always said nothing matched. It now loads the questions itself, once, and then searches.';
+  var APP_BUILD = '2026-10-22 06:00';
+  var BUILD_NOTE = 'Images open when you tap them. In the review, the explanation images and the question image had no tap handler at all - nothing happened. Tap one now and it opens full screen, with a close button and tap-anywhere-to-close.';
   var CHANGELOG = [
+    { build:'2026-10-22 06:00', title:'Tap an image to see it big', items:[
+      'Tap any explanation image or question image and it opens full screen.',
+      'The page behind freezes while it is open, and Escape or a tap closes it.',
+      'Before, tapping an image did nothing.',
+    ]},
     { build:'2026-10-22 04:00', title:'Find a question works again', items:[
       'The screen now loads your question bank itself before searching.',
       'Before, a fresh visit searched an empty bank and always said nothing matched.',
@@ -6291,7 +6304,27 @@
     }
     return a === q.answer;
   }
-  function qImgEl(src, cls){ if(!src) return null; var im = document.createElement('img'); im.className = cls || 'tqimg'; im.loading = 'lazy'; im.alt = 'Question image'; im.src = src; return im; }
+  /* ---- tap an image to see it big ---- */
+  function imgZoomEl(){
+    var m = $('imgZoom'); if(m) return m;
+    m = document.createElement('div'); m.id = 'imgZoom';
+    m.onclick = function(e){ if(e.target === m || (e.target.className || '').indexOf('izx') >= 0) closeImgZoom(); };
+    var x = document.createElement('button'); x.type = 'button'; x.className = 'izx'; x.textContent = '\u2715'; x.setAttribute('aria-label', 'Close');
+    m.appendChild(x);
+    var im = document.createElement('img'); im.alt = ''; m.appendChild(im);
+    var h = document.createElement('div'); h.className = 'izhint'; h.textContent = 'Tap anywhere to close'; m.appendChild(h);
+    document.body.appendChild(m);
+    return m;
+  }
+  function openImgZoom(src){
+    if(!src) return;
+    var m = imgZoomEl(); m.querySelector('img').src = src; m.classList.add('open');
+    try{ lockPage(true); }catch(e){}
+  }
+  function closeImgZoom(){ var m = $('imgZoom'); if(m) m.classList.remove('open'); try{ lockPage(false); }catch(e){} }
+  try{ document.addEventListener('keydown', function(e){ if(e.key === 'Escape'){ var m = $('imgZoom'); if(m && m.classList.contains('open')) closeImgZoom(); } }); }catch(e){}
+  function zoomable(im, src){ if(!im) return im; im.onclick = function(e){ e.stopPropagation(); openImgZoom(src || im.src); }; return im; }
+  function qImgEl(src, cls){ if(!src) return null; var im = document.createElement('img'); im.className = cls || 'tqimg'; im.loading = 'lazy'; im.alt = 'Question image'; im.src = src; return zoomable(im, src); }
   /* the correct-answer block for review screens - MCQ options or MTF statements */
   function rvOptions(q, picked, container){
     if(q && q.mtf){
@@ -8610,7 +8643,7 @@
       var th = document.createElement('div'); th.className = 'qimgthumbs';
       arr.forEach(function(src, idx){
         var t = document.createElement('span'); t.className = 'qimgthumb';
-        var im = document.createElement('img'); im.src = src; im.alt = label; im.loading = 'lazy'; t.appendChild(im);
+        var im = document.createElement('img'); im.src = src; im.alt = label; im.loading = 'lazy'; zoomable(im, src); t.appendChild(im);
         var rm = document.createElement('button'); rm.type = 'button'; rm.className = 'rm'; rm.textContent = '\u00d7'; rm.title = 'Remove';
         rm.onclick = function(e){ e.stopPropagation(); qimgDel(dk, qid, side, idx); if(refresh) refresh(); };
         t.appendChild(rm); th.appendChild(t);
