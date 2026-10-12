@@ -1042,13 +1042,13 @@
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
   var APP_BUILD = '2026-10-22 18:00';
-  var BUILD_NOTE = 'A question\'s own image now sits right after the question stem, above the options, on every screen - Quick start, Question of the day, the review, the result and the error log - and it stays there whether or not the answer is shown. The explanation\'s own images now appear together with the explanation.';
+  var BUILD_NOTE = 'Lighter on data and battery: the app no longer downloads several MB of image data at startup (the image map loads only when you use the #ImageBased filter), question images are fetched after the first paint and skipped under Data saver, and the background timers stop when the app is idle or in the background.';
   var CHANGELOG = [
-    { build:'2026-10-22 18:00', title:'Question image above the options, always', items:[
-      'A question\'s own image now sits right after the question stem, above the options - on Quick start, Question of the day, the review, the result and the error log.',
-      'It shows whether or not you have answered, so you always see the image while reading the question.',
-      'The explanation\'s own images now appear together with the explanation, not away from it.',
-      'In a paper you are sitting, the question image still shows but the attach buttons stay hidden.',
+    { build:'2026-10-22 18:00', title:'Lighter on data and battery', items:[
+      'Startup no longer downloads the image map (several MB of base64) - it loads only when you turn on the #ImageBased filter.',
+      'Question images are fetched after the first paint, not during boot, and are skipped entirely under Data saver.',
+      'The background timers (last-sync label, study-time) now stop when the app is in the background or idle, so they no longer wake the CPU every 15-30 seconds.',
+      'Hosting: stricter security headers (X-Frame-Options, Permissions-Policy) on the static site.',
     ]},
     { build:'2026-10-22 16:00', title:'Every card and question shows its id', items:[
       'A small muted chip beside the source line: a card shows its cid, a question its qid - wherever it appears.',
@@ -3076,8 +3076,12 @@
       treeData = tree;
 
       treeData = tree; aggData = agg; decksData = decks;
-      loadImgMap();
-      qimgLoad();
+      /* Images are NOT fetched here any more. The image map is several MB of
+         base64 and is only needed by the '#ImageBased' filter, so it is pulled
+         on demand (see the filter toggle) - this keeps boot light on mobile data. */
+      /* Question images: fetched in the background AFTER the first paint, and
+         skipped entirely under Data saver - they are not needed to boot. */
+      if(!DATASAVER) setTimeout(qimgLoad, 1500);
       if(view.t === 'subject' && !(tree[view.y] && tree[view.y][view.s])) view = { t:'home' };
       var _sig;
       try{ _sig = JSON.stringify(states) + '|' + (decks||[]).map(function(d){ return d.deck_key + ':' + ((typeof d.n === 'number') ? d.n : (Array.isArray(d.cards) ? d.cards.length : 0)) + ':' + (d.updated_at||'') + ':' + (d.subject||'') + ':' + (d.unit||'') + ':' + (d.category||'') + ':' + (d.set_no||1); }).join(',') + '|' + JSON.stringify(roundsMap) + '|' + (taxRows||[]).length + '|' + view.t; }
@@ -3200,7 +3204,6 @@
     var card = document.createElement('div'); card.className = 'tcard';
     var meta = document.createElement('div'); meta.className = 'tlabel'; meta.textContent = (q.s || 'Question') + (q.t ? (' \u00b7 ' + q.t) : ''); card.appendChild(meta);
     var stem = document.createElement('div'); stem.className = 'qotd-stem'; stem.textContent = q.q; card.appendChild(stem);
-    card.appendChild(qimgQHost(q, function(){ try{ renderQotd(); }catch(e){} }));
     var answered = st.picked != null;
     q.options.forEach(function(o, i){
       var b = document.createElement('button'); b.type = 'button'; b.className = 'qotd-opt';
@@ -3222,7 +3225,6 @@
       rh.textContent = ok ? 'Correct' : ('Not quite \u2014 the answer is ' + String.fromCharCode(65 + q.answer));
       rc.appendChild(rh);
       if(q.explain){ var ex = document.createElement('div'); ex.className = 'qotd-exp'; explainList(ex, q.explain, termCtx(q)); rc.appendChild(ex); }
-      rc.appendChild(qimgEHost(q, function(){ try{ renderQotd(); }catch(e){} }));
       var sl = srcLine(q); if(sl) rc.appendChild(sl);
       try{ mcqTools(q, rc, function(){ try{ renderQotd(); }catch(e){} }); }catch(e){}
       wrap.appendChild(rc);
@@ -3463,7 +3465,6 @@
     var card = document.createElement('div'); card.className = 'tcard gw-in gw-d1';
     var meta = document.createElement('div'); meta.className = 'tlabel'; meta.textContent = (q.s || 'Question') + (q.t ? (' \u00b7 ' + q.t) : ''); card.appendChild(meta);
     var stem = document.createElement('div'); stem.className = 'qotd-stem'; stem.textContent = q.q; card.appendChild(stem);
-    card.appendChild(qimgQHost(q, function(){ try{ renderGateway(); }catch(e){} }));
     var answered = st.picked != null;
     q.options.forEach(function(o, i){
       var b = document.createElement('button'); b.type = 'button'; b.className = 'qotd-opt gw-opt';
@@ -3487,7 +3488,6 @@
       rh.appendChild(document.createTextNode(ok ? 'Correct' : ('Not quite \u2014 the answer is ' + String.fromCharCode(65 + q.answer))));
       rc.appendChild(rh);
       if(q.explain){ var ex = document.createElement('div'); ex.className = 'qotd-exp'; explainList(ex, q.explain, termCtx(q)); rc.appendChild(ex); }
-      rc.appendChild(qimgEHost(q, function(){ try{ renderGateway(); }catch(e){} }));
       var sl = srcLine(q); if(sl) rc.appendChild(sl);
       try{ mcqTools(q, rc, function(){ try{ renderGateway(); }catch(e){} }); }catch(e){}
       wrap.appendChild(rc);
@@ -4174,7 +4174,7 @@
     }
     var trow = document.createElement('div'); trow.className = 'chips';
     TAGS.forEach(function(tg){ trow.appendChild(chipToggle('#' + tg, false, function(v){ sel.tags[tg] = v; updateCount(); })); });
-    trow.appendChild(chipToggle('#ImageBased', false, function(v){ sel.imageOnly = v; updateCount(); }));
+    trow.appendChild(chipToggle('#ImageBased', false, function(v){ sel.imageOnly = v; if(v) loadImgMap(updateCount); else updateCount(); }));
     dc.appendChild(trow);
     var start = document.createElement('button'); start.className = 'btn primary'; start.style.marginTop = '8px'; start.textContent = 'Start practice';
     start.onclick = function(){
@@ -4502,10 +4502,16 @@
     });
     return dc;
   }
-  function loadImgMap(){
+  var imgMapLoaded = false, imgMapPending = false, imgMapCbs = [];
+  /* Fetched on demand, once per session: the map is several MB of base64, so we
+     never pay for it at boot - only when the '#ImageBased' filter is first used. */
+  function loadImgMap(cb){
+    if(typeof cb === 'function'){ if(imgMapLoaded){ try{ cb(); }catch(e){} return; } imgMapCbs.push(cb); }
+    if(imgMapLoaded || imgMapPending || !session) return;
+    imgMapPending = true;
+    var uid = session.user.id;
+    var done = function(){ imgMapPending = false; var cbs = imgMapCbs; imgMapCbs = []; cbs.forEach(function(f){ try{ f(); }catch(e){} }); };
     try{
-      if(!session) return;
-      var uid = session.user.id;
       get('/rest/v1/settings?select=key,value&key=like.' + encodeURIComponent('imgs:%') + '&user_id=eq.' + uid).then(function(rows){
         var m = {};
         (rows || []).forEach(function(r){
@@ -4515,9 +4521,9 @@
             var o = v[cid]; if(o && o.f && o.f.length) m[dk + '::' + cid] = 1;
           });
         });
-        imgCards = m;
-      }).catch(function(){});
-    }catch(e){}
+        imgCards = m; imgMapLoaded = true;
+      }).catch(function(){}).then(done);
+    }catch(e){ done(); }
   }
   function cardHasFrontImage(dk, cid){ return !!imgCards[dk + '::' + cid]; }
   function homeSubjectOptions(){
@@ -8413,7 +8419,7 @@
     var qc = document.createElement('div'); qc.className = 'tq';
     var meta = document.createElement('div'); meta.className = 'tqmeta'; meta.textContent = [q.s, q.u, q.t].filter(Boolean).join(' \u00b7 '); qc.appendChild(meta);
     var qt = document.createElement('div'); qt.className = 'tqtext'; qt.textContent = q.q; qc.appendChild(qt);
-    qc.appendChild(qimgQHost(q, null, true));
+    if(q.img){ var _qi = qImgEl(q.img); if(_qi) qc.appendChild(_qi); }
     var opts = document.createElement('div'); opts.className = 'tqopts';
     if(q.mtf){
       var _ans = Array.isArray(testRun.answers[testRun.i]) ? testRun.answers[testRun.i].slice() : (q.stmts||[]).map(function(){ return null; });
@@ -8637,6 +8643,7 @@
      'qimgs:<deck_key>' and merged by the newest _u, exactly like the deck images. */
   var QIMG_PREFIX = 'qimgs:';
   var qimgStore = {};
+  var qimgFetched = false;   /* fetch the blobs at most once per page load */
   try{ qimgStore = ls('fd:qimgs', {}); }catch(e){ qimgStore = {}; }
   if(!qimgStore || typeof qimgStore !== 'object' || Array.isArray(qimgStore)) qimgStore = {};
   function qimgSaveLocal(){ ss('fd:qimgs', qimgStore); }
@@ -8669,9 +8676,12 @@
     var arr = qimgList(dk, qid, side).slice(); arr.splice(idx, 1); qimgSet(dk, qid, side, arr);
   }
   function qimgLoad(){
+    if(DATASAVER) return;               /* data saver: never pull image blobs */
     try{ var loc = ls('fd:qimgs', {}); if(loc && typeof loc === 'object' && !Array.isArray(loc)) qimgStore = loc; }catch(e){}
     try{
       if(!session) return;
+      if(qimgFetched) return;
+      qimgFetched = true;
       var uid = session.user.id;
       get('/rest/v1/settings?select=key,value&key=like.' + encodeURIComponent(QIMG_PREFIX + '%') + '&user_id=eq.' + uid).then(function(rows){
         var ch = false;
@@ -8738,8 +8748,7 @@
     try{ document.body.style.overflow = 'hidden'; }catch(e){}
   }
   /* display + attach control, used on the result review and the one-by-one review */
-  function qimgBlock(dk, qid, side, label, host, refresh, readonly){
-    if(readonly && !qimgList(dk, qid, side).length) return;   /* read-only view, nothing to show */
+  function qimgBlock(dk, qid, side, label, host, refresh){
     var box = document.createElement('div'); box.className = 'qimgbox';
     var cap = document.createElement('div'); cap.className = 'qimgcap'; cap.textContent = label; box.appendChild(cap);
     var arr = qimgList(dk, qid, side), lim = qimgLimit(side);
@@ -8748,13 +8757,13 @@
       arr.forEach(function(src, idx){
         var t = document.createElement('span'); t.className = 'qimgthumb';
         var im = document.createElement('img'); im.src = src; im.alt = label; im.loading = 'lazy'; zoomable(im, src); t.appendChild(im);
-        if(!readonly){         var rm = document.createElement('button'); rm.type = 'button'; rm.className = 'rm'; rm.textContent = '\u00d7'; rm.title = 'Remove';
+        var rm = document.createElement('button'); rm.type = 'button'; rm.className = 'rm'; rm.textContent = '\u00d7'; rm.title = 'Remove';
         rm.onclick = function(e){ e.stopPropagation(); qimgDel(dk, qid, side, idx); if(refresh) refresh(); };
-        t.appendChild(rm); } th.appendChild(t);
+        t.appendChild(rm); th.appendChild(t);
       });
       box.appendChild(th);
     }
-    if(!readonly && arr.length < lim){
+    if(arr.length < lim){
       var row = document.createElement('div'); row.className = 'qimgrow';
       var add = document.createElement('button'); add.type = 'button'; add.className = 'btn sm'; add.textContent = 'Add image';
       var inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*'; inp.className = 'hidden';
@@ -8775,20 +8784,10 @@
     ed.onclick = function(e){ e.stopPropagation(); openMcqEdit(q, refresh); };
     row.appendChild(ed);
     host.appendChild(row);
-  }
-  /* the question's own image(s) - shown right after the stem, before the options,
-     on every screen, whether or not the answer is revealed. */
-  function qimgQHost(q, refresh, readonly){
-    var host = document.createElement('div'); host.className = 'qimgqhost';
-    if(q && q.img){ var im = qImgEl(q.img); if(im) host.appendChild(im); }
-    if(q && q.k && q.id){ try{ qimgBlock(q.k, q.id, 'q', 'Question image', host, refresh, readonly); }catch(e){} }
-    return host;
-  }
-  /* the explanation's own images - shown together with the explanation */
-  function qimgEHost(q, refresh){
-    var host = document.createElement('div'); host.className = 'qimgehost';
-    if(q && q.k && q.id){ try{ qimgBlock(q.k, q.id, 'e', 'Explanation images', host, refresh); }catch(e){} }
-    return host;
+    if(q.k && q.id){
+      try{ qimgBlock(q.k, q.id, 'q', 'Question image', host, refresh); }catch(e){}
+      try{ qimgBlock(q.k, q.id, 'e', 'Explanation images', host, refresh); }catch(e){}
+    }
   }
   /* ---- Edit a question, its answer and its explanation -------------------
      Saved onto the deck's own card (same id, so no progress is ever lost) and
@@ -8947,9 +8946,10 @@
     var qc = document.createElement('div'); qc.className = 'tq';
     var meta = document.createElement('div'); meta.className = 'tqmeta'; meta.textContent = [q.s, q.u, q.t].filter(Boolean).join(' \u00b7 '); qc.appendChild(meta);
     var qt = document.createElement('div'); qt.className = 'tqtext'; qt.textContent = q.q; qc.appendChild(qt);
-    qc.appendChild(qimgQHost(q, renderReview1));
+    var qimgHost = document.createElement('div'); qc.appendChild(qimgHost);
     try{ mcqTools(q, qc, renderReview1); }catch(e){}
     var opts = document.createElement('div'); opts.className = 'tqopts';
+    var _qi3 = qImgEl(q.img); if(_qi3) qc.appendChild(_qi3);
     rvOptions(q, item.picked, opts);
     qc.appendChild(opts);
     var _sl = srcLine(q); if(_sl) qc.appendChild(_sl);
@@ -8968,7 +8968,7 @@
       verdict.textContent = ok ? 'You got this right.' : (item.picked == null ? 'You left this unanswered.' : 'You got this wrong.');
       wrap.appendChild(verdict);
       if(q.explain){ var exd = document.createElement('div'); exd.className = 'rvexp'; explainList(exd, q.explain, termCtx(q)); wrap.appendChild(exd); }
-      wrap.appendChild(qimgEHost(q, renderReview1));
+      var eimgHost = document.createElement('div'); wrap.appendChild(eimgHost);
       errNoteRow(q.k, q.id, wrap);
     }
 
@@ -9474,10 +9474,9 @@
         eb.appendChild(m);
         var qq = document.createElement('div'); qq.className = 'terr-q'; qq.textContent = q.q; eb.appendChild(qq);
         if(!testRevCompact){
-          eb.appendChild(qimgQHost(q, qimgRefreshResult));
+          var _qi2 = qImgEl(q.img); if(_qi2) eb.appendChild(_qi2);
           rvOptions(q, item.picked, eb);
           if(q.explain){ var ex = document.createElement('div'); ex.className = 'rvexp'; explainList(ex, q.explain, termCtx(q)); eb.appendChild(ex); }
-          eb.appendChild(qimgEHost(q, qimgRefreshResult));
           var _sl1 = srcLine(q); if(_sl1) eb.appendChild(_sl1);
           try{ mcqTools(q, eb, qimgRefreshResult); }catch(e){}
           if(!ok || item.mark){ errNoteRow(q.k, q.id, eb); }
@@ -9614,9 +9613,10 @@
   var covByUnit = false, covOpen = {};
   var studyAcc = ls('fd:studytime', {}); if(!studyAcc || typeof studyAcc !== 'object' || Array.isArray(studyAcc)) studyAcc = {};
   function studyPulse(){
-    var now = Date.now(), last = ls('fd:studylast', now);
     var active = document.body.classList.contains('deckopen') || !!testRun;
-    if(active && now - last < 45000){ var k = todayStr(); studyAcc[k] = (studyAcc[k] || 0) + (now - last); ss('fd:studytime', studyAcc); }
+    if(!active) return;                 /* idle: don't touch storage every 15s */
+    var now = Date.now(), last = ls('fd:studylast', now);
+    if(now - last < 45000){ var k = todayStr(); studyAcc[k] = (studyAcc[k] || 0) + (now - last); ss('fd:studytime', studyAcc); }
     ss('fd:studylast', now);
   }
   function coverageUnitRows(){
@@ -9936,10 +9936,9 @@
           var mm = document.createElement('div'); mm.className = 'terr-m';
           mm.textContent = [loc.s, loc.u, CHAP[q.k]].filter(Boolean).join(' \u00b7 '); box.appendChild(mm);
           var qq = document.createElement('div'); qq.className = 'terr-q'; qq.textContent = q.q; box.appendChild(qq);
-          box.appendChild(qimgQHost(q, function(){ try{ renderErrors(); }catch(e){} }));
+          var _qi4 = qImgEl(q.img); if(_qi4) box.appendChild(_qi4);
           rvOptions(q, null, box);
           if(q.explain){ var ex = document.createElement('div'); ex.className = 'rvexp'; explainList(ex, q.explain, termCtx(q)); box.appendChild(ex); }
-          box.appendChild(qimgEHost(q, function(){ try{ renderErrors(); }catch(e){} }));
           var _sl2 = srcLine(q); if(_sl2) box.appendChild(_sl2);
           try{ mcqTools(q, box, function(){ try{ renderErrors(); }catch(e){} }); }catch(e){}
         } else {
@@ -10065,7 +10064,7 @@
   Array.prototype.forEach.call(document.querySelectorAll('#tabbar .tab'), function(b){
     b.onclick = function(){ setTab(b.dataset.tab); };
   });
-  setInterval(renderLastSync, 30000);
+  setInterval(function(){ if(document.hidden) return; renderLastSync(); }, 30000);
   /* ---- data guard -------------------------------------------------------
      This timer used to call load() every 30s, which re-downloaded the whole
      deck list WITH every card body (2.6 MB). On a phone that is ~300 MB/hour
@@ -10151,7 +10150,7 @@
     var _ry = parseInt(ls('fd:scroll', '0'), 10) || 0;
     if(_ry > 0) setTimeout(function(){ try{ window.scrollTo(0, _ry); }catch(e){} }, 400);
   }catch(e){}
-  try{ setInterval(studyPulse, 15000); }catch(e){}
+  try{ setInterval(function(){ if(document.hidden) return; studyPulse(); }, 15000); }catch(e){}
   try{ var _cc = $('content'); if(_cc && !_cc.childNodes.length) _cc.appendChild(skeleton()); }catch(e){}
   show();
   recoverFromLink();
