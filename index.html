@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-19 04:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-19 06:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -903,9 +903,14 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-19 04:00';
-  var BUILD_NOTE = 'The lightning button is now a two-option menu: Question of the day, or practise your flashcards.';
+  var APP_BUILD = '2026-10-19 06:00';
+  var BUILD_NOTE = 'Fixed the update mechanism: once the update pill had been armed for one build, the app stopped checking for newer ones in that session, so a new build never reached you. It now re-checks properly.';
   var CHANGELOG = [
+    { build:'2026-10-19 06:00', title:'Fix: updates could get stuck', items:[
+      'The automatic update check compared against the page build, so once it had armed the pill for one build it never looked for a newer one in the same session.',
+      'It now re-checks every time and arms the pill for the newest build.',
+      'The profile menu still has a manual Tap to check for updates, which forces it.',
+    ]},
     { build:'2026-10-19 04:00', title:'FAB: two quick actions', items:[
       'Tapping the lightning button now offers two choices instead of jumping straight in.',
       'Question of the day - one weak-area question.',
@@ -4506,18 +4511,21 @@
   function applyPendingSelfUpdate(){
     if(!pendingSelfUpdate) return false;
     var h = pendingSelfUpdate; pendingSelfUpdate = null;
-    try{ sessionStorage.setItem('fd:selfupdate', APP_BUILD); }catch(e){}
     try{ document.open(); document.write(h); document.close(); }catch(e){}
     return true;
   }
   function selfUpdate(force){
     var swaps = 0;
-    try{ if(!force && sessionStorage.getItem('fd:selfupdate') === APP_BUILD) return; swaps = parseInt(sessionStorage.getItem('fd:selfupdate_n') || '0', 10) || 0; }catch(e){}
+    try{ swaps = parseInt(sessionStorage.getItem('fd:selfupdate_n') || '0', 10) || 0; }catch(e){}
     fetch(SB_URL + '/functions/v1/medcircuit?api=version&_=' + Date.now(), { headers: { 'apikey': SB_KEY }, cache: 'no-store' })
       .then(function(r){ return r.ok ? r.json() : null; })
       .then(function(v){
         if(!v || !v.ui_version) return;
         if(vnum(v.ui_version) <= vnum(APP_BUILD)) return;
+        /* already armed for exactly this advertised build? then nothing new to do.
+           (It used to compare against the page build, which blocked every later
+           update in the same session once the pill had been armed once.) */
+        try{ if(!force && sessionStorage.getItem('fd:selfupdate') === v.ui_version) return; }catch(e){}
         return fetch(SB_URL + '/functions/v1/medcircuit', { headers: { 'apikey': SB_KEY }, cache: 'no-store' })
           .then(function(r){ return r.text(); })
           .then(function(html){
@@ -4528,7 +4536,7 @@
                when they choose - the reload used to fire on every focus, which is
                the flash/blink people saw. */
             pendingSelfUpdate = html;
-            try{ sessionStorage.setItem('fd:selfupdate', APP_BUILD); sessionStorage.setItem('fd:selfupdate_n', String(swaps + 1)); }catch(e){}
+            try{ sessionStorage.setItem('fd:selfupdate', v.ui_version); sessionStorage.setItem('fd:selfupdate_n', String(swaps + 1)); }catch(e){}
             try{ var _ub = $('updBtn'); if(_ub) _ub.classList.remove('hidden'); }catch(e){}
           });
       }).catch(function(){});
