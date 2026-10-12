@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-21 22:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-22 00:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -1014,9 +1014,15 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-21 22:00';
-  var BUILD_NOTE = 'The Google Images search now opens in its own small window instead of taking over the whole page. Search again and it reuses the same window, so they do not pile up.';
+  var APP_BUILD = '2026-10-22 00:00';
+  var BUILD_NOTE = 'The result screen now has two clear sub-sections: Analysis and Review. Analysis holds the score, the paper mix, by-subject, where your marks went, the cut-off and the slowest questions; Review holds the question-by-question list. A fresh paper always opens on Analysis.';
   var CHANGELOG = [
+    { build:'2026-10-22 00:00', title:'Result: Analysis and Review apart', items:[
+      'Two chips at the top of the result: Analysis and Review.',
+      'Analysis: score, paper mix, by subject, where marks went, cut-off, slowest questions.',
+      'Review: the full question-by-question list with its filters.',
+      'The next-step buttons sit under both, and a fresh paper always opens on Analysis.',
+    ]},
     { build:'2026-10-21 22:00', title:'Images open in a small window', items:[
       'Type your keywords and tap the search icon.',
       'Google Images opens in its own sized window, centred, not over the whole page.',
@@ -6158,6 +6164,7 @@
   var testRun = null, testTimerId = null, testScope = 'all', testLen = 200, testDeck = '', testExam = 'NEET-PG', testSections = true, testSeed = 0, testUntimed = false, testWithPyq = true, testCustom = false, testSelSubjects = [], testSelUnits = [], testSelChapters = [], testSelYears = [];
   var testPalFilter = 'all';
   var testRevFilter = 'all', testRevCompact = false, testSeg = 'paper';
+  var testResSeg = 'analysis';   /* the result screen: analysis | review */
 
   /* Extraction sometimes left HTML entities in the text (\&lt; for <, \&gt; for >,
      \&amp; for &). They must never reach the screen, so every string that flows
@@ -8462,6 +8469,7 @@
     try{ ss('fd:testrun', null); }catch(e){}
     testRun = null;
     view.tResult = res;
+    testResSeg = 'analysis';   /* a fresh result always opens on the analysis */
     renderTestResult();
   }
 
@@ -9029,6 +9037,28 @@
     return card;
   }
   /* ---------- result ---------- */
+  /* the next steps, shown at the foot of both sub-sections */
+  function resultNext(wrap, res){
+    var _mm = (res.review || []).filter(function(it){ return it.mark || !ansCorrect(it.q, it.picked); });
+    if(_mm.length){
+      var pr = document.createElement('button'); pr.type = 'button'; pr.className = 'tstart';
+      pr.textContent = 'Practise marked + missed (' + _mm.length + ')';
+      pr.onclick = function(){ view.tResult = null; testStart(_mm.map(function(it){ return it.q; })); };
+      wrap.appendChild(pr);
+    }
+    var rb = document.createElement('button'); rb.type = 'button'; rb.className = 'tstart ghost';
+    rb.textContent = 'Review one by one';
+    rb.onclick = function(){ view = { t: 'review1', tResult: res, r1: { i: 0, revealed: {} } }; render(); window.scrollTo(0, 0); };
+    wrap.appendChild(rb);
+    var rt = document.createElement('button'); rt.type = 'button'; rt.className = 'tstart ghost';
+    rt.textContent = 'Retake this exact paper';
+    rt.onclick = function(){ view.tResult = null; testStart(res.review.map(function(it){ return it.q; })); };
+    wrap.appendChild(rt);
+    var nt = document.createElement('button'); nt.type = 'button'; nt.className = 'tstart ghost';
+    nt.textContent = 'New paper';
+    nt.onclick = function(){ view.tResult = null; renderTest(); };
+    wrap.appendChild(nt);
+  }
   function renderTestResult(){
     var res = view.tResult; if(!res){ renderTest(); return; }
     var _palItems = [];
@@ -9040,6 +9070,18 @@
     var h = document.createElement('div'); h.className = 'tbig'; h.textContent = 'Result'; wrap.appendChild(h);
     var exl = document.createElement('div'); exl.className = 'tsub small'; exl.textContent = ex.name + ' pattern · ' + ex.mark; wrap.appendChild(exl);
     if(res.seed){ var sdl = document.createElement('div'); sdl.className = 'tsub small'; sdl.textContent = 'Paper seed ' + res.seed + ' — kept so this paper can be rebuilt exactly.'; wrap.appendChild(sdl); }
+
+    /* two sub-sections: the analysis, and the question-by-question review */
+    var _segrow = document.createElement('div'); _segrow.className = 'tchips'; _segrow.style.margin = '6px 0 10px';
+    [['analysis', 'Analysis'], ['review', 'Review']].forEach(function(o){
+      var b = document.createElement('button'); b.type = 'button';
+      b.className = 'tchip' + (testResSeg === o[0] ? ' on' : ''); b.textContent = o[1];
+      b.onclick = function(){ testResSeg = o[0]; renderTestResult(); window.scrollTo(0, 0); };
+      _segrow.appendChild(b);
+    });
+    wrap.appendChild(_segrow);
+
+    if(testResSeg !== 'review'){
     var _mix = paperMix((res.review || []).map(function(it){ return it.q; }));
     if(_mix.total){
       var mc = document.createElement('div'); mc.className = 'tcard';
@@ -9134,7 +9176,10 @@
       wrap.appendChild(tc);
     })();
 
-    if(res.review && res.review.length){
+    resultNext(wrap, res);
+    }
+
+    if(testResSeg !== 'analysis' && res.review && res.review.length){
       var rv = document.createElement('div'); rv.className = 'tcard';
       var vl = document.createElement('div'); vl.className = 'tlabel'; vl.textContent = 'Review'; rv.appendChild(vl);
       rv.appendChild(qLegend([['right','correct'],['wrong','wrong'],['skip','not attempted'],['mark','marked']]));
@@ -9174,27 +9219,7 @@
       wrap.appendChild(rv);
     }
 
-    var _mm = (res.review || []).filter(function(it){ return it.mark || !ansCorrect(it.q, it.picked); });
-    if(_mm.length){
-      var pr = document.createElement('button'); pr.type = 'button'; pr.className = 'tstart';
-      pr.textContent = 'Practise marked + missed (' + _mm.length + ')';
-      pr.onclick = function(){ view.tResult = null; testStart(_mm.map(function(it){ return it.q; })); };
-      wrap.appendChild(pr);
-    }
-    var rb = document.createElement('button'); rb.type = 'button'; rb.className = 'tstart ghost';
-    rb.textContent = 'Review one by one';
-    rb.onclick = function(){ view = { t: 'review1', tResult: res, r1: { i: 0, revealed: {} } }; render(); window.scrollTo(0, 0); };
-    wrap.appendChild(rb);
-
-    var rt = document.createElement('button'); rt.type = 'button'; rt.className = 'tstart ghost';
-    rt.textContent = 'Retake this exact paper';
-    rt.onclick = function(){ view.tResult = null; testStart(res.review.map(function(it){ return it.q; })); };
-    wrap.appendChild(rt);
-
-    var nt = document.createElement('button'); nt.type = 'button'; nt.className = 'tstart ghost';
-    nt.textContent = 'New paper';
-    nt.onclick = function(){ view.tResult = null; renderTest(); };
-    wrap.appendChild(nt);
+    resultNext(wrap, res);
 
     box.appendChild(wrap);
     mountQPal(_palItems);
