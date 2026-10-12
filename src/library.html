@@ -1040,13 +1040,13 @@
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
   var APP_BUILD = '2026-10-22 12:00';
-  var BUILD_NOTE = 'The question\'s own image now sits right after the question, above the options, on every screen - Quick start, Question of the day, the review, the result and the error log - and it stays there whether or not the answer is shown. The explanation\'s own images now appear together with the explanation.';
+  var BUILD_NOTE = 'Your progress now shows questions beside cards - a new card with your question accuracy, how many answers were right and wrong, how many questions you have attempted, and the time you spent. On a subject page it is scoped to that subject.';
   var CHANGELOG = [
-    { build:'2026-10-22 12:00', title:'Question image above the options, always', items:[
-      'A question\'s own image now sits right after the question stem, above the options - on Quick start, Question of the day, the review, the result and the error log.',
-      'It shows whether or not you have answered, so you always see the image while reading the question.',
-      'The explanation\'s own images now appear together with the explanation, not away from it.',
-      'In a paper you are sitting, the question image still shows but the attach buttons stay hidden.',
+    { build:'2026-10-22 12:00', title:'Your progress: questions beside cards', items:[
+      'A new card in Your progress: your question accuracy, the right and wrong answers, and how many questions you have attempted.',
+      'It sits right beside the recall card, so cards and questions are shown together.',
+      'On a subject page the questions card is scoped to that subject.',
+      'Reads the same synced per-question stats as Weak areas - nothing new is stored.',
     ]},
     { build:'2026-10-22 10:00', title:'Question tools everywhere', items:[
       'Attach 1 image to the question and up to 3 to its explanation, in Quick start and everywhere else.',
@@ -3186,7 +3186,6 @@
     var card = document.createElement('div'); card.className = 'tcard';
     var meta = document.createElement('div'); meta.className = 'tlabel'; meta.textContent = (q.s || 'Question') + (q.t ? (' \u00b7 ' + q.t) : ''); card.appendChild(meta);
     var stem = document.createElement('div'); stem.className = 'qotd-stem'; stem.textContent = q.q; card.appendChild(stem);
-    card.appendChild(qimgQHost(q, function(){ try{ renderQotd(); }catch(e){} }));
     var answered = st.picked != null;
     q.options.forEach(function(o, i){
       var b = document.createElement('button'); b.type = 'button'; b.className = 'qotd-opt';
@@ -3208,7 +3207,6 @@
       rh.textContent = ok ? 'Correct' : ('Not quite \u2014 the answer is ' + String.fromCharCode(65 + q.answer));
       rc.appendChild(rh);
       if(q.explain){ var ex = document.createElement('div'); ex.className = 'qotd-exp'; explainList(ex, q.explain, termCtx(q)); rc.appendChild(ex); }
-      rc.appendChild(qimgEHost(q, function(){ try{ renderQotd(); }catch(e){} }));
       var sl = srcLine(q); if(sl) rc.appendChild(sl);
       try{ mcqTools(q, rc, function(){ try{ renderQotd(); }catch(e){} }); }catch(e){}
       wrap.appendChild(rc);
@@ -3449,7 +3447,6 @@
     var card = document.createElement('div'); card.className = 'tcard gw-in gw-d1';
     var meta = document.createElement('div'); meta.className = 'tlabel'; meta.textContent = (q.s || 'Question') + (q.t ? (' \u00b7 ' + q.t) : ''); card.appendChild(meta);
     var stem = document.createElement('div'); stem.className = 'qotd-stem'; stem.textContent = q.q; card.appendChild(stem);
-    card.appendChild(qimgQHost(q, function(){ try{ renderGateway(); }catch(e){} }));
     var answered = st.picked != null;
     q.options.forEach(function(o, i){
       var b = document.createElement('button'); b.type = 'button'; b.className = 'qotd-opt gw-opt';
@@ -3473,7 +3470,6 @@
       rh.appendChild(document.createTextNode(ok ? 'Correct' : ('Not quite \u2014 the answer is ' + String.fromCharCode(65 + q.answer))));
       rc.appendChild(rh);
       if(q.explain){ var ex = document.createElement('div'); ex.className = 'qotd-exp'; explainList(ex, q.explain, termCtx(q)); rc.appendChild(ex); }
-      rc.appendChild(qimgEHost(q, function(){ try{ renderGateway(); }catch(e){} }));
       var sl = srcLine(q); if(sl) rc.appendChild(sl);
       try{ mcqTools(q, rc, function(){ try{ renderGateway(); }catch(e){} }); }catch(e){}
       wrap.appendChild(rc);
@@ -3861,6 +3857,43 @@
     ['Again','Hard','Good','Easy'].forEach(function(nm, i){
       var sp = document.createElement('span'); var dt = document.createElement('span'); dt.className = 'dt'; dt.style.background = cols[i]; sp.appendChild(dt); sp.appendChild(document.createTextNode(nm + ' ' + t.r[i])); lg.appendChild(sp);
     });
+    rc.appendChild(lg);
+    return rc;
+  }
+  /* Questions \u2014 the MCQ side of your progress. Reads the same synced
+     per-question stats the weak-areas engine uses (normQStats): every question
+     you answer carries attempts (a), wrongs (w) and time (ms). Scoped to a
+     subject on a subject page; whole-account on Home. */
+  function questionsCard(scope){
+    var qs = {}; try{ qs = normQStats(); }catch(e){ qs = {}; }
+    var subj = (scope && scope.subject) ? scope.subject : null;
+    var qn = 0, att = 0, wrong = 0, ms = 0;
+    Object.keys(qs).forEach(function(k){
+      var v = qs[k]; if(!v) return;
+      if(subj){ var loc = deckLoc[v.d] || {}; if((loc.s || '') !== subj) return; }
+      var a = v.a || 0;
+      if(a > 0){ qn++; att += a; wrong += (v.w || 0); }
+      ms += (v.ms || 0);
+    });
+    var right = Math.max(0, att - wrong);
+    var acc = att ? Math.round(right / att * 100) : 0;
+    var rc = document.createElement('div'); rc.className = 'card3';
+    var h = document.createElement('div'); h.className = 'chead'; h.textContent = 'Questions \u2014 how you did'; rc.appendChild(h);
+    var bg = document.createElement('div'); bg.className = 'big'; bg.textContent = acc + '%'; rc.appendChild(bg);
+    var sub = document.createElement('div'); sub.className = 'muted small'; sub.style.margin = '-4px 0 2px'; sub.style.fontWeight = '600';
+    sub.textContent = att
+      ? (right + ' of the ' + att + ' answers you gave were correct \u2014 across ' + qn + (qn === 1 ? ' question' : ' questions') + ' attempted.')
+      : 'Answer a few questions and your accuracy will appear here.';
+    rc.appendChild(sub);
+    var bar = document.createElement('div'); bar.className = 'bar2';
+    var cols = ['#0f766e','#c81e1e'];
+    [right, wrong].forEach(function(n, i){ if(!n) return; var seg = document.createElement('i'); seg.style.width = (att ? (n / att * 100) : 0) + '%'; seg.style.background = cols[i]; bar.appendChild(seg); });
+    rc.appendChild(bar);
+    var lg = document.createElement('div'); lg.className = 'lg2';
+    [['Correct', right], ['Wrong', wrong]].forEach(function(p, i){
+      var sp = document.createElement('span'); var dt = document.createElement('span'); dt.className = 'dt'; dt.style.background = cols[i]; sp.appendChild(dt); sp.appendChild(document.createTextNode(p[0] + ' ' + p[1])); lg.appendChild(sp);
+    });
+    if(ms > 60000){ var tmn = document.createElement('span'); tmn.textContent = Math.round(ms / 60000) + ' min spent'; lg.appendChild(tmn); }
     rc.appendChild(lg);
     return rc;
   }
@@ -4657,6 +4690,7 @@
     c.appendChild(practicePanel({ heading:'Filter & practice', options: homeSubjectOptions(), title:'Home' }));
     c.appendChild(sectHead('Your progress'));
     c.appendChild(recallCard(t));
+    c.appendChild(questionsCard());
     c.appendChild(masteryInfographic());
     c.appendChild(studyStatsCard());
     c.appendChild(weakestTopicsCard());
@@ -4688,6 +4722,7 @@
     c.appendChild(heroCard(t, 'cards · ' + t.decksDue + ' decks · ' + t.topics + ' systems', function(){ reviewDueIn(y, s); }));
     c.appendChild(tilesCard([[t.topics,'Systems'],[t.cards,'Cards'],[t.rated,'Seen'],[pctOf(t.rated,t.cards) + '%','Coverage']]));
     c.appendChild(recallCard(t));
+    c.appendChild(questionsCard({ subject: s }));
     var pdBtn = document.createElement('button'); pdBtn.className = 'btn primary wide'; pdBtn.style.marginTop = '12px';
     pdBtn.textContent = 'Practice all due now'; pdBtn.onclick = function(){ practiceDueAll(y, s); };
     c.appendChild(pdBtn);
@@ -8357,7 +8392,7 @@
     var qc = document.createElement('div'); qc.className = 'tq';
     var meta = document.createElement('div'); meta.className = 'tqmeta'; meta.textContent = [q.s, q.u, q.t].filter(Boolean).join(' \u00b7 '); qc.appendChild(meta);
     var qt = document.createElement('div'); qt.className = 'tqtext'; qt.textContent = q.q; qc.appendChild(qt);
-    qc.appendChild(qimgQHost(q, null, true));
+    if(q.img){ var _qi = qImgEl(q.img); if(_qi) qc.appendChild(_qi); }
     var opts = document.createElement('div'); opts.className = 'tqopts';
     if(q.mtf){
       var _ans = Array.isArray(testRun.answers[testRun.i]) ? testRun.answers[testRun.i].slice() : (q.stmts||[]).map(function(){ return null; });
@@ -8682,8 +8717,7 @@
     try{ document.body.style.overflow = 'hidden'; }catch(e){}
   }
   /* display + attach control, used on the result review and the one-by-one review */
-  function qimgBlock(dk, qid, side, label, host, refresh, readonly){
-    if(readonly && !qimgList(dk, qid, side).length) return;   /* read-only view, nothing to show */
+  function qimgBlock(dk, qid, side, label, host, refresh){
     var box = document.createElement('div'); box.className = 'qimgbox';
     var cap = document.createElement('div'); cap.className = 'qimgcap'; cap.textContent = label; box.appendChild(cap);
     var arr = qimgList(dk, qid, side), lim = qimgLimit(side);
@@ -8692,13 +8726,13 @@
       arr.forEach(function(src, idx){
         var t = document.createElement('span'); t.className = 'qimgthumb';
         var im = document.createElement('img'); im.src = src; im.alt = label; im.loading = 'lazy'; zoomable(im, src); t.appendChild(im);
-        if(!readonly){ var rm = document.createElement('button'); rm.type = 'button'; rm.className = 'rm'; rm.textContent = '\u00d7'; rm.title = 'Remove';
+        var rm = document.createElement('button'); rm.type = 'button'; rm.className = 'rm'; rm.textContent = '\u00d7'; rm.title = 'Remove';
         rm.onclick = function(e){ e.stopPropagation(); qimgDel(dk, qid, side, idx); if(refresh) refresh(); };
-        t.appendChild(rm); } th.appendChild(t);
+        t.appendChild(rm); th.appendChild(t);
       });
       box.appendChild(th);
     }
-    if(!readonly && arr.length < lim){
+    if(arr.length < lim){
       var row = document.createElement('div'); row.className = 'qimgrow';
       var add = document.createElement('button'); add.type = 'button'; add.className = 'btn sm'; add.textContent = 'Add image';
       var inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*'; inp.className = 'hidden';
@@ -8719,20 +8753,10 @@
     ed.onclick = function(e){ e.stopPropagation(); openMcqEdit(q, refresh); };
     row.appendChild(ed);
     host.appendChild(row);
-  }
-  /* the question's own image(s) - shown right after the stem, before the options,
-     on every screen, whether or not the answer is revealed. */
-  function qimgQHost(q, refresh, readonly){
-    var host = document.createElement('div'); host.className = 'qimgqhost';
-    if(q && q.img){ var im = qImgEl(q.img); if(im) host.appendChild(im); }
-    if(q && q.k && q.id){ try{ qimgBlock(q.k, q.id, 'q', 'Question image', host, refresh, readonly); }catch(e){} }
-    return host;
-  }
-  /* the explanation's own images - shown together with the explanation */
-  function qimgEHost(q, refresh){
-    var host = document.createElement('div'); host.className = 'qimgehost';
-    if(q && q.k && q.id){ try{ qimgBlock(q.k, q.id, 'e', 'Explanation images', host, refresh); }catch(e){} }
-    return host;
+    if(q.k && q.id){
+      try{ qimgBlock(q.k, q.id, 'q', 'Question image', host, refresh); }catch(e){}
+      try{ qimgBlock(q.k, q.id, 'e', 'Explanation images', host, refresh); }catch(e){}
+    }
   }
   /* ---- Edit a question, its answer and its explanation -------------------
      Saved onto the deck's own card (same id, so no progress is ever lost) and
@@ -8891,9 +8915,10 @@
     var qc = document.createElement('div'); qc.className = 'tq';
     var meta = document.createElement('div'); meta.className = 'tqmeta'; meta.textContent = [q.s, q.u, q.t].filter(Boolean).join(' \u00b7 '); qc.appendChild(meta);
     var qt = document.createElement('div'); qt.className = 'tqtext'; qt.textContent = q.q; qc.appendChild(qt);
-    qc.appendChild(qimgQHost(q, renderReview1));
+    var qimgHost = document.createElement('div'); qc.appendChild(qimgHost);
     try{ mcqTools(q, qc, renderReview1); }catch(e){}
     var opts = document.createElement('div'); opts.className = 'tqopts';
+    var _qi3 = qImgEl(q.img); if(_qi3) qc.appendChild(_qi3);
     rvOptions(q, item.picked, opts);
     qc.appendChild(opts);
     var _sl = srcLine(q); if(_sl) qc.appendChild(_sl);
@@ -8912,7 +8937,7 @@
       verdict.textContent = ok ? 'You got this right.' : (item.picked == null ? 'You left this unanswered.' : 'You got this wrong.');
       wrap.appendChild(verdict);
       if(q.explain){ var exd = document.createElement('div'); exd.className = 'rvexp'; explainList(exd, q.explain, termCtx(q)); wrap.appendChild(exd); }
-      wrap.appendChild(qimgEHost(q, renderReview1));
+      var eimgHost = document.createElement('div'); wrap.appendChild(eimgHost);
       errNoteRow(q.k, q.id, wrap);
     }
 
@@ -9418,10 +9443,9 @@
         eb.appendChild(m);
         var qq = document.createElement('div'); qq.className = 'terr-q'; qq.textContent = q.q; eb.appendChild(qq);
         if(!testRevCompact){
-          eb.appendChild(qimgQHost(q, qimgRefreshResult));
+          var _qi2 = qImgEl(q.img); if(_qi2) eb.appendChild(_qi2);
           rvOptions(q, item.picked, eb);
           if(q.explain){ var ex = document.createElement('div'); ex.className = 'rvexp'; explainList(ex, q.explain, termCtx(q)); eb.appendChild(ex); }
-          eb.appendChild(qimgEHost(q, qimgRefreshResult));
           var _sl1 = srcLine(q); if(_sl1) eb.appendChild(_sl1);
           try{ mcqTools(q, eb, qimgRefreshResult); }catch(e){}
           if(!ok || item.mark){ errNoteRow(q.k, q.id, eb); }
@@ -9880,10 +9904,9 @@
           var mm = document.createElement('div'); mm.className = 'terr-m';
           mm.textContent = [loc.s, loc.u, CHAP[q.k]].filter(Boolean).join(' \u00b7 '); box.appendChild(mm);
           var qq = document.createElement('div'); qq.className = 'terr-q'; qq.textContent = q.q; box.appendChild(qq);
-          box.appendChild(qimgQHost(q, function(){ try{ renderErrors(); }catch(e){} }));
+          var _qi4 = qImgEl(q.img); if(_qi4) box.appendChild(_qi4);
           rvOptions(q, null, box);
           if(q.explain){ var ex = document.createElement('div'); ex.className = 'rvexp'; explainList(ex, q.explain, termCtx(q)); box.appendChild(ex); }
-          box.appendChild(qimgEHost(q, function(){ try{ renderErrors(); }catch(e){} }));
           var _sl2 = srcLine(q); if(_sl2) box.appendChild(_sl2);
           try{ mcqTools(q, box, function(){ try{ renderErrors(); }catch(e){} }); }catch(e){}
         } else {
