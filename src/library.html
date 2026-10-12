@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-20 06:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-20 08:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -807,7 +807,7 @@
 <main>
   <div id="content"></div>
   <button id="collapseFab" class="fab hidden" aria-label="Collapse all">▴ Collapse all</button>
-  <button id="instaFab" class="instaFab" aria-label="Quick actions" title="Quick actions">
+  <button id="instaFab" class="instaFab" aria-label="Quick start" title="Quick start">
     <span class="zring"></span>
     <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.2 2 4 13.6h5.6L8.6 22 20 10.2h-5.9z"/></svg>
   </button>
@@ -917,9 +917,15 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-20 06:00';
-  var BUILD_NOTE = 'Deck card layout: the answer is centred in the room it owns (no dead gap under a short answer), the chrome is tighter, and a long answer still scrolls from its first line.';
+  var APP_BUILD = '2026-10-20 08:00';
+  var BUILD_NOTE = 'Quick start is now a Momentum Gateway: one tap gives you a single MCQ, then Done for now or a growing go button (1 more, 3 more, 10 MCQs), encouragement with your counters, and a hand-off to a subject or grand test.';
   var CHANGELOG = [
+    { build:'2026-10-20 08:00', title:'Quick start: the Momentum Gateway', items:[
+      'The lightning button now opens one MCQ straight away - no menu, no friction.',
+      'After answering: Done for now, or a go button that grows - 1 more, 3 more, 10 MCQs on your weak topic.',
+      'Finish and it credits the step: how many today, your streak, and your goal.',
+      'Warm up past 10 and it offers the real thing: a subject test or the grand test.',
+    ]},
     { build:'2026-10-20 06:00', title:'Deck card: answer centred, more room', items:[
       'The answer now fills and centres in its own area - a short answer no longer leaves a big empty gap.',
       'The card chrome is tighter, so the answer gets more of the card.',
@@ -2786,6 +2792,7 @@
     document.body.classList.toggle('launch-closed', !!(LAUNCH_CLOSED && !IS_OWNER));
     if(LAUNCH_CLOSED && !IS_OWNER){ showClosed(); updateFab(); paintTabs(); return; }
     if(view.t === 'subject') renderSubject(view.y, view.s);
+    else if(view.t === 'gateway') renderGateway();
     else if(view.t === 'qotd') renderQotd();
     else if(view.t === 'revise') renderRevise();
     else if(view.t === 'learn') renderLearn();
@@ -2905,9 +2912,9 @@
     var h = document.createElement('div'); h.className = 'chead'; h.textContent = 'Question of the day'; dc.appendChild(h);
     var sub = document.createElement('div'); sub.className = 'muted small'; sub.style.margin = '0 0 8px';
     var _dn = qotdToday().n || 0;
-    sub.textContent = 'Short on time? One question from your weak areas, with the explanation \u2014 done in a minute.' + (_dn ? ('  ' + _dn + ' done today.') : ''); dc.appendChild(sub);
-    var b = document.createElement('button'); b.className = 'btn primary wide'; b.textContent = 'Start a question';
-    b.onclick = openQotd; dc.appendChild(b);
+    sub.textContent = 'Start with one question \u2014 then, only if you want, a little more.' + (_dn ? ('  ' + _dn + ' done today.') : ''); dc.appendChild(sub);
+    var b = document.createElement('button'); b.className = 'btn primary wide'; b.textContent = 'Quick start \u2014 1 question';
+    b.onclick = openGateway; dc.appendChild(b);
     return dc;
   }
 
@@ -3078,6 +3085,160 @@
         cb(out);
       })
       .catch(function(){ clearTimeout(timer); cb(null); });
+  }
+
+  /* ---------- Quick start: the Momentum Gateway (atomic-habits ladder) ---------- */
+  function gatewayState(){ if(!view.gw) view.gw = { q:null, picked:null, exclude:{}, loading:false, tried:false, n:0, done:false }; return view.gw; }
+  function gwStreak(){ var s = ls('fd:streak', null); return (s && s.days) || 0; }
+  function gwGoal(){ var g = ls('fd:goal', 30); return (typeof g === 'number' && g > 0) ? g : 30; }
+  function gwLabel(n){
+    if(n < 2) return { t:'Come on\u2026 1 more \uD83D\uDD25', add:1, kind:'more' };
+    if(n < 4) return { t:'3 more \u2014 a quick set', add:3, kind:'more' };
+    if(n < 10) return { t:'10 MCQs on your weakest topic', add:10, kind:'more' };
+    return { t:'Make a big step \u2192', add:0, kind:'big' };
+  }
+  function openGateway(){ view = { t:'gateway', gw:{ q:null, picked:null, exclude:{}, loading:false, tried:false, n:0, done:false } }; render(); window.scrollTo(0,0); }
+  function gwCounters(){
+    var t = qotdToday(), bits = [];
+    bits.push(t.n ? (t.n + ' done today') : 'first one today');
+    if(gwStreak()) bits.push(gwStreak() + '-day streak');
+    bits.push('goal ' + gwGoal());
+    return bits.join(' \u00b7 ');
+  }
+  function gwAsk(st){
+    if(st.loading || st.tried) return;
+    st.loading = true;
+    qotdPick(st.exclude, function(best){ st.loading = false; st.tried = true; if(!st.q) st.q = best; renderGateway(); });
+  }
+  function gwNext(){ var st = gatewayState(); if(st.q) st.exclude[st.q.k + '|' + st.q.id] = 1; st.q = null; st.picked = null; st.loading = false; st.tried = false; renderGateway(); window.scrollTo(0,0); }
+  function renderGateway(){
+    var c = $('content'); c.textContent = '';
+    try{ document.body.classList.remove('testrun'); }catch(e){}
+    var st = gatewayState();
+    var wrap = document.createElement('div'); wrap.className = 'twrap';
+    var h = document.createElement('div'); h.className = 'tbig'; h.textContent = 'Quick start'; wrap.appendChild(h);
+    var sub = document.createElement('div'); sub.className = 'tsub'; sub.textContent = 'One question at a time \u2014 ' + gwCounters() + '.'; wrap.appendChild(sub);
+    if(st.big){ gwBig(wrap, st); c.appendChild(wrap); return; }
+    if(st.done){ gwDone(wrap, st); c.appendChild(wrap); return; }
+    var q = st.q;
+    if(!q){
+      wrap.appendChild(skeleton()); c.appendChild(wrap);
+      if(st.tried && !st.loading){
+        wrap.appendChild(emptyState('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v18M3 12h18"/></svg>', 'No MCQ questions yet', 'Add MCQ decks and quick start will pull a question.'));
+        c.appendChild(wrap); return;
+      }
+      gwAsk(st); return;
+    }
+    var card = document.createElement('div'); card.className = 'tcard';
+    var meta = document.createElement('div'); meta.className = 'tlabel'; meta.textContent = (q.s || 'Question') + (q.t ? (' \u00b7 ' + q.t) : ''); card.appendChild(meta);
+    var stem = document.createElement('div'); stem.className = 'qotd-stem'; stem.textContent = q.q; card.appendChild(stem);
+    var answered = st.picked != null;
+    q.options.forEach(function(o, i){
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'qotd-opt';
+      b.textContent = String.fromCharCode(65 + i) + '.  ' + o;
+      if(answered){
+        b.disabled = true;
+        if(i === q.answer) b.classList.add('right');
+        else if(i === st.picked) b.classList.add('wrong');
+      } else {
+        b.onclick = function(){ st.picked = i; st.n++; qotdBump(); renderGateway(); };
+      }
+      card.appendChild(b);
+    });
+    wrap.appendChild(card);
+    if(answered){
+      var ok = st.picked === q.answer;
+      var rc = document.createElement('div'); rc.className = 'tcard';
+      var rh = document.createElement('div'); rh.className = 'tlabel';
+      rh.textContent = ok ? 'Correct' : ('Not quite \u2014 the answer is ' + String.fromCharCode(65 + q.answer));
+      rc.appendChild(rh);
+      if(q.explain){ var ex = document.createElement('div'); ex.className = 'qotd-exp'; linkTerms(ex, q.explain, termCtx(q)); rc.appendChild(ex); }
+      var sl = srcLine(q); if(sl) rc.appendChild(sl);
+      wrap.appendChild(rc);
+      var lbl = gwLabel(st.n);
+      var done = document.createElement('button'); done.type = 'button'; done.className = 'tstart ghost'; done.textContent = 'Done for now';
+      done.onclick = function(){ st.done = true; renderGateway(); window.scrollTo(0,0); };
+      var go = document.createElement('button'); go.type = 'button'; go.className = 'tstart'; go.textContent = lbl.t;
+      go.onclick = function(){
+        if(lbl.kind === 'big'){ st.big = true; st.done = false; renderGateway(); }
+        else { gwNext(); }
+        window.scrollTo(0,0);
+      };
+      wrap.appendChild(go); wrap.appendChild(done);
+    }
+    c.appendChild(wrap);
+  }
+  function gwBig(wrap, st){
+    var dc = document.createElement('div'); dc.className = 'tcard';
+    var h = document.createElement('div'); h.className = 'tlabel'; h.textContent = 'Make a big step';
+    dc.appendChild(h);
+    var s = document.createElement('div'); s.className = 'tsub small'; s.style.margin = '0 0 4px';
+    s.textContent = 'You are warm. Pick a real block \u2014 it is aimed at your weak areas.'; dc.appendChild(s);
+    var a = document.createElement('button'); a.type = 'button'; a.className = 'tstart';
+    a.textContent = '10 MCQs on your weakest topic';
+    a.onclick = function(){ try{ testPriority = weakPriorityIds(10); }catch(e){} testCustom = true; testSelYears = []; testSelSubjects = []; testSelUnits = []; testSelChapters = []; testScope = 'all'; testDeck = ''; testLen = 10; view = { t:'test' }; testStart(); };
+    dc.appendChild(a);
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'tstart';
+    b.textContent = '1 flashcard set';
+    b.onclick = function(){ var d = firstGatewayDeck(); if(d){ try{ openDeck(d.key, d.topic); }catch(e){} } else { toast('No decks yet.'); } };
+    dc.appendChild(b);
+    var c2 = document.createElement('button'); c2.type = 'button'; c2.className = 'tstart ghost';
+    c2.textContent = '20-question timed set';
+    c2.onclick = function(){ testPriority = null; testCustom = true; testSelYears = []; testSelSubjects = []; testSelUnits = []; testSelChapters = []; testScope = 'all'; testDeck = ''; testLen = 20; view = { t:'test' }; testStart(); };
+    dc.appendChild(c2);
+    var d2 = document.createElement('button'); d2.type = 'button'; d2.className = 'tstart ghost';
+    d2.textContent = 'Subject test (timed)';
+    d2.onclick = function(){ view = { t:'test', tMode:'build', bMode:'subject' }; render(); window.scrollTo(0,0); };
+    dc.appendChild(d2);
+    var e2 = document.createElement('button'); e2.type = 'button'; e2.className = 'tstart ghost';
+    e2.textContent = 'Grand test (real exam)';
+    e2.onclick = function(){ view = { t:'test', tMode:'grand' }; render(); window.scrollTo(0,0); };
+    dc.appendChild(e2);
+    var back = document.createElement('button'); back.type = 'button'; back.className = 'tstart ghost';
+    back.textContent = 'Not now \u2014 back to one question';
+    back.onclick = function(){ st.big = false; renderGateway(); window.scrollTo(0,0); };
+    dc.appendChild(back);
+    wrap.appendChild(dc);
+  }
+  function firstGatewayDeck(){
+    var wk = weakNodes();
+    if(wk && wk.length){ var ch = wk[0].chapter; var found = null; (decksData || []).forEach(function(d){ if(!found && CHAP[d.deck_key] === ch) found = { key:d.deck_key, topic:(d.topic || d.deck_key) }; }); if(found) return found; }
+    var list = decksData || []; for(var i = 0; i < list.length; i++){ if(list[i] && list[i].deck_key) return { key:list[i].deck_key, topic:(list[i].topic || list[i].deck_key) }; }
+    return null;
+  }
+  function gwDone(wrap, st){
+    var t = qotdToday();
+    var dc = document.createElement('div'); dc.className = 'tcard';
+    var h = document.createElement('div'); h.className = 'tlabel'; h.textContent = 'Nice work';
+    dc.appendChild(h);
+    var big = document.createElement('div'); big.className = 'tbig';
+    big.textContent = 'That\u2019s ' + st.n + ' step' + (st.n === 1 ? '' : 's') + ' closer';
+    dc.appendChild(big);
+    var s = document.createElement('div'); s.className = 'tsub'; s.style.margin = '2px 0 0';
+    s.textContent = 'You have done ' + t.n + ' question' + (t.n === 1 ? '' : 's') + ' today'
+      + (gwStreak() ? (' \u00b7 ' + gwStreak() + '-day streak') : '') + '. Habits are made of exactly this.';
+    dc.appendChild(s);
+    wrap.appendChild(dc);
+    if(st.n >= 10){
+      var gc = document.createElement('div'); gc.className = 'tcard';
+      var gh = document.createElement('div'); gh.className = 'tlabel'; gh.textContent = 'You are warm \u2014 go bigger';
+      gc.appendChild(gh);
+      var gn = document.createElement('div'); gn.className = 'tsub small'; gn.style.margin = '0 0 4px';
+      gn.textContent = 'You are already in the zone. Sit a real, exam-shaped paper.'; gc.appendChild(gn);
+      var st1 = document.createElement('button'); st1.type = 'button'; st1.className = 'tstart'; st1.textContent = 'Subject test (timed)';
+      st1.onclick = function(){ view = { t:'test', tMode:'build', bMode:'subject' }; render(); window.scrollTo(0,0); };
+      gc.appendChild(st1);
+      var st2 = document.createElement('button'); st2.type = 'button'; st2.className = 'tstart ghost'; st2.textContent = 'Grand test (real exam)';
+      st2.onclick = function(){ view = { t:'test', tMode:'grand' }; render(); window.scrollTo(0,0); };
+      gc.appendChild(st2);
+      wrap.appendChild(gc);
+    }
+    var more = document.createElement('button'); more.type = 'button'; more.className = 'tstart'; more.textContent = 'Actually\u2026 a bit more';
+    more.onclick = function(){ st.done = false; renderGateway(); window.scrollTo(0,0); };
+    wrap.appendChild(more);
+    var fin = document.createElement('button'); fin.type = 'button'; fin.className = 'tstart ghost'; fin.textContent = 'Finish here for now';
+    fin.onclick = function(){ view = { t:'home' }; render(); window.scrollTo(0,0); };
+    wrap.appendChild(fin);
   }
 
   function updateFab(){
@@ -5692,13 +5853,13 @@
         try{ view = { t:'learn' }; render(); window.scrollTo(0,0); }catch(_){}
       }));
     }
-    f.title = 'Quick actions';
+    f.title = 'Quick start';
     f.onclick = function(e){
       e.stopPropagation();
       if(f.classList.contains('zap')) return;
       f.classList.add('zap');
       try{ if(navigator.vibrate) navigator.vibrate(30); }catch(_){}
-      setTimeout(function(){ f.classList.remove('zap'); buildMenu(); menu.classList.toggle('open'); }, 300);
+      setTimeout(function(){ f.classList.remove('zap'); try{ openGateway(); }catch(_){} }, 300);
     };
     document.addEventListener('click', function(ev){ if(!menu.contains(ev.target) && ev.target !== f) closeMenu(); });
     window.__closeFabMenu = closeMenu;
