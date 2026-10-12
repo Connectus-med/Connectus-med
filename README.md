@@ -9,7 +9,7 @@ A medical study app for NEET-PG / INI-CET / RUHS-MO aspirants — flashcards plu
 | Path | What it is |
 |---|---|
 | `src/library.html` | **The app's source of truth.** Identical to the live `library_html` settings row. Edit this. |
-| `index.html` | The last published build — the file the Netlify site serves. Kept in sync with `src/library.html` on every publish. |
+| `index.html` | **The loader** — a tiny page that always pulls the live build from the cloud. This is the deployed entry point, so no host can ever serve a stale app. Same as `loader.html`. |
 | `terms.html` · `refund.html` · `privacy.html` | The policy pages the app links to. **Deploy all four together** — a lone `index.html` leaves dead links. |
 | `tests/` | The regression suite + its synthetic fixture. |
 | `functions/medcircuit/index.ts` | The backend edge function (public link, catalogue, deck content, payments). Deployed from here. |
