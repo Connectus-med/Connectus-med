@@ -115,11 +115,17 @@ const near = (got, want, tol) => Math.abs(got - want) <= tol;
     await page.evaluate(() => { const b = [...document.querySelectorAll('.tend')].find(x => x.textContent === 'Submit'); if (b) b.click(); });
     await w(900);
   };
-  const setSeed = v => page.evaluate(vv => {
-    if (vv === null || vv === undefined) return;
-    const i = [...document.querySelectorAll('input.tsel')].find(x => /^[0-9]*$/.test(x.value));
-    if (i) { i.value = String(vv); i.dispatchEvent(new Event('change')); }
-  }, v);
+  const setSeed = async v => {
+    // the seed box now lives under "Advanced options" on the Real Exam setup
+    await page.evaluate(() => { const b = [...document.querySelectorAll('button')].find(x => /Advanced options/.test(x.textContent)); if (b) b.click(); });
+    await w(250);
+    await page.evaluate(vv => {
+      if (vv === null || vv === undefined) return;
+      const i = document.getElementById('seedInput') || [...document.querySelectorAll('input.tsel')].find(x => /^[0-9]*$/.test(x.value));
+      if (i) { i.value = String(vv); i.dispatchEvent(new Event('change')); }
+    }, v);
+    await w(250);
+  };
   const openGrand = async () => {
     await page.evaluate(() => document.querySelector('#tabbar .tab[data-tab="test"]').click());
     await w(400);
@@ -168,8 +174,8 @@ const near = (got, want, tol) => Math.abs(got - want) <= tol;
   // ---- 3. the three real papers ----
   await startPaper('NEET-PG');
   const neet = await runState();
-  check('NEET-PG paper = 200 Q in 5 sections of 40',
-    neet.n === 200 && neet.secOn === true && neet.secN === 5 && neet.secQ === 40,
+  check('NEET-PG paper = 180 Q in 5 sections of 36',
+    neet.n === 180 && neet.secOn === true && neet.secN === 5 && neet.secQ === 36,
     `n=${neet.n} sec=${neet.secN}x${neet.secQ} on=${neet.secOn}`);
   check('NEET-PG section time = 42 min', neet.secMins === 42, neet.secMins);
   check('paper spread across every deck', neet.decks === fx.decks.length, neet.decks + '/' + fx.decks.length + ' decks, ' + neet.subjects + ' subjects');
@@ -197,9 +203,9 @@ const near = (got, want, tol) => Math.abs(got - want) <= tol;
   await w(200);
   await submit();
   const neetScore = await page.evaluate(() => (document.querySelector('.tscore') || {}).textContent);
-  check('NEET-PG marking +4 / -1  => 3 / 800', neetScore === '3 / 800', neetScore);
+  check('NEET-PG marking +4 / -1  => 3 / 720', neetScore === '3 / 720', neetScore);
   const palOnResult = await page.evaluate(() => document.querySelectorAll('.qpal .qpalcell').length);
-  check('review screen shows the question palette', palOnResult === 200, palOnResult);
+  check('review screen shows the question palette', palOnResult === 180, palOnResult);
   await clickTxt('New paper');
   await w(800);
 
@@ -273,7 +279,9 @@ const near = (got, want, tol) => Math.abs(got - want) <= tol;
 
   // ---- 8. error log = the user's own write-ups only ----
   await clickTxt('All test modes');
-  await w(800);
+  await w(600);
+  await clickTxt('^History$');       // the Error log button lives in the History segment now
+  await w(600);
   await clickTxt('Error log');
   await w(900);
   const errlog = await page.evaluate(() => {
