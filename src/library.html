@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-19 14:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-19 16:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -917,9 +917,14 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-19 14:00';
-  var BUILD_NOTE = 'New: tappable key terms in every explanation. Tap a dotted-underlined term and a pop-up shows pictures from Wikimedia Commons, plus an Open in Google Images link.';
+  var APP_BUILD = '2026-10-19 16:00';
+  var BUILD_NOTE = 'Tappable terms are now context-aware: tapping a modality like ultrasound searches the case findings (e.g. Glomus jugulare ultrasound), with the generic search as a second section.';
   var CHANGELOG = [
+    { build:'2026-10-19 16:00', title:'Terms: case-aware image search', items:[
+      'Tapping a term now searches it WITH the case context - the diagnosis and topic - so ultrasound finds the findings in THIS case, not a generic ultrasound.',
+      'The pop-up shows two sections: In this case (the specific search) and General.',
+      'The Open in Google Images link uses the specific query too.',
+    ]},
     { build:'2026-10-19 14:00', title:'Tappable terms: image pop-up', items:[
       'Key medical terms in an explanation are now dotted-underlined - tap one to open a picture.',
       'The pop-up shows pictures from Wikimedia Commons (free, reusable, embeddable) and an Open in Google Images link.',
@@ -2848,7 +2853,7 @@
       var rh = document.createElement('div'); rh.className = 'tlabel';
       rh.textContent = ok ? 'Correct' : ('Not quite \u2014 the answer is ' + String.fromCharCode(65 + q.answer));
       rc.appendChild(rh);
-      if(q.explain){ var ex = document.createElement('div'); ex.className = 'qotd-exp'; linkTerms(ex, q.explain); rc.appendChild(ex); }
+      if(q.explain){ var ex = document.createElement('div'); ex.className = 'qotd-exp'; linkTerms(ex, q.explain, termCtx(q)); rc.appendChild(ex); }
       var sl = srcLine(q); if(sl) rc.appendChild(sl);
       wrap.appendChild(rc);
       var nb = document.createElement('button'); nb.type = 'button'; nb.className = 'tstart'; nb.textContent = 'Next question \u2014 another weak area';
@@ -2871,6 +2876,27 @@
 
   /* ---- tappable key terms -> image pop-up ---- */
   var GLOSSARY = ['jugular foramen','glomus jugulare','glomus tympanicum','glomus tumour','glomus tumor','paraganglioma','tympanic membrane','middle ear','inner ear','external ear','promontory','carotid body','carotid sinus','jugular bulb','cranial nerve','facial nerve','vestibulocochlear nerve','cochlea','semicircular canal','eustachian tube','ossicles','malleus','incus','stapes','red reflex','otoscopy','pulsatile tinnitus','tinnitus','hearing loss','catecholamine','phaeochromocytoma','pheochromocytoma','neuroblastoma','carcinoid','thyroid gland','parathyroid','pituitary','adrenal gland','kidney','nephron','glomerulus','liver','hepatocyte','gallbladder','pancreas','spleen','stomach','duodenum','jejunum','ileum','colon','appendix','aorta','pulmonary artery','left ventricle','right atrium','mitral valve','aortic valve','tricuspid valve','coronary artery','carotid artery','femoral artery','brachial plexus','median nerve','ulnar nerve','radial nerve','sciatic nerve','spinal cord','cerebrum','cerebellum','brainstem','medulla oblongata','thalamus','hypothalamus','corpus callosum','hippocampus','frontal lobe','parietal lobe','temporal lobe','occipital lobe','optic nerve','retina','cornea','lens','iris','vitreous','macula','trachea','bronchus','alveolus','pleura','diaphragm','lung','larynx','epiglottis','pharynx','tonsil','oesophagus','uterus','ovary','fallopian tube','prostate','testis','epididymis','urethra','bladder','ureter','sacrum','vertebra','clavicle','scapula','humerus','radius','ulna','femur','tibia','fibula','patella','calcaneus','sternum','mandible','maxilla','zygomatic','sphenoid','ethmoid','temporal bone','occipital bone','frontal bone','foramen ovale','foramen magnum','cavernous sinus','circle of willis','portal vein','hepatic vein','renal artery','renal vein','lymph node','thoracic duct','bone marrow','thymus','epidermis','dermis','melanocyte','sebaceous gland','hair follicle','nephrotic syndrome','cirrhosis','pneumonia','tuberculosis','meningitis','encephalitis','myocardial infarction','heart failure','atrial fibrillation','stroke','asthma','diabetes mellitus','hypothyroidism','hyperthyroidism','cushing syndrome','addison disease','rheumatoid arthritis','systemic lupus erythematosus','gout','osteoporosis','anaemia','leukaemia','lymphoma','thrombocytopenia','haemophilia','dengue','malaria','typhoid','leprosy','tetanus','rabies','cholera','carcinoma','sarcoma','metastasis','histopathology','angiography','ultrasound','computed tomography','magnetic resonance imaging','electrocardiogram','electroencephalogram','spirometry','endoscopy','bronchoscopy','colonoscopy','lumbar puncture'];
+  var MODALITIES = ['ultrasound','ultrasonography','sonography','ct','computed tomography','mri','magnetic resonance imaging','x-ray','radiograph','radiographs','plain film','biopsy','histopathology','histology','ecg','electrocardiogram','echo','echocardiography','eeg','electroencephalogram','angiography','angioplasty','endoscopy','bronchoscopy','colonoscopy','spirometry','lumbar puncture','fnac','scintigraphy'];
+  /* A short context for the current question: the topic plus the correct answer
+     (usually the diagnosis). This is what makes "ultrasound" search the case's
+     findings, not just any ultrasound. */
+  function termCtx(q){
+    if(!q) return '';
+    var s = '';
+    if(typeof q.answer === 'number' && q.options && q.options[q.answer]) s = String(q.options[q.answer]);
+    if(!s && q.t) s = String(q.t);
+    if(!s && q.s) s = String(q.s);
+    s = s.replace(/[^A-Za-z0-9 /-]/g, ' ').replace(/\s+/g, ' ').trim();
+    var words = s.split(' ').filter(Boolean);
+    return words.slice(0, 6).join(' ');
+  }
+  function termQuery(term, ctx){
+    var t = String(term || '').trim(), m = String(ctx || '').trim();
+    if(!m) return t;
+    var low = t.toLowerCase();
+    var isMod = MODALITIES.some(function(x){ return x === low; });
+    return isMod ? (m + ' ' + t) : (t + ' ' + m);
+  }
   var _termRe = null;
   function termRe(){
     if(_termRe) return _termRe;
@@ -2878,7 +2904,7 @@
     _termRe = new RegExp('\\b(' + esc.join('|') + ')\\b', 'gi');
     return _termRe;
   }
-  function linkTerms(el, text){
+  function linkTerms(el, text, ctx){
     var t = String(text == null ? '' : text);
     el.textContent = '';
     if(!t) return el;
@@ -2888,7 +2914,8 @@
       if(m.index > last) el.appendChild(document.createTextNode(t.slice(last, m.index)));
       var b = document.createElement('span'); b.className = 'term'; b.textContent = m[0];
       b.setAttribute('role', 'button'); b.setAttribute('tabindex', '0');
-      b.onclick = function(e){ e.stopPropagation(); openTerm(this.textContent); };
+      if(ctx) b.setAttribute('data-ctx', ctx);
+      b.onclick = function(e){ e.stopPropagation(); openTerm(this.textContent, this.getAttribute('data-ctx') || ''); };
       el.appendChild(b);
       last = m.index + m[0].length;
     }
@@ -2904,22 +2931,11 @@
     return m;
   }
   function closeTerm(){ var m = $('termModal'); if(m) m.classList.remove('open'); }
-  function openTerm(term){
-    var m = termModal();
-    m.textContent = '';
-    var panel = document.createElement('div'); panel.className = 'termpanel';
-    var head = document.createElement('div'); head.className = 'termhead';
-    var b = document.createElement('b'); b.textContent = term; head.appendChild(b);
-    var x = document.createElement('button'); x.type = 'button'; x.className = 'termx'; x.textContent = '\u2715'; x.setAttribute('aria-label', 'Close'); x.onclick = closeTerm; head.appendChild(x);
-    panel.appendChild(head);
+  function termSection(panel, title, query, term){
+    var h = document.createElement('div'); h.className = 'tlabel'; h.style.marginTop = '12px'; h.textContent = title; panel.appendChild(h);
     var note = document.createElement('div'); note.className = 'termnote'; note.textContent = 'Looking for a picture\u2026'; panel.appendChild(note);
     var imgs = document.createElement('div'); imgs.className = 'termimgs'; panel.appendChild(imgs);
-    var g = document.createElement('a'); g.className = 'btn wide'; g.style.marginTop = '12px'; g.style.display = 'block'; g.style.textAlign = 'center';
-    g.href = 'https://www.google.com/search?tbm=isch&q=' + encodeURIComponent(term); g.target = '_blank'; g.rel = 'noopener';
-    g.textContent = 'Open in Google Images'; panel.appendChild(g);
-    var src = document.createElement('div'); src.className = 'termnote'; src.textContent = 'Pictures from Wikimedia Commons (free, reusable).'; panel.appendChild(src);
-    m.appendChild(panel); m.classList.add('open');
-    termImages(term, function(list){
+    termImages(query, function(list){
       imgs.textContent = '';
       if(list && list.length){
         note.textContent = 'Tap a picture to open it full size.';
@@ -2933,6 +2949,29 @@
         note.textContent = 'No picture found here \u2014 try Google Images below.';
       }
     });
+  }
+  function openTerm(term, ctx){
+    var m = termModal();
+    m.textContent = '';
+    var panel = document.createElement('div'); panel.className = 'termpanel';
+    var head = document.createElement('div'); head.className = 'termhead';
+    var b = document.createElement('b'); b.textContent = term; head.appendChild(b);
+    var x = document.createElement('button'); x.type = 'button'; x.className = 'termx'; x.textContent = '\u2715'; x.setAttribute('aria-label', 'Close'); x.onclick = closeTerm; head.appendChild(x);
+    panel.appendChild(head);
+    var specific = termQuery(term, ctx);
+    if(ctx && specific.toLowerCase() !== term.toLowerCase()){
+      var sub = document.createElement('div'); sub.className = 'termnote'; sub.textContent = 'Searching for the findings in this case: \u201c' + specific + '\u201d'; panel.appendChild(sub);
+      termSection(panel, 'In this case', specific, term);
+      termSection(panel, 'General', term, term);
+    } else {
+      termSection(panel, 'Pictures', term, term);
+    }
+    var g = document.createElement('a'); g.className = 'btn wide'; g.style.marginTop = '14px'; g.style.display = 'block'; g.style.textAlign = 'center';
+    g.href = 'https://www.google.com/search?tbm=isch&q=' + encodeURIComponent(specific); g.target = '_blank'; g.rel = 'noopener';
+    g.textContent = 'Open in Google Images';
+    panel.appendChild(g);
+    var src = document.createElement('div'); src.className = 'termnote'; src.textContent = 'Pictures from Wikimedia Commons (free, reusable).'; panel.appendChild(src);
+    m.appendChild(panel); m.classList.add('open');
   }
   function termImages(term, cb){
     var url = 'https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=' + encodeURIComponent(term)
@@ -8117,7 +8156,7 @@
       var verdict = document.createElement('div'); verdict.className = 'tsub';
       verdict.textContent = ok ? 'You got this right.' : (item.picked == null ? 'You left this unanswered.' : 'You got this wrong.');
       wrap.appendChild(verdict);
-      if(q.explain){ var exd = document.createElement('div'); exd.className = 'rvexp'; linkTerms(exd, q.explain); wrap.appendChild(exd); }
+      if(q.explain){ var exd = document.createElement('div'); exd.className = 'rvexp'; linkTerms(exd, q.explain, termCtx(q)); wrap.appendChild(exd); }
       var eimgHost = document.createElement('div'); wrap.appendChild(eimgHost);
       qimgBlock(q.k, q.id, 'e', 'Explanation images', eimgHost, renderReview1);
       errNoteRow(q.k, q.id, wrap);
@@ -8590,7 +8629,7 @@
           qimgBlock(q.k, q.id, 'q', 'Question image', eb, qimgRefreshResult);
           var _qi2 = qImgEl(q.img); if(_qi2) eb.appendChild(_qi2);
           rvOptions(q, item.picked, eb);
-          if(q.explain){ var ex = document.createElement('div'); ex.className = 'rvexp'; linkTerms(ex, q.explain); eb.appendChild(ex); }
+          if(q.explain){ var ex = document.createElement('div'); ex.className = 'rvexp'; linkTerms(ex, q.explain, termCtx(q)); eb.appendChild(ex); }
           qimgBlock(q.k, q.id, 'e', 'Explanation images', eb, qimgRefreshResult);
           var _sl1 = srcLine(q); if(_sl1) eb.appendChild(_sl1);
           if(!ok || item.mark){ errNoteRow(q.k, q.id, eb); }
@@ -9066,7 +9105,7 @@
           var qq = document.createElement('div'); qq.className = 'terr-q'; qq.textContent = q.q; box.appendChild(qq);
           var _qi4 = qImgEl(q.img); if(_qi4) box.appendChild(_qi4);
           rvOptions(q, null, box);
-          if(q.explain){ var ex = document.createElement('div'); ex.className = 'rvexp'; linkTerms(ex, q.explain); box.appendChild(ex); }
+          if(q.explain){ var ex = document.createElement('div'); ex.className = 'rvexp'; linkTerms(ex, q.explain, termCtx(q)); box.appendChild(ex); }
           var _sl2 = srcLine(q); if(_sl2) box.appendChild(_sl2);
         } else {
           var nq = document.createElement('div'); nq.className = 'muted small'; nq.textContent = e.k; box.appendChild(nq);
