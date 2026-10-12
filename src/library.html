@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-19 02:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-19 04:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -741,6 +741,12 @@
   .qotd-opt.wrong{border-color:var(--bad); background:rgba(220,38,38,.12)}
   .qotd-opt:disabled{cursor:default; opacity:1}
   .qotd-exp{font-size:var(--fs-base); line-height:1.6; margin-top:8px; white-space:pre-wrap}
+  /* quick-actions menu over the FAB */
+  .fabmenu{position:fixed; right:16px; bottom:calc(150px + env(safe-area-inset-bottom,0px)); z-index:29; display:none; flex-direction:column; gap:8px; align-items:stretch; width:min(74vw,260px)}
+  .fabmenu.open{display:flex}
+  .fabitem{display:block; width:100%; text-align:left; border:1px solid var(--line); background:var(--panel); color:var(--ink); border-radius:var(--r-md); padding:11px 14px; box-shadow:var(--el-2); font:inherit; cursor:pointer; min-height:52px}
+  .fabitem b{display:block; font-size:var(--fs-md); font-weight:800}
+  .fabitem span{display:block; font-size:var(--fs-sm); color:var(--muted); margin-top:2px}
 </style>
 </head>
 <body>
@@ -787,7 +793,7 @@
 <main>
   <div id="content"></div>
   <button id="collapseFab" class="fab hidden" aria-label="Collapse all">▴ Collapse all</button>
-  <button id="instaFab" class="instaFab" aria-label="Question of the day" title="Question of the day">
+  <button id="instaFab" class="instaFab" aria-label="Quick actions" title="Quick actions">
     <span class="zring"></span>
     <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.2 2 4 13.6h5.6L8.6 22 20 10.2h-5.9z"/></svg>
   </button>
@@ -897,9 +903,15 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-19 02:00';
-  var BUILD_NOTE = 'Fix: Question of the day was reading the bank before the card bodies had loaded, so it wrongly said no questions. It now loads them first, ignores any half-built paper filters, and shows a done-today counter.';
+  var APP_BUILD = '2026-10-19 04:00';
+  var BUILD_NOTE = 'The lightning button is now a two-option menu: Question of the day, or practise your flashcards.';
   var CHANGELOG = [
+    { build:'2026-10-19 04:00', title:'FAB: two quick actions', items:[
+      'Tapping the lightning button now offers two choices instead of jumping straight in.',
+      'Question of the day - one weak-area question.',
+      'Practise flashcards - resumes your last deck.',
+      'The menu closes on an outside tap and whenever the button hides.',
+    ]},
     { build:'2026-10-19 02:00', title:'Question of the day: fixed + counter', items:[
       'Fixed: the drill could show no questions because it read the bank before the card bodies loaded. It now loads them first, then draws.',
       'It also ignores any half-built paper filters, so it always draws from the whole bank.',
@@ -2808,7 +2820,9 @@
     var f = $('collapseFab'); if(f) f.classList.toggle('hidden', !any);
     /* the quick-practice lightning lives on the Home tab only */
     var q = $('instaFab');
-    if(q) q.classList.toggle('hidden', !(view.t === 'home' && !testRun && !viewerOpen()));
+    var showQ = view.t === 'home' && !testRun && !viewerOpen();
+    if(q) q.classList.toggle('hidden', !showQ);
+    if(!showQ && window.__closeFabMenu) window.__closeFabMenu();
   }
   function topicOf(d){ return (d.topic && String(d.topic).trim()) ? String(d.topic).trim() : (d.deck_key || 'Untitled'); }
   function unitOf(d){ return (d.unit && String(d.unit).trim()) ? String(d.unit).trim() : ''; }
@@ -5380,22 +5394,40 @@
     window.scrollTo({ top:0, behavior:'smooth' });
   };
 
-  /* instant practice: tap the lightning, it strikes, the last deck opens */
+  /* quick actions: tap the lightning and choose - a question, or flashcards */
   (function(){
     var f = $('instaFab'); if(!f) return;
     function lastDeck(){ try{ var d = ls('fd:lastdeck', null); return (d && d.key) ? d : null; }catch(e){ return null; } }
     function nameFor(d){ return (d && (d.topic || d.key)) || ''; }
-    f.title = 'Question of the day';
+    var menu = document.createElement('div'); menu.className = 'fabmenu'; menu.id = 'fabMenu';
+    document.body.appendChild(menu);
+    function closeMenu(){ menu.classList.remove('open'); }
+    function item(title, sub, fn){
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'fabitem';
+      var t = document.createElement('b'); t.textContent = title; b.appendChild(t);
+      var s = document.createElement('span'); s.textContent = sub; b.appendChild(s);
+      b.onclick = function(e){ e.stopPropagation(); closeMenu(); fn(); };
+      return b;
+    }
+    function buildMenu(){
+      menu.textContent = '';
+      menu.appendChild(item('Question of the day', 'One weak-area question', function(){ openQotd(); }));
+      var d = lastDeck();
+      menu.appendChild(item('Practise flashcards', d ? nameFor(d) : 'Open a deck once first', function(){
+        if(!d){ toast('Open a deck once \u2014 after that this resumes it.'); return; }
+        try{ openDeck(d.key, nameFor(d)); }catch(_){}
+      }));
+    }
+    f.title = 'Quick actions';
     f.onclick = function(e){
       e.stopPropagation();
       if(f.classList.contains('zap')) return;
       f.classList.add('zap');
       try{ if(navigator.vibrate) navigator.vibrate(30); }catch(_){}
-      setTimeout(function(){
-        f.classList.remove('zap');
-        try{ openQotd(); }catch(_){}
-      }, 480);
+      setTimeout(function(){ f.classList.remove('zap'); buildMenu(); menu.classList.toggle('open'); }, 300);
     };
+    document.addEventListener('click', function(ev){ if(!menu.contains(ev.target) && ev.target !== f) closeMenu(); });
+    window.__closeFabMenu = closeMenu;
   })();
 
 
