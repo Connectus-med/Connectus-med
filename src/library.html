@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-21 02:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-21 04:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -783,10 +783,10 @@
   /* universal point list: main point = orange dot, sub-point = dash (same as a flashcard back) */
   .pts{list-style:none; margin:6px 0 0; padding:0; display:flex; flex-direction:column; gap:9px}
   .pts>li{position:relative; padding-left:24px; font-size:1.02rem; line-height:1.42; font-weight:550}
-  .pts>li::before{content:""; position:absolute; left:1px; top:.52em; width:8px; height:8px; border-radius:50%; background:var(--accent-2)}
+  .pts>li::before{content:""; position:absolute; left:1px; top:calc(.7em - 4px); width:8px; height:8px; border-radius:50%; background:var(--accent-2)}
   .pts .sub{list-style:none; margin:8px 0 0; padding:0; display:flex; flex-direction:column; gap:6px}
   .pts .sub li{position:relative; padding-left:16px; font-size:.95rem; line-height:1.4; font-weight:450; color:var(--muted)}
-  .pts .sub li::before{content:""; position:absolute; left:1px; top:.72em; width:9px; height:2px; border-radius:2px; background:var(--muted); opacity:.6}
+  .pts .sub li::before{content:""; position:absolute; left:1px; top:calc(.7em - 1px); width:9px; height:2px; border-radius:2px; background:var(--muted); opacity:.6}
   /* ---- quick-start motion ---- */
   @keyframes gwRise{from{opacity:0; transform:translateY(12px)} to{opacity:1; transform:none}}
   @keyframes gwPop{0%{transform:scale(1)} 45%{transform:scale(1.035)} 100%{transform:scale(1)}}
@@ -995,9 +995,14 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-21 02:00';
-  var BUILD_NOTE = 'Smarter explanation grouping: a dash now belongs only to the point it explains. A new concept starts its own orange dot, so separate facts no longer get buried under one point.';
+  var APP_BUILD = '2026-10-21 04:00';
+  var BUILD_NOTE = 'Aligned the explanation markers: the orange dot and the grey dash now both sit level with the middle of their text line, consistently - they no longer float high or low.';
   var CHANGELOG = [
+    { build:'2026-10-21 04:00', title:'Explanation markers aligned', items:[
+      'The orange dot and grey dash now sit level with the middle of the text line.',
+      'Both use one shared offset, so a dot and a dash look consistent side by side.',
+      'Applies in the app and in every deck card.',
+    ]},
     { build:'2026-10-21 02:00', title:'Smarter explanation points', items:[
       'Each separate concept now starts its own orange dot point.',
       'A dash appears only under the point it actually explains - a pronoun or connector, or the same subject.',
