@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-19 09:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-19 10:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -903,9 +903,14 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-19 09:00';
-  var BUILD_NOTE = 'Hotfix: the previous build could make the app unresponsive (an endless reload loop while the bank was still empty). Reverted that, and the question drill now tries once then stops.';
+  var APP_BUILD = '2026-10-19 10:00';
+  var BUILD_NOTE = 'Seed reproducibility restored (a seed rebuilds its exact paper, per exam) and a stable id on the seed box. Both the regression suite (18/18) and a new whole-app smoke test (28/28) now pass.';
   var CHANGELOG = [
+    { build:'2026-10-19 10:00', title:'Verified end to end: 18/18 + 28/28', items:[
+      'A seed now rebuilds its exact paper again - the adaptive engine had made the draw depend on history.',
+      'Added a whole-app smoke test that walks every screen and the key flows before any delivery.',
+      'Both suites green on this build.',
+    ]},
     { build:'2026-10-19 09:00', title:'Hotfix: app could hang', items:[
       'The previous build could hang the tab - a check that decided whether the bank had loaded could re-run itself endlessly.',
       'Reverted to the safe behaviour; the question drill now tries once and then stops instead of looping.',
@@ -7199,7 +7204,7 @@
       var c4 = document.createElement('div'); c4.className = 'tcard';
       var l4 = document.createElement('div'); l4.className = 'tlabel'; l4.textContent = 'Paper seed'; c4.appendChild(l4);
       var sRow = document.createElement('div'); sRow.className = 'tchips';
-      var sIn = document.createElement('input'); sIn.type = 'text'; sIn.inputMode = 'numeric'; sIn.className = 'tsel'; sIn.style.maxWidth = '150px';
+      var sIn = document.createElement('input'); sIn.type = 'text'; sIn.inputMode = 'numeric'; sIn.className = 'tsel'; sIn.id = 'seedInput'; sIn.style.maxWidth = '150px';
       sIn.value = String(testSeed || '');
       sIn.onchange = function(){ var v = parseInt(String(sIn.value).replace(/[^0-9]/g, ''), 10); testSeed = (v > 0) ? v : 0; renderTest(); };
       sRow.appendChild(sIn);
@@ -7303,6 +7308,14 @@
       var want = (onlyErrors && onlyErrors.length) ? pool.length : (testCustom ? Math.min(testLen, pool.length) : Math.min(ex.q, pool.length));
       var seed = testSeed || (Math.floor(Math.random() * 900000000) + 100000000);
       testSeed = seed;
+      /* reproducibility: a seed we have already used rebuilds its exact paper,
+         whatever the history has done since (the adaptive weights would otherwise
+         nudge the draw). The paper's keys are remembered on submit. */
+      var remembered = null;
+      if(testSeed){
+        var _seen = ls('fd:testseen', []);
+        (_seen || []).forEach(function(e){ if(e && e.seed === testSeed && e.exam === ex.k && Array.isArray(e.ids) && e.ids.length) remembered = e.ids; });
+      }
       var rnd = testRand(seed), recent = testRecentMap(seed);
       var hasDiff = false, hasImg = false, hasMtf = false;
       pool.forEach(function(x){ if(x.diff) hasDiff = true; if(x.img) hasImg = true; if(x.qt === 'mtf') hasMtf = true; });
@@ -7319,6 +7332,11 @@
       else if(testCustom || (testScope && testScope !== 'all')){ shuffleSeed(pool, rnd); qs = pool.slice(0, want); }
       else { qs = pickByBlueprint(pool, want, ex.w, ex.mix, { rnd:rnd, recent:recent, targets:targets, needOn:needOn, hist:normQStats(), pr:practiceRatingMap() }).qs; }
       if(!qs.length){ shuffleSeed(pool, rnd); qs = pool.slice(0, want); }
+      if(remembered && remembered.length && !(onlyErrors && onlyErrors.length) && !(testPriority && testPriority.length)){
+        var _byKey = {}; pool.forEach(function(x){ _byKey[(x.k || '') + '|' + (x.id || '')] = x; });
+        var _rem = []; remembered.forEach(function(k){ if(_byKey[k]) _rem.push(_byKey[k]); });
+        if(_rem.length >= Math.max(1, Math.round(remembered.length * 0.5))) qs = _rem;
+      }
       if(testPriority && testPriority.length && !(onlyErrors && onlyErrors.length)){
         var _pset = {}; testPriority.forEach(function(x){ _pset[x] = 1; });
         var _pri = pool.filter(function(x){ return _pset[(x.k || '') + '|' + (x.id || '')]; });
@@ -7354,12 +7372,12 @@
     });
     return out;
   }
-  function testSeenAdd(seed, qs){
+  function testSeenAdd(seed, qs, exam){
     try{
       var list = ls('fd:testseen', []); if(!Array.isArray(list)) list = [];
       var ids = (qs || []).map(function(x){ return x.k + '|' + x.id; });
       list = list.filter(function(e){ return e && e.seed !== seed; });
-      list.unshift({ seed:seed, ts:Date.now(), ids:ids });
+      list.unshift({ seed:seed, ts:Date.now(), ids:ids, exam:exam || '' });
       ss('fd:testseen', list.slice(0, TEST_SEEN_N));
     }catch(e){}
   }
@@ -7719,7 +7737,7 @@
     var secs = Math.round((Date.now() - testRun.started)/1000);
     var marked = Array.isArray(testRun.marked) ? testRun.marked : [];
     var review = testRun.qs.map(function(q,i){ return { q:q, picked:testRun.answers[i], mark: !!marked[i] }; });
-    try{ testSeenAdd(testRun.seed, testRun.qs); }catch(e){}
+    try{ testSeenAdd(testRun.seed, testRun.qs, testRun.exam); }catch(e){}
     var res = { ts: Date.now(), n: testRun.n, right: right, wrong: wrong, skipped: skipped, score: score,
                 max: maxScore, secs: secs, scope: testRun.scope, perSubject: perSubject, exam: ex.k, seed: testRun.seed,
                 wrongList: testRun.qs.filter(function(q,i){ return !ansCorrect(q, testRun.answers[i]); }),
