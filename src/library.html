@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-21 18:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-21 20:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -797,8 +797,6 @@
     border:0; background:var(--accent-2); color:#fff; border-radius:999px; cursor:pointer}
   .termgo svg{width:21px; height:21px}
   .termgo:active{transform:translateY(1px)}
-  .termcell{position:relative}
-  .termcopy{position:absolute; right:6px; bottom:6px; border:0; background:rgba(20,14,8,.78); color:#fff; border-radius:999px; padding:5px 10px; font:inherit; font-size:.72rem; font-weight:750; cursor:pointer}
   /* universal point list: main point = orange dot, sub-point = dash (same as a flashcard back) */
   .pts{list-style:none; margin:6px 0 0; padding:0; display:flex; flex-direction:column; gap:9px}
   .pts>li{padding-left:22px; text-indent:-22px; font-size:1.02rem; line-height:1.42; font-weight:550}
@@ -1016,9 +1014,14 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-21 18:00';
-  var BUILD_NOTE = 'The picture panel is rebuilt: what you are searching sits first as a pill, then the search box, then a round search icon. Every source is named, and the duplicate picture section is gone.';
+  var APP_BUILD = '2026-10-21 20:00';
+  var BUILD_NOTE = 'The picture panel is stripped right back: one text box and one search icon. Type your keywords, tap the icon, and it opens Google Images. No other source, nothing else. The old in-app picture grid, sources and copy buttons are gone.';
   var CHANGELOG = [
+    { build:'2026-10-21 20:00', title:'Images: just type and search', items:[
+      'Every explanation now has one Images button.',
+      'Inside is a single text box and a search icon - nothing else.',
+      'Type your keywords and tap the icon: Google Images opens with exactly that search.',
+    ]},
     { build:'2026-10-21 18:00', title:'Picture panel: name, box, icon', items:[
       'The search name now sits first as a pill, then the box, then the round search icon.',
       'Each source is named - Pictures from Wikimedia Commons, More sources, Google Images.',
@@ -3159,56 +3162,17 @@
   }
 
   /* ---- tappable key terms -> image pop-up ---- */
-  var GLOSSARY = ['jugular foramen','glomus jugulare','glomus tympanicum','glomus tumour','glomus tumor','paraganglioma','tympanic membrane','middle ear','inner ear','external ear','promontory','carotid body','carotid sinus','jugular bulb','cranial nerve','facial nerve','vestibulocochlear nerve','cochlea','semicircular canal','eustachian tube','ossicles','malleus','incus','stapes','red reflex','otoscopy','pulsatile tinnitus','tinnitus','hearing loss','catecholamine','phaeochromocytoma','pheochromocytoma','neuroblastoma','carcinoid','thyroid gland','parathyroid','pituitary','adrenal gland','kidney','nephron','glomerulus','liver','hepatocyte','gallbladder','pancreas','spleen','stomach','duodenum','jejunum','ileum','colon','appendix','aorta','pulmonary artery','left ventricle','right atrium','mitral valve','aortic valve','tricuspid valve','coronary artery','carotid artery','femoral artery','brachial plexus','median nerve','ulnar nerve','radial nerve','sciatic nerve','spinal cord','cerebrum','cerebellum','brainstem','medulla oblongata','thalamus','hypothalamus','corpus callosum','hippocampus','frontal lobe','parietal lobe','temporal lobe','occipital lobe','optic nerve','retina','cornea','lens','iris','vitreous','macula','trachea','bronchus','alveolus','pleura','diaphragm','lung','larynx','epiglottis','pharynx','tonsil','oesophagus','uterus','ovary','fallopian tube','prostate','testis','epididymis','urethra','bladder','ureter','sacrum','vertebra','clavicle','scapula','humerus','radius','ulna','femur','tibia','fibula','patella','calcaneus','sternum','mandible','maxilla','zygomatic','sphenoid','ethmoid','temporal bone','occipital bone','frontal bone','foramen ovale','foramen magnum','cavernous sinus','circle of willis','portal vein','hepatic vein','renal artery','renal vein','lymph node','thoracic duct','bone marrow','thymus','epidermis','dermis','melanocyte','sebaceous gland','hair follicle','nephrotic syndrome','cirrhosis','pneumonia','tuberculosis','meningitis','encephalitis','myocardial infarction','heart failure','atrial fibrillation','stroke','asthma','diabetes mellitus','hypothyroidism','hyperthyroidism','cushing syndrome','addison disease','rheumatoid arthritis','systemic lupus erythematosus','gout','osteoporosis','anaemia','leukaemia','lymphoma','thrombocytopenia','haemophilia','dengue','malaria','typhoid','leprosy','tetanus','rabies','cholera','carcinoma','sarcoma','metastasis','histopathology','angiography','ultrasound','computed tomography','magnetic resonance imaging','electrocardiogram','electroencephalogram','spirometry','endoscopy','bronchoscopy','colonoscopy','lumbar puncture'];
-  /* clinical signs & movement terms - so they get underlined and can open a picture */
-  GLOSSARY.push('tremor','resting tremor','rigidity','bradykinesia','chorea','athetosis','dystonia','myoclonus','nystagmus','ataxia','clonus','fasciculation','parkinsonism','asterixis','spasm','dyskinesia','blepharospasm','hemifacial spasm','gait','seizure','convulsion','apraxia','retropulsion','festination','myokymia','tinnitus','vertigo','dysarthria','dysphagia','ptosis','diplopia','hemiplegia','paraplegia','quadriplegia','papilloedema','papilledema','clubbing','cyanosis','jaundice','pallor','oedema','edema','ascites','hepatomegaly','splenomegaly','lymphadenopathy','crepitations','crackles','wheeze','stridor','bruit','thrill','claudication','syncope','cyanosed','icterus','hyperreflexia','hyporeflexia','babinski sign','kernig sign','brudzinski sign','meningism','opisthotonus','decerebrate','decorticate','wasting','fasciculations');
-  /* terms whose point is MOTION: a still picture teaches nothing */
-  var DYNAMIC = ['tremor','rigidity','bradykinesia','chorea','athetosis','dystonia','myoclonus','tics','seizure','convulsion','nystagmus','gait','ataxia','clonus','fasciculation','dysmetria','dysdiadochokinesia','hemiballismus','parkinsonism','movement disorder','swallowing','deglutition','peristalsis','murmur','pulsatile','asterixis','spasm','apraxia','festination','retropulsion','dyskinesia','blepharospasm','hemifacial spasm','optokinetic','gag reflex','myokymia','blink reflex','tremulous','flapping','convulsions','hyperreflexia','hyporeflexia','clonic','jerky'];
-  function isDynamicTerm(term){
-    var t = String(term || '').toLowerCase();
-    if(!t) return false;
-    return DYNAMIC.some(function(x){ return t === x || t.indexOf(x) >= 0; });
-  }
-  var MODALITIES = ['ultrasound','ultrasonography','sonography','ct','computed tomography','mri','magnetic resonance imaging','x-ray','radiograph','radiographs','plain film','biopsy','histopathology','histology','ecg','electrocardiogram','echo','echocardiography','eeg','electroencephalogram','angiography','angioplasty','endoscopy','bronchoscopy','colonoscopy','spirometry','lumbar puncture','fnac','scintigraphy'];
-  /* A short context for the current question: the topic plus the correct answer
-     (usually the diagnosis). This is what makes "ultrasound" search the case's
-     findings, not just any ultrasound. */
-  function termCtx(q){
-    if(!q) return '';
-    var s = '';
-    if(q.t) s = String(q.t);
-    if(!s && typeof q.answer === 'number' && q.options && q.options[q.answer]) s = String(q.options[q.answer]);
-    if(!s && q.s) s = String(q.s);
-    s = s.replace(/[^A-Za-z0-9 /-]/g, ' ').replace(/\s+/g, ' ').trim();
-    var words = s.split(' ').filter(Boolean);
-    return words.slice(0, 6).join(' ');
-  }
-  function termQuery(term, ctx){
-    var t = String(term || '').trim(), m = String(ctx || '').trim();
-    if(!m) return t;
-    var low = t.toLowerCase();
-    var isMod = MODALITIES.some(function(x){ return x === low; });
-    return isMod ? (m + ' ' + t) : (t + ' ' + m);
-  }
-  var _termRe = null;
-  function termRe(){
-    if(_termRe) return _termRe;
-    var esc = GLOSSARY.slice().sort(function(a, b){ return b.length - a.length; }).map(function(t){ return t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); });
-    _termRe = new RegExp('\\b(' + esc.join('|') + ')\\b', 'gi');
-    return _termRe;
-  }
   /* One explanation style for the whole app: a leading main point (orange dot)
-     and the remaining sentences as sub-points (dash, indented, lighter). */
+     and the remaining sentences as sub-points (dash, indented, lighter), with a
+     single Picture button that opens a Google Images search. */
   function explainList(el, text, ctx){
     el.textContent = '';
     var t = String(text == null ? '' : text).replace(/\r/g, '').trim();
     if(!t) return el;
-    /* one clear action instead of dotted-underlining every term: a magnifier that
-       opens a picture search, prefilled with this case, and lets you edit it. */
     var bar = document.createElement('div'); bar.className = 'expbar';
     var ib = document.createElement('button'); ib.type = 'button'; ib.className = 'expimg';
-    ib.title = 'Find a picture'; ib.setAttribute('aria-label', 'Find a picture');
-    ib.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.6 15.6 21 21"/></svg><span>Picture</span>';
+    ib.title = 'Search Google Images'; ib.setAttribute('aria-label', 'Search Google Images');
+    ib.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.6 15.6 21 21"/></svg><span>Images</span>';
     ib.onclick = function(e){ e.stopPropagation(); try{ openTerm(ctx || '', ''); }catch(_){} };
     bar.appendChild(ib); el.appendChild(bar);
     var items = explainPoints(t);
@@ -3227,20 +3191,6 @@
     return el;
   }
   function explainPoints(t){
-    var lines = t.split('\n').map(function(x){ return x.trim(); }).filter(function(x){ return x; });
-    var marked = lines.some(function(l){ return l.charAt(0) === '\u2022' || l.charAt(0) === '-'; });
-    if(marked){
-      var out = [];
-      lines.forEach(function(l){
-        if(l.charAt(0) === '\u2022') out.push({ t:l.slice(1).trim(), sub:[] });
-        else if(l.charAt(0) === '-'){
-          if(out.length) out[out.length - 1].sub.push(l.slice(1).trim());
-          else out.push({ t:l.slice(1).trim(), sub:[] });
-        } else if(out.length && out[out.length - 1].sub.length) out[out.length - 1].sub.push(l);
-        else out.push({ t:l, sub:[] });
-      });
-      return out;
-    }
     var norm = String(t).replace(/^Back to Question[^.]*?p\.?\s*\d+\s*/i, '').replace(/\r/g, '').replace(/\s*\u2022\s*/g, '\n');
     var segs = [];
     norm.split('\n').map(function(x){ return x.trim(); }).filter(function(x){ return x; }).forEach(function(line){
@@ -3254,7 +3204,7 @@
       if(last < line.length) segs.push(line.slice(last).trim());
     });
     segs = segs.filter(function(x){ return x; });
-    if(!segs.length) return [{ t:flat, sub:[] }];
+    if(!segs.length) return [{ t:t, sub:[] }];
     var out = [], inLabel = false;
     segs.forEach(function(seg){
       if(/^[A-Z][^.:\u2022\n]{2,60}?:$/.test(seg)){ out.push({ t:seg, sub:[] }); inLabel = true; return; }
@@ -3270,17 +3220,7 @@
         else { out.push({ t:sn, sub:[] }); inLabel = false; }
       });
     });
-    return out.length ? out : [{ t:flat, sub:[] }];
-  }
-  var EXPLAIN_SUB_START = /^(it|its|this|these|that|those|they|their|them|he|she|his|her|such|here|there|thus|hence|therefore|however|but|and|also|moreover|furthermore|additionally|besides|so|yet|still|meanwhile|similarly|likewise|conversely|instead|otherwise|overall)\b/i;
-  var EXPLAIN_STOP = {the:1,a:1,an:1,in:1,of:1,on:1,for:1,to:1,with:1,by:1,at:1,as:1,from:1,is:1,are:1,was:1,were:1,and:1,or:1,but:1,no:1,not:1,most:1,all:1};
-  function explainSubject(sn){
-    var ws = String(sn || '').replace(/^[^A-Za-z0-9]+/, '').split(/\s+/);
-    for(var i = 0; i < ws.length && i < 4; i++){
-      var w = ws[i].replace(/[^A-Za-z0-9\-\/()]/g, '').toLowerCase();
-      if(w && !EXPLAIN_STOP[w]) return w;
-    }
-    return '';
+    return out.length ? out : [{ t:t, sub:[] }];
   }
   function splitSentences(t){
     var out = [], cur = '';
@@ -3296,23 +3236,27 @@
     if(cur.trim()) out.push(cur.trim());
     return out.filter(function(x){ return x.length > 1; });
   }
-  function linkTerms(el, text, ctx){
-    var t = String(text == null ? '' : text);
-    el.textContent = '';
-    if(!t) return el;
-    var re = termRe(), last = 0, m;
-    re.lastIndex = 0;
-    while((m = re.exec(t))){
-      if(m.index > last) el.appendChild(document.createTextNode(t.slice(last, m.index)));
-      var b = document.createElement('span'); b.className = 'term'; b.textContent = m[0];
-      b.setAttribute('role', 'button'); b.setAttribute('tabindex', '0');
-      if(ctx) b.setAttribute('data-ctx', ctx);
-      b.onclick = function(e){ e.stopPropagation(); openTerm(this.textContent, this.getAttribute('data-ctx') || ''); };
-      el.appendChild(b);
-      last = m.index + m[0].length;
+  var EXPLAIN_SUB_START = /^(it|its|this|these|that|those|they|their|them|he|she|his|her|such|here|there|thus|hence|therefore|however|but|and|also|moreover|furthermore|additionally|besides|so|yet|still|meanwhile|similarly|likewise|conversely|instead|otherwise|overall)\b/i;
+  var EXPLAIN_STOP = {the:1,a:1,an:1,in:1,of:1,on:1,for:1,to:1,with:1,by:1,at:1,as:1,from:1,is:1,are:1,was:1,were:1,and:1,or:1,but:1,no:1,not:1,most:1,all:1};
+  function explainSubject(sn){
+    var ws = String(sn || '').replace(/^[^A-Za-z0-9]+/, '').split(/\s+/);
+    for(var i = 0; i < ws.length && i < 4; i++){
+      var w = ws[i].replace(/[^A-Za-z0-9\-\/()]/g, '').toLowerCase();
+      if(w && !EXPLAIN_STOP[w]) return w;
     }
-    if(last < t.length) el.appendChild(document.createTextNode(t.slice(last)));
-    return el;
+    return '';
+  }
+  /* The whole picture-search stack is gone. One text box + one search icon,
+     and it goes straight to Google Images - no other source, nothing else. */
+  function termCtx(q){
+    if(!q) return '';
+    var s = '';
+    if(q.t) s = String(q.t);
+    if(!s && typeof q.answer === 'number' && q.options && q.options[q.answer]) s = String(q.options[q.answer]);
+    if(!s && q.s) s = String(q.s);
+    s = s.replace(/[^A-Za-z0-9 /-]/g, ' ').replace(/\s+/g, ' ').trim();
+    var words = s.split(' ').filter(Boolean);
+    return words.slice(0, 6).join(' ');
   }
   function termModal(){
     var m = $('termModal');
@@ -3323,157 +3267,38 @@
     return m;
   }
   function closeTerm(){ var m = $('termModal'); if(m) m.classList.remove('open'); }
-  function fill(panel, q, ctx){
-    var dyn = isDynamicTerm(q);
-    if(dyn){
-      termSection(panel, 'Moving picture (GIF / video)', q, q, 'gif');
-      termSection(panel, 'Still pictures', q, q, 'static');
-      var ga = document.createElement('a'); ga.className = 'btn wide'; ga.style.marginTop = '14px'; ga.style.display = 'block'; ga.style.textAlign = 'center';
-      ga.href = 'https://www.google.com/search?tbm=isch&tbs=itp:animated&q=' + encodeURIComponent(q); ga.target = '_blank'; ga.rel = 'noopener';
-      ga.textContent = 'Find a GIF / video (Google, animated)';
-      panel.appendChild(ga);
-    } else {
-      termSection(panel, 'Pictures', q, q, 'static');
-    }
-  }
-  /* copy a picture straight to the clipboard (Wikimedia serves CORS, so this works) */
-  function copyPic(url, btn){
-    var old = btn.textContent; btn.textContent = '\u2026';
-    fetch(url, { mode: 'cors' }).then(function(r){ return r.blob(); }).then(function(bl){
-      var type = (bl.type && /^image\//.test(bl.type)) ? bl.type : 'image/png';
-      if(!window.ClipboardItem || !navigator.clipboard || !navigator.clipboard.write) throw new Error('no clipboard');
-      return navigator.clipboard.write([ new ClipboardItem({ [type]: bl }) ]);
-    }).then(function(){
-      btn.textContent = 'Copied \u2713'; setTimeout(function(){ btn.textContent = old; }, 1300);
-    }).catch(function(){
-      btn.textContent = 'Tap image \u2192 long-press'; setTimeout(function(){ btn.textContent = old; }, 1800);
-    });
-  }
-  function termSection(panel, title, query, term, kind){
-    var h = document.createElement('div'); h.className = 'tlabel'; h.style.marginTop = '12px'; h.textContent = title; panel.appendChild(h);
-    var note = document.createElement('div'); note.className = 'termnote'; note.textContent = 'Looking for a picture\u2026'; panel.appendChild(note);
-    var imgs = document.createElement('div'); imgs.className = 'termimgs'; panel.appendChild(imgs);
-    termImages(query, function(list){
-      imgs.textContent = '';
-      if(list && list.length){
-        note.textContent = (kind === 'gif' ? 'Tap to open the full animation \u00b7 Copy to paste it anywhere.' : 'Tap to open full size \u00b7 Copy to paste it anywhere.');
-        list.forEach(function(u){
-          var cell = document.createElement('div'); cell.className = 'termcell';
-          var a = document.createElement('a'); a.href = u; a.target = '_blank'; a.rel = 'noopener';
-          var im = document.createElement('img'); im.loading = 'lazy'; im.alt = term; im.src = u;
-          im.onerror = function(){ cell.remove(); };
-          a.appendChild(im); cell.appendChild(a);
-          var cp = document.createElement('button'); cp.type = 'button'; cp.className = 'termcopy'; cp.textContent = 'Copy';
-          cp.onclick = function(e){ e.preventDefault(); e.stopPropagation(); copyPic(u, cp); };
-          cell.appendChild(cp);
-          imgs.appendChild(cell);
-        });
-      } else {
-        note.textContent = (kind === 'gif' ? 'No animation found here \u2014 try the GIF / video link below.' : 'No picture found here \u2014 try Google Images below.');
-      }
-    }, kind);
-  }
   function openTerm(term, ctx){
     var m = termModal();
     m.textContent = '';
     var panel = document.createElement('div'); panel.className = 'termpanel';
     var head = document.createElement('div'); head.className = 'termhead';
-    var b = document.createElement('b'); b.textContent = 'Find a picture'; head.appendChild(b);
-    var x = document.createElement('button'); x.type = 'button'; x.className = 'termx'; x.textContent = '\u2715'; x.setAttribute('aria-label', 'Close'); x.onclick = closeTerm; head.appendChild(x);
+    var b = document.createElement('b'); b.textContent = 'Search Google Images'; head.appendChild(b);
+    var x = document.createElement('button'); x.type = 'button'; x.className = 'termx'; x.textContent = '\u2715';
+    x.setAttribute('aria-label', 'Close'); x.onclick = closeTerm; head.appendChild(x);
     panel.appendChild(head);
-    /* what we are searching (the name), then the box, then the search icon */
     var row = document.createElement('div'); row.className = 'termfind';
-    var name = String(termQuery(term, ctx) || term || '').trim();
-    var lab = document.createElement('span'); lab.className = 'termname'; lab.textContent = name || 'Picture';
-    lab.title = 'What we are looking for';
-    var inp = document.createElement('input'); inp.type = 'search'; inp.className = 'terminput'; inp.placeholder = 'Type any detail\u2026';
-    inp.setAttribute('aria-label', 'What to look for'); inp.value = name;
-    var go = document.createElement('button'); go.type = 'button'; go.className = 'termgo'; go.title = 'Search'; go.setAttribute('aria-label', 'Search');
+    var name = String(term || '').trim();
+    if(name){
+      var lab = document.createElement('span'); lab.className = 'termname'; lab.textContent = name;
+      lab.title = 'This case'; row.appendChild(lab);
+    }
+    var inp = document.createElement('input'); inp.type = 'search'; inp.className = 'terminput';
+    inp.placeholder = 'Type your keywords\u2026'; inp.setAttribute('aria-label', 'Search Google Images'); inp.value = '';
+    var go = document.createElement('button'); go.type = 'button'; go.className = 'termgo';
+    go.title = 'Search Google Images'; go.setAttribute('aria-label', 'Search Google Images');
     go.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.6 15.6 21 21"/></svg>';
-    row.appendChild(lab); row.appendChild(inp); row.appendChild(go);
+    function search(){
+      var q = String(inp.value || '').trim();
+      if(!q){ try{ inp.focus(); }catch(e){} return; }
+      try{ window.open('https://www.google.com/search?tbm=isch&q=' + encodeURIComponent(q), '_blank', 'noopener'); }catch(e){}
+    }
+    go.onclick = search;
+    inp.addEventListener('keydown', function(e){ if(e.key === 'Enter'){ e.preventDefault(); search(); } });
+    row.appendChild(inp); row.appendChild(go);
     panel.appendChild(row);
-    var body = document.createElement('div'); panel.appendChild(body);
-    function run(){
-      var q = String(inp.value || '').trim(); if(!q) return;
-      lab.textContent = q; body.textContent = '';
-      fill(body, q);
-    }
-    go.onclick = run;
-    inp.addEventListener('keydown', function(e){ if(e.key === 'Enter'){ e.preventDefault(); run(); } });
-    run();
     m.appendChild(panel); m.classList.add('open');
+    setTimeout(function(){ try{ inp.focus(); }catch(e){} }, 80);
   }
-  /* one query -> every source, each named */
-  function fill(panel, q){
-    var dyn = isDynamicTerm(q);
-    if(dyn){
-      var subD = document.createElement('div'); subD.className = 'termnote';
-      subD.textContent = 'This is a movement / clinical sign \u2014 it makes most sense as a moving picture.'; panel.appendChild(subD);
-      termSection(panel, 'Moving picture \u00b7 Wikimedia Commons', q, q, 'gif');
-      termSection(panel, 'Still pictures \u00b7 Wikimedia Commons', q, q, 'static');
-      var ga = document.createElement('a'); ga.className = 'btn wide'; ga.style.marginTop = '12px'; ga.style.display = 'block'; ga.style.textAlign = 'center';
-      ga.href = 'https://www.google.com/search?tbm=isch&tbs=itp:animated&q=' + encodeURIComponent(q); ga.target = '_blank'; ga.rel = 'noopener';
-      ga.textContent = 'GIF / video \u00b7 Google Images';
-      panel.appendChild(ga);
-    } else {
-      termSection(panel, 'Pictures \u00b7 Wikimedia Commons', q, q, 'static');
-    }
-    var moreH = document.createElement('div'); moreH.className = 'tlabel'; moreH.style.marginTop = '16px'; moreH.textContent = 'More sources'; panel.appendChild(moreH);
-    var moreN = document.createElement('div'); moreN.className = 'termnote'; moreN.textContent = 'Each opens the same search in that source.'; panel.appendChild(moreN);
-    var moreRow = document.createElement('div'); moreRow.className = 'tchips'; moreRow.style.margin = '8px 0 2px';
-    [['Radiopaedia', 'https://radiopaedia.org/search?q='],
-     ['Open-i (NLM)', 'https://openi.nlm.nih.gov/?query='],
-     ['Europe PMC', 'https://europepmc.org/search?query='],
-     ['NCI Visuals', 'https://visualsonline.cancer.gov/searchaction.cfm?keywords=']
-    ].forEach(function(src){
-      var a = document.createElement('a'); a.className = 'tchip'; a.style.textDecoration = 'none'; a.style.display = 'inline-block';
-      a.href = src[1] + encodeURIComponent(q); a.target = '_blank'; a.rel = 'noopener'; a.textContent = src[0];
-      moreRow.appendChild(a);
-    });
-    panel.appendChild(moreRow);
-    var g = document.createElement('a'); g.className = 'btn wide'; g.style.marginTop = '10px'; g.style.display = 'block'; g.style.textAlign = 'center';
-    g.href = 'https://www.google.com/search?tbm=isch&q=' + encodeURIComponent(q); g.target = '_blank'; g.rel = 'noopener';
-    g.textContent = 'All results \u00b7 Google Images';
-    panel.appendChild(g);
-    var src = document.createElement('div'); src.className = 'termnote';
-    src.textContent = 'Pictures above are from Wikimedia Commons (CC BY-SA) \u2014 tap Copy to paste one anywhere.'; panel.appendChild(src);
-  }
-  function termImages(query, cb, kind){
-    var q = query;
-    if(kind === 'gif') q = query + ' filemime:image/gif';
-    else if(kind === 'video') q = query + ' filetype:video';
-    var url = 'https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=' + encodeURIComponent(q)
-            + '&gsrnamespace=6&gsrlimit=10&prop=imageinfo&iiprop=url|size|mime&iiurlwidth=420&format=json&origin=*';
-    var ctl = null; try{ ctl = new AbortController(); }catch(e){}
-    var timer = setTimeout(function(){ try{ if(ctl) ctl.abort(); }catch(e){} }, 12000);
-    fetch(url, { signal: ctl ? ctl.signal : undefined })
-      .then(function(r){ clearTimeout(timer); return r.ok ? r.json() : null; })
-      .then(function(j){
-        var out = [];
-        try{
-          var pages = (j && j.query && j.query.pages) || {};
-          Object.keys(pages).forEach(function(k){
-            var ii = pages[k].imageinfo && pages[k].imageinfo[0]; if(!ii) return;
-            var mime = String(ii.mime || ''), w = ii.width || 0, h = ii.height || 0;
-            if(w && w < 130) return;                         /* clutter: tiny images */
-            if(kind === 'gif'){
-              var isGif = /gif/i.test(mime) || /\.gif($|\?)/i.test(ii.url || '');
-              if(isGif && ii.url) out.push(ii.url);          /* original, so it stays animated */
-              return;
-            }
-            if(kind === 'video'){
-              if(/video|ogg|webm/i.test(mime) && ii.url) out.push(ii.url);
-              return;
-            }
-            var u = ii.thumburl || ii.url;
-            if(u && /\.(jpe?g|png|gif|webp|svg)/i.test(u)) out.push(u);
-          });
-        }catch(e){}
-        cb(out);
-      })
-      .catch(function(){ clearTimeout(timer); cb(null); });
-  }
-
   /* ---------- Quick start: the Momentum Gateway (atomic-habits ladder) ---------- */
   var GW = { n:0, exclude:{}, active:false, time:0 };
   var GW_COPY = {
