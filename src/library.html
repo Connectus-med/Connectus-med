@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-21 16:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-21 18:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -788,9 +788,15 @@
     border-radius:999px; padding:5px 12px 5px 9px; font:inherit; font-size:var(--fs-sm); font-weight:750; cursor:pointer}
   .expimg svg{width:16px; height:16px}
   .expimg:active{transform:translateY(1px)}
-  .termfind{display:flex; gap:8px; margin:10px 0 2px}
+  .termfind{display:flex; align-items:center; gap:8px; margin:10px 0 2px}
+  .termname{flex:0 1 auto; max-width:40%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    font-size:var(--fs-sm); font-weight:800; color:var(--accent-2); background:var(--accent-soft);
+    border-radius:999px; padding:9px 13px}
   .terminput{flex:1; min-width:0; border:1px solid var(--line); background:var(--panel-2); color:inherit; border-radius:999px; padding:10px 14px; font:inherit; font-size:var(--fs-sm)}
-  .termgo{border:0; background:var(--accent-2); color:#fff; border-radius:999px; padding:10px 16px; font:inherit; font-weight:800; font-size:var(--fs-sm); cursor:pointer}
+  .termgo{flex:0 0 auto; width:44px; height:44px; display:inline-flex; align-items:center; justify-content:center;
+    border:0; background:var(--accent-2); color:#fff; border-radius:999px; cursor:pointer}
+  .termgo svg{width:21px; height:21px}
+  .termgo:active{transform:translateY(1px)}
   .termcell{position:relative}
   .termcopy{position:absolute; right:6px; bottom:6px; border:0; background:rgba(20,14,8,.78); color:#fff; border-radius:999px; padding:5px 10px; font:inherit; font-size:.72rem; font-weight:750; cursor:pointer}
   /* universal point list: main point = orange dot, sub-point = dash (same as a flashcard back) */
@@ -1010,9 +1016,14 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-21 16:00';
-  var BUILD_NOTE = 'The dotted-underlined terms are gone. Instead, every explanation now has one Picture button: tap it, type any detail, and the pictures appear - each with Copy, so you can paste them straight into your notes. Google Images opens in one tap.';
+  var APP_BUILD = '2026-10-21 18:00';
+  var BUILD_NOTE = 'The picture panel is rebuilt: what you are searching sits first as a pill, then the search box, then a round search icon. Every source is named, and the duplicate picture section is gone.';
   var CHANGELOG = [
+    { build:'2026-10-21 18:00', title:'Picture panel: name, box, icon', items:[
+      'The search name now sits first as a pill, then the box, then the round search icon.',
+      'Each source is named - Pictures from Wikimedia Commons, More sources, Google Images.',
+      'Fixed a duplicate section that showed twice.',
+    ]},
     { build:'2026-10-21 16:00', title:'Picture search, not dotted underlines', items:[
       'Explanations are plain text again - no more underlined terms everywhere.',
       'One Picture button sits at the top of each explanation.',
@@ -3370,51 +3381,62 @@
     var b = document.createElement('b'); b.textContent = 'Find a picture'; head.appendChild(b);
     var x = document.createElement('button'); x.type = 'button'; x.className = 'termx'; x.textContent = '\u2715'; x.setAttribute('aria-label', 'Close'); x.onclick = closeTerm; head.appendChild(x);
     panel.appendChild(head);
-    /* type any detail and the pictures follow - the box starts with this case */
-    var box = document.createElement('div'); box.className = 'termfind';
-    var inp = document.createElement('input'); inp.type = 'search'; inp.className = 'terminput'; inp.placeholder = 'e.g. aortic dissection CT';
-    inp.value = String(termQuery(term, ctx) || term || '');
-    var go = document.createElement('button'); go.type = 'button'; go.className = 'termgo'; go.textContent = 'Search';
-    box.appendChild(inp); box.appendChild(go); panel.appendChild(box);
-    var body = document.createElement('div');
-    panel.appendChild(body);
-    function run(){ var q = String(inp.value || '').trim(); body.textContent = ''; if(!q) return; fill(body, q, ctx); }
+    /* what we are searching (the name), then the box, then the search icon */
+    var row = document.createElement('div'); row.className = 'termfind';
+    var name = String(termQuery(term, ctx) || term || '').trim();
+    var lab = document.createElement('span'); lab.className = 'termname'; lab.textContent = name || 'Picture';
+    lab.title = 'What we are looking for';
+    var inp = document.createElement('input'); inp.type = 'search'; inp.className = 'terminput'; inp.placeholder = 'Type any detail\u2026';
+    inp.setAttribute('aria-label', 'What to look for'); inp.value = name;
+    var go = document.createElement('button'); go.type = 'button'; go.className = 'termgo'; go.title = 'Search'; go.setAttribute('aria-label', 'Search');
+    go.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.6 15.6 21 21"/></svg>';
+    row.appendChild(lab); row.appendChild(inp); row.appendChild(go);
+    panel.appendChild(row);
+    var body = document.createElement('div'); panel.appendChild(body);
+    function run(){
+      var q = String(inp.value || '').trim(); if(!q) return;
+      lab.textContent = q; body.textContent = '';
+      fill(body, q);
+    }
     go.onclick = run;
     inp.addEventListener('keydown', function(e){ if(e.key === 'Enter'){ e.preventDefault(); run(); } });
     run();
-    var specific = String(inp.value || '').trim();
-    var dyn = isDynamicTerm(specific);
+    m.appendChild(panel); m.classList.add('open');
+  }
+  /* one query -> every source, each named */
+  function fill(panel, q){
+    var dyn = isDynamicTerm(q);
     if(dyn){
       var subD = document.createElement('div'); subD.className = 'termnote';
       subD.textContent = 'This is a movement / clinical sign \u2014 it makes most sense as a moving picture.'; panel.appendChild(subD);
-      termSection(panel, 'Moving picture (GIF / video)', specific, specific, 'gif');
-      termSection(panel, 'Still pictures', specific, specific, 'static');
-      var ga = document.createElement('a'); ga.className = 'btn wide'; ga.style.marginTop = '14px'; ga.style.display = 'block'; ga.style.textAlign = 'center';
-      ga.href = 'https://www.google.com/search?tbm=isch&tbs=itp:animated&q=' + encodeURIComponent(specific); ga.target = '_blank'; ga.rel = 'noopener';
-      ga.textContent = 'Find a GIF / video (Google, animated)';
+      termSection(panel, 'Moving picture \u00b7 Wikimedia Commons', q, q, 'gif');
+      termSection(panel, 'Still pictures \u00b7 Wikimedia Commons', q, q, 'static');
+      var ga = document.createElement('a'); ga.className = 'btn wide'; ga.style.marginTop = '12px'; ga.style.display = 'block'; ga.style.textAlign = 'center';
+      ga.href = 'https://www.google.com/search?tbm=isch&tbs=itp:animated&q=' + encodeURIComponent(q); ga.target = '_blank'; ga.rel = 'noopener';
+      ga.textContent = 'GIF / video \u00b7 Google Images';
       panel.appendChild(ga);
     } else {
-      termSection(panel, 'Pictures', specific, specific, 'static');
+      termSection(panel, 'Pictures \u00b7 Wikimedia Commons', q, q, 'static');
     }
-    var moreH = document.createElement('div'); moreH.className = 'tlabel'; moreH.style.marginTop = '16px'; moreH.textContent = 'Trusted sources'; panel.appendChild(moreH);
-    var moreN = document.createElement('div'); moreN.className = 'termnote'; moreN.textContent = 'Prefer a medical atlas? These open the same search there.'; panel.appendChild(moreN);
+    var moreH = document.createElement('div'); moreH.className = 'tlabel'; moreH.style.marginTop = '16px'; moreH.textContent = 'More sources'; panel.appendChild(moreH);
+    var moreN = document.createElement('div'); moreN.className = 'termnote'; moreN.textContent = 'Each opens the same search in that source.'; panel.appendChild(moreN);
     var moreRow = document.createElement('div'); moreRow.className = 'tchips'; moreRow.style.margin = '8px 0 2px';
     [['Radiopaedia', 'https://radiopaedia.org/search?q='],
      ['Open-i (NLM)', 'https://openi.nlm.nih.gov/?query='],
      ['Europe PMC', 'https://europepmc.org/search?query='],
      ['NCI Visuals', 'https://visualsonline.cancer.gov/searchaction.cfm?keywords=']
-    ].forEach(function(s){
+    ].forEach(function(src){
       var a = document.createElement('a'); a.className = 'tchip'; a.style.textDecoration = 'none'; a.style.display = 'inline-block';
-      a.href = s[1] + encodeURIComponent(specific); a.target = '_blank'; a.rel = 'noopener'; a.textContent = s[0];
+      a.href = src[1] + encodeURIComponent(q); a.target = '_blank'; a.rel = 'noopener'; a.textContent = src[0];
       moreRow.appendChild(a);
     });
     panel.appendChild(moreRow);
     var g = document.createElement('a'); g.className = 'btn wide'; g.style.marginTop = '10px'; g.style.display = 'block'; g.style.textAlign = 'center';
-    g.href = 'https://www.google.com/search?tbm=isch&q=' + encodeURIComponent(specific); g.target = '_blank'; g.rel = 'noopener';
-    g.textContent = 'Open in Google Images';
+    g.href = 'https://www.google.com/search?tbm=isch&q=' + encodeURIComponent(q); g.target = '_blank'; g.rel = 'noopener';
+    g.textContent = 'All results \u00b7 Google Images';
     panel.appendChild(g);
-    var src = document.createElement('div'); src.className = 'termnote'; src.textContent = 'Pictures shown here are from Wikimedia Commons (CC BY-SA).'; panel.appendChild(src);
-    m.appendChild(panel); m.classList.add('open');
+    var src = document.createElement('div'); src.className = 'termnote';
+    src.textContent = 'Pictures above are from Wikimedia Commons (CC BY-SA) \u2014 tap Copy to paste one anywhere.'; panel.appendChild(src);
   }
   function termImages(query, cb, kind){
     var q = query;
