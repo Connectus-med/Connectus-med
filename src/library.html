@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-22 06:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-22 08:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -512,6 +512,8 @@
   .qpalcell.skip{background:transparent; border-color:#b9b9bd; color:var(--muted)}
   .qpalcell.mark{border-color:var(--mark); box-shadow:0 0 0 2px var(--mark-ring)}
   .qpalcell.cur{outline:2px solid var(--accent-2); outline-offset:2px}
+  @keyframes qflashk{0%{background:var(--accent-soft)} 100%{background:transparent}}
+  .qflash{animation:qflashk 1.4s ease-out 1; border-radius:10px}
   body.qpal-on main{padding-top:46px}
   .qlegend{display:flex; flex-wrap:wrap; gap:10px 14px; align-items:center; margin:2px 0 4px; font-size:.72rem; color:var(--muted)}
   .qlegend span{display:inline-flex; align-items:center; gap:5px}
@@ -1023,9 +1025,14 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-22 06:00';
-  var BUILD_NOTE = 'Images open when you tap them. In the review, the explanation images and the question image had no tap handler at all - nothing happened. Tap one now and it opens full screen, with a close button and tap-anywhere-to-close.';
+  var APP_BUILD = '2026-10-22 08:00';
+  var BUILD_NOTE = 'Tapping a question in the review navigator now lands the question just below the strip, not behind it. It used to jump to the very top of the page, so the fixed strip covered the question. The landed question also flashes briefly so you can see where you went.';
   var CHANGELOG = [
+    { build:'2026-10-22 08:00', title:'Navigator jump lands below the strip', items:[
+      'Tap a number in the review navigator and the question sits just below the strip.',
+      'It used to scroll to the very top, so the strip hid the question.',
+      'The question you land on flashes briefly.',
+    ]},
     { build:'2026-10-22 06:00', title:'Tap an image to see it big', items:[
       'Tap any explanation image or question image and it opens full screen.',
       'The page behind freezes while it is open, and Escape or a tap closes it.',
@@ -8164,7 +8171,16 @@
       b.className = 'qpalcell' + (it.status ? ' ' + it.status : '') + (it.mark ? ' mark' : '');
       b.textContent = it.n;
       b.setAttribute('aria-label', 'Question ' + it.n + ' of ' + items.length);
-      b.onclick = function(){ var el = it.el(); if(el) el.scrollIntoView({ behavior:'smooth', block:'start' }); };
+      b.onclick = function(){
+        var el = it.el(); if(!el) return;
+        /* the navigator strip is a fixed bar over the top of the page, so the
+           question must land BELOW it, not behind it. */
+        var strip = document.querySelector('.qpal');
+        var under = strip ? strip.getBoundingClientRect().bottom : 0;
+        var y = el.getBoundingClientRect().top + (window.pageYOffset || window.scrollY || 0) - under - 12;
+        try{ window.scrollTo({ top: Math.max(0, y), behavior:'smooth' }); }catch(e){ window.scrollTo(0, Math.max(0, y)); }
+        try{ el.classList.add('qflash'); setTimeout(function(){ el.classList.remove('qflash'); }, 1400); }catch(e){}
+      };
       it.btn = b; pal.appendChild(b);
     });
     document.body.appendChild(pal);
