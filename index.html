@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-18 18:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-18 20:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -890,9 +890,15 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-18 18:00';
-  var BUILD_NOTE = 'Seed field tucked under Advanced options on the Real Exam setup; the one-tap retake is renamed Retake this exact paper.';
+  var APP_BUILD = '2026-10-18 20:00';
+  var BUILD_NOTE = 'Adaptive question engine: every paper remembers how you did on each question and draws fresh first, then what you got wrong, then tough and bookmarked ones, with a composition readout.';
   var CHANGELOG = [
+    { build:'2026-10-18 20:00', title:'Adaptive question engine', items:[
+      'Every test paper now remembers, per question, whether you got it right, how long it took, and whether you bookmarked it.',
+      'The draw is weighted: never-tested questions first, then ones you got wrong, then ones that were slow for you, then bookmarked ones; ones you always get right are eased off.',
+      'A new card on the result screen shows the mix - fresh %, previously wrong %, bookmarked %, tough %.',
+      'The Real Exam setup now shows what share of your bank is still fresh. It works in every test mode, and the seed keeps a paper reproducible.',
+    ]},
     { build:'2026-10-18 18:00', title:'Seed under Advanced; one-tap retake', items:[
       'The Real Exam setup no longer shows a raw Paper seed box - a student never needs to manage seeds.',
       'It now sits under an Advanced options toggle, for anyone who wants a reproducible paper.',
@@ -5546,6 +5552,51 @@
     return out;
   }
   /* questions not used in a recent paper come first */
+  var SLOW_MS = 70000;   /* the exam pace; slower than this reads as "tough for you" */
+  function qSelWeight(x, recent, hist){
+    var key = (x.k || '') + '|' + (x.id || '');
+    var st = hist ? hist[x.id] : null;
+    if(!st) return (recent && recent[key]) ? 5 : 10;      /* never tested: the top of the list */
+    var a = st.a || 0, wr = st.w || 0, avg = st.mt ? (st.ms / st.mt) : 0;
+    var w = 1;
+    if(wr > 0) w += 6 * (wr / Math.max(1, a));            /* you got it wrong */
+    if(avg >= SLOW_MS) w += 3;                            /* it was slow for you - tough */
+    if((st.b || 0) > 0) w += 2;                           /* you bookmarked it */
+    if(a > 0 && wr === 0) w *= (a >= 2 ? 0.25 : 0.6);     /* always right: ease it off */
+    if(recent && recent[key]) w *= 0.5;                   /* shown in a recent paper */
+    return Math.max(0.2, w);
+  }
+  function weightedOrder(arr, recent, rnd, hist){
+    return arr.map(function(x){
+      var w = qSelWeight(x, recent, hist), u = rnd() || 1e-9;
+      return { x:x, k: Math.pow(u, 1 / w) };
+    }).sort(function(p, q){ return q.k - p.k; }).map(function(o){ return o.x; });
+  }
+  function paperMix(qs){
+    var hist = normQStats(), recent = testRecentMap(0);
+    var m = { total:0, fresh:0, wrong:0, book:0, tough:0 };
+    (qs || []).forEach(function(x){
+      m.total++;
+      var key = (x.k || '') + '|' + (x.id || ''), st = hist[x.id];
+      if(!st && !recent[key]) m.fresh++;
+      if(st && (st.w || 0) > 0) m.wrong++;
+      if(st && (st.b || 0) > 0) m.book++;
+      if(st && st.mt && (st.ms / st.mt) >= SLOW_MS) m.tough++;
+    });
+    return m;
+  }
+  function bankFreshPct(){
+    var hist = normQStats(), recent = testRecentMap(0), tot = 0, fresh = 0;
+    (decksData || []).forEach(function(d){
+      if(!IS_OWNER && !UNLOCKED && lockedKeys[d.deck_key]) return;
+      (Array.isArray(d.cards) ? d.cards : []).forEach(function(c){
+        if(!c || c.id == null) return;
+        tot++;
+        if(!hist[c.id] && !recent[d.deck_key + '|' + c.id]) fresh++;
+      });
+    });
+    return { tot:tot, fresh:fresh, pct: tot ? Math.round(fresh / tot * 100) : 0 };
+  }
   function freshFirst(arr, recent, rnd){
     var f = [], u = [];
     arr.forEach(function(x){ if(recent && recent[x.k + '|' + x.id]) u.push(x); else f.push(x); });
@@ -5584,7 +5635,7 @@
     while(used < n && rem.length){ out[rem[i % rem.length].g]++; used++; i++; }
     return out;
   }
-  function spreadTake(arr, want, recent, rnd, targets, needOn){
+  function spreadTake(arr, want, recent, rnd, targets, needOn, hist){
     var byDeck = {};
     arr.forEach(function(x){ var k = x.k || '?'; (byDeck[k] = byDeck[k] || []).push(x); });
     var decks = Object.keys(byDeck), tot = arr.length || 1, used = 0, rem = [], take = {};
@@ -5607,7 +5658,7 @@
       var a2 = byDeck[k].slice();
       if(needOn){
         a2 = a2.map(function(x){
-          var fr = (recent && recent[x.k + '|' + x.id]) ? 0 : 1;
+          var fr = qSelWeight(x, recent, hist);
           return { x:x, fr:fr, s: needScore(x, targets) + rnd() * 0.05 };
         }).sort(function(a,b){ if(a.fr !== b.fr) return b.fr - a.fr; return b.s - a.s; }).map(function(o){ return o.x; });
         /* a scarce bucket must not be swallowed in the first few decks: cap this
@@ -5635,7 +5686,7 @@
         for(var z3=0; z3<spare.length && kept.length < take[k]; z3++) kept.push(spare[z3]);
         a2 = kept;
       } else {
-        a2 = freshFirst(a2, recent, rnd);
+        a2 = weightedOrder(a2, recent, rnd, hist);
         a2 = a2.slice(0, take[k]);
       }
       a2.forEach(needBump);
@@ -5646,7 +5697,7 @@
   function pickByBlueprint(pool, len, W, mix, opts){
     opts = opts || {};
     var rnd = opts.rnd || Math.random, recent = opts.recent || null;
-    var targets = opts.targets || null, needOn = !!opts.needOn;
+    var targets = opts.targets || null, needOn = !!opts.needOn, hist = opts.hist || null;
     needInit(len);
     var plan = blueprintPlan(len, pool, W);
     var bySub = {};
@@ -5660,11 +5711,11 @@
         var need = split[g] || 0; if(!need) return;
         var poolG = arr.filter(function(x){ return (x.tag || '') === g; });
         if(!poolG.length) return;
-        spreadTake(poolG, Math.min(need, poolG.length), recent, rnd, targets, needOn).forEach(function(x){ seen[x.k + '|' + x.id] = 1; got.push(x); });
+        spreadTake(poolG, Math.min(need, poolG.length), recent, rnd, targets, needOn, hist).forEach(function(x){ seen[x.k + '|' + x.id] = 1; got.push(x); });
       });
       if(got.length < want){
         var rest = arr.filter(function(x){ return !seen[x.k + '|' + x.id]; });
-        got = got.concat(spreadTake(rest, Math.min(want - got.length, rest.length), recent, rnd, targets, needOn));
+        got = got.concat(spreadTake(rest, Math.min(want - got.length, rest.length), recent, rnd, targets, needOn, hist));
       }
       out = out.concat(got.slice(0, want));
     });
@@ -5944,10 +5995,11 @@
       if(!qid) return;
       if(k !== qid || !v.d) changed = true;
       var cur = out[qid];
-      if(!cur){ out[qid] = { d: deck, a: v.a || 0, w: v.w || 0, t: v.t || 0 }; }
+      if(!cur){ out[qid] = { d: deck, a: v.a || 0, w: v.w || 0, t: v.t || 0, ms: v.ms || 0, mt: v.mt || 0, b: v.b || 0 }; }
       else {
         cur.a = Math.max(cur.a, v.a || 0); cur.w = Math.max(cur.w, v.w || 0);
         cur.t = Math.max(cur.t, v.t || 0); cur.d = cur.d || deck;
+        cur.ms = Math.max(cur.ms || 0, v.ms || 0); cur.mt = Math.max(cur.mt || 0, v.mt || 0); cur.b = Math.max(cur.b || 0, v.b || 0);
       }
     });
     if(changed) ss('fd:qstats', out);
@@ -5968,9 +6020,10 @@
       var qid = qidOfKey(k, c), deck = qidDeck(k, c);
       if(!qid) return;
       var l = local[qid];
-      if(!l){ local[qid] = { d: deck, a: c.a || 0, w: c.w || 0, t: c.t || 0 }; changed = true; return; }
+      if(!l){ local[qid] = { d: deck, a: c.a || 0, w: c.w || 0, t: c.t || 0, ms: c.ms || 0, mt: c.mt || 0, b: c.b || 0 }; changed = true; return; }
       var a = Math.max(l.a || 0, c.a || 0), ww = Math.max(l.w || 0, c.w || 0), tt = Math.max(l.t || 0, c.t || 0);
-      if(a !== (l.a || 0) || ww !== (l.w || 0) || tt !== (l.t || 0) || (!l.d && deck)){ l.a = a; l.w = ww; l.t = tt; l.d = l.d || deck; changed = true; }
+      var mm = Math.max(l.ms || 0, c.ms || 0), mtc = Math.max(l.mt || 0, c.mt || 0), bb = Math.max(l.b || 0, c.b || 0);
+      if(a !== (l.a || 0) || ww !== (l.w || 0) || tt !== (l.t || 0) || mm !== (l.ms || 0) || mtc !== (l.mt || 0) || bb !== (l.b || 0) || (!l.d && deck)){ l.a = a; l.w = ww; l.t = tt; l.ms = mm; l.mt = mtc; l.b = bb; l.d = l.d || deck; changed = true; }
     });
     if(changed) ss('fd:qstats', local);
     return changed;
@@ -6898,6 +6951,12 @@
     var repN = document.createElement('div'); repN.className = 'tsub small'; repN.style.marginTop = '4px';
     repN.textContent = 'Questions you saw in your last ' + TEST_SEEN_N + ' papers are avoided while fresh ones last.';
     c2.appendChild(repN);
+    var _bf = bankFreshPct();
+    if(_bf.tot){
+      var freshLine = document.createElement('div'); freshLine.className = 'tsub small'; freshLine.style.marginTop = '4px';
+      freshLine.textContent = _bf.pct + '% of your bank is still fresh (never tested) \u2014 fresh questions come first.';
+      c2.appendChild(freshLine);
+    }
     wrap.appendChild(c2);
 
     var advBtn = document.createElement('button'); advBtn.type = 'button'; advBtn.className = 'tstart ghost'; advBtn.style.marginTop = '10px';
@@ -7027,7 +7086,7 @@
       var qs;
       if(onlyErrors && onlyErrors.length){ qs = pool.slice(); shuffleSeed(qs, rnd); }
       else if(testCustom || (testScope && testScope !== 'all')){ shuffleSeed(pool, rnd); qs = pool.slice(0, want); }
-      else { qs = pickByBlueprint(pool, want, ex.w, ex.mix, { rnd:rnd, recent:recent, targets:targets, needOn:needOn }).qs; }
+      else { qs = pickByBlueprint(pool, want, ex.w, ex.mix, { rnd:rnd, recent:recent, targets:targets, needOn:needOn, hist:normQStats() }).qs; }
       if(!qs.length){ shuffleSeed(pool, rnd); qs = pool.slice(0, want); }
       if(testPriority && testPriority.length && !(onlyErrors && onlyErrors.length)){
         var _pset = {}; testPriority.forEach(function(x){ _pset[x] = 1; });
@@ -7444,12 +7503,13 @@
       var _now = Date.now();
       testRun.qs.forEach(function(q, i){
         var a = testRun.answers[i];
-        if(a == null) return;                 /* skipped carries no signal */
         var k3 = q.id;                       /* the qid is the stable identity */
-        var st = _qs[k3] || (_qs[k3] = { d: q.k, a: 0, w: 0, t: 0 });
+        var st = _qs[k3] || (_qs[k3] = { d: q.k, a: 0, w: 0, t: 0, ms: 0, mt: 0, b: 0 });
         if(!st.d) st.d = q.k;
-        st.a++; if(!ansCorrect(q, a)) st.w++;
-        st.t = _now;
+        var _tq = (testRun.tq && testRun.tq[i]) || 0;
+        if(a != null){ st.a++; if(!ansCorrect(q, a)) st.w++; st.t = _now; }
+        if(_tq > 0){ st.ms = (st.ms || 0) + _tq; st.mt = (st.mt || 0) + 1; }
+        if(marked[i]) st.b = (st.b || 0) + 1;
       });
       var _ks = Object.keys(_qs);
       if(_ks.length > 4000){
@@ -8045,6 +8105,21 @@
     var h = document.createElement('div'); h.className = 'tbig'; h.textContent = 'Result'; wrap.appendChild(h);
     var exl = document.createElement('div'); exl.className = 'tsub small'; exl.textContent = ex.name + ' pattern · ' + ex.mark; wrap.appendChild(exl);
     if(res.seed){ var sdl = document.createElement('div'); sdl.className = 'tsub small'; sdl.textContent = 'Paper seed ' + res.seed + ' — kept so this paper can be rebuilt exactly.'; wrap.appendChild(sdl); }
+    var _mix = paperMix((res.review || []).map(function(it){ return it.q; }));
+    if(_mix.total){
+      var mc = document.createElement('div'); mc.className = 'tcard';
+      var ml = document.createElement('div'); ml.className = 'tlabel'; ml.textContent = 'What this paper was made of'; mc.appendChild(ml);
+      var mn = document.createElement('div'); mn.className = 'tsub small'; mn.style.margin = '0 0 6px';
+      mn.textContent = 'Every paper is drawn with this in mind \u2014 fresh first, then what you got wrong.'; mc.appendChild(mn);
+      var _pc = function(n){ return Math.round(n / _mix.total * 100); };
+      [['Fresh \u2014 never tested', _mix.fresh], ['You got wrong before', _mix.wrong], ['Bookmarked', _mix.book], ['Tough \u2014 slow for you', _mix.tough]].forEach(function(r){
+        var row = document.createElement('div'); row.className = 'thist';
+        var a = document.createElement('span'); a.className = 'thist-d'; a.textContent = r[0]; row.appendChild(a);
+        var b = document.createElement('span'); b.className = 'thist-s'; b.textContent = r[1] + '  (' + _pc(r[1]) + '%)'; row.appendChild(b);
+        mc.appendChild(row);
+      });
+      wrap.appendChild(mc);
+    }
     var sc = document.createElement('div'); sc.className = 'tscore'; sc.textContent = (Math.round(res.score*100)/100) + ' / ' + (Math.round(res.max*100)/100); wrap.appendChild(sc);
     var al = document.createElement('div'); al.className = 'tsub';
     al.textContent = res.right + ' correct · ' + res.wrong + ' wrong' + (ex.neg ? ' (' + ex.neg + ' each)' : ' (no negative)') + ' · ' + res.skipped + ' not attempted · ' + fmtClock(res.secs);
