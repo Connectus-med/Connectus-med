@@ -1,7 +1,9 @@
-# Cloudflare Pages headers (ignored by GitHub Pages - harmless there)
+# Cloudflare Pages / Netlify headers (ignored by GitHub Pages - harmless there)
 /*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: DENY
+  Permissions-Policy: geolocation=(), microphone=(), camera=(), usb=(), accelerometer=(), gyroscope=(), magnetometer=(), payment=()
 
 # the loader must never go stale in a browser cache
 /
