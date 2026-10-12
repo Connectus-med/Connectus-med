@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-22 08:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-22 10:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -415,6 +415,7 @@
   .tsub{color:var(--muted); font-size:.88rem; line-height:1.45}
   .tsub.small{font-size:var(--fs-sm)}
   .tcard{background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:12px 14px; display:flex; flex-direction:column; gap:8px}
+  .tcard.tight{padding:9px 12px; gap:6px}
   .tlabel{font-size:var(--fs-xs); font-weight:800; letter-spacing:.09em; text-transform:uppercase; color:var(--muted)}
   .tsel{font:inherit; padding:10px 12px; border:1px solid var(--line); border-radius:12px; background:var(--bg); color:var(--ink); width:100%}
   .tchips{display:flex; gap:8px; flex-wrap:wrap}
@@ -515,9 +516,9 @@
   @keyframes qflashk{0%{background:var(--accent-soft)} 100%{background:transparent}}
   .qflash{animation:qflashk 1.4s ease-out 1; border-radius:10px}
   body.qpal-on main{padding-top:46px}
-  .qlegend{display:flex; flex-wrap:wrap; gap:10px 14px; align-items:center; margin:2px 0 4px; font-size:.72rem; color:var(--muted)}
+  .qlegend{display:flex; flex-wrap:wrap; gap:6px 11px; align-items:center; margin:0 0 2px; font-size:.68rem; color:var(--muted)}
   .qlegend span{display:inline-flex; align-items:center; gap:5px}
-  .qlegend i{width:14px; height:14px; border-radius:5px; border:2px solid var(--line); display:inline-block; flex:none}
+  .qlegend i{width:11px; height:11px; border-radius:4px; border:2px solid var(--line); display:inline-block; flex:none}
   .qlegend i.right{background:var(--ok-strong); border-color:var(--ok-strong)}
   .qlegend i.wrong{background:var(--bad-strong); border-color:var(--bad-strong)}
   .qlegend i.skip{background:transparent; border-color:#b9b9bd}
@@ -735,6 +736,19 @@
   .tqimg{display:block; max-width:100%; margin-top:10px; border-radius:12px; border:1px solid var(--line); cursor:zoom-in}
   .qimgthumb img{cursor:zoom-in}
   /* tap an image to see it big */
+  .mcqtools{display:flex; gap:8px; margin-top:8px}
+  #mcqEdit{position:fixed; inset:0; z-index:82; background:rgba(10,7,4,.6); display:none; align-items:flex-end; justify-content:center; padding:0}
+  #mcqEdit.open{display:flex}
+  #mcqEdit .termpanel{width:100%; max-width:560px; max-height:92vh; overflow:auto; border-radius:18px 18px 0 0; margin:0}
+  .edlab{font-size:var(--fs-xs); font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin:10px 0 2px}
+  .edta{width:100%; box-sizing:border-box; min-height:74px; resize:vertical; border:1px solid var(--line); background:var(--bg);
+    color:var(--ink); border-radius:12px; padding:10px 12px; font:inherit; font-size:.9rem; line-height:1.4}
+  .edopts{display:flex; flex-direction:column; gap:6px}
+  .edopt{display:flex; align-items:center; gap:8px}
+  .edopt input[type=radio]{width:20px; height:20px; flex:none; accent-color:var(--accent-2)}
+  .edoin{flex:1; min-width:0; border:1px solid var(--line); background:var(--bg); color:var(--ink); border-radius:10px; padding:9px 11px; font:inherit; font-size:.88rem}
+  .edacts{display:flex; gap:8px; margin:14px 0 4px}
+  .edacts .btn{flex:1}
   #imgZoom{position:fixed; inset:0; z-index:80; background:rgba(10,7,4,.92); display:none; align-items:center; justify-content:center; padding:14px; cursor:zoom-out}
   #imgZoom.open{display:flex}
   #imgZoom img{max-width:100%; max-height:100%; border-radius:12px; box-shadow:0 24px 70px rgba(0,0,0,.6)}
@@ -1025,9 +1039,14 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-22 08:00';
-  var BUILD_NOTE = 'Tapping a question in the review navigator now lands the question just below the strip, not behind it. It used to jump to the very top of the page, so the fixed strip covered the question. The landed question also flashes briefly so you can see where you went.';
+  var APP_BUILD = '2026-10-22 10:00';
+  var BUILD_NOTE = 'Every question now has the same tools wherever you meet it - Quick start, Question of the day, the review and the error log: attach 1 image to the question and up to 3 to the explanation, and Edit the stem, the options, the correct answer and the explanation. Edits save to the question itself, on every device, and your review progress is never lost.';
   var CHANGELOG = [
+    { build:'2026-10-22 10:00', title:'Question tools everywhere', items:[
+      'Attach 1 image to the question and up to 3 to its explanation, in Quick start and everywhere else.',
+      'Edit the question, its options, the correct answer and the explanation - in one sheet.',
+      'Edits save to that question on every device; your review progress is kept.',
+    ]},
     { build:'2026-10-22 08:00', title:'Navigator jump lands below the strip', items:[
       'Tap a number in the review navigator and the question sits just below the strip.',
       'It used to scroll to the very top, so the strip hid the question.',
@@ -3183,6 +3202,7 @@
       rc.appendChild(rh);
       if(q.explain){ var ex = document.createElement('div'); ex.className = 'qotd-exp'; explainList(ex, q.explain, termCtx(q)); rc.appendChild(ex); }
       var sl = srcLine(q); if(sl) rc.appendChild(sl);
+      try{ mcqTools(q, rc, function(){ try{ renderQotd(); }catch(e){} }); }catch(e){}
       wrap.appendChild(rc);
       var nb = document.createElement('button'); nb.type = 'button'; nb.className = 'tstart'; nb.textContent = 'Next question \u2014 another weak area';
       nb.onclick = qotdNext; wrap.appendChild(nb);
@@ -3445,6 +3465,7 @@
       rc.appendChild(rh);
       if(q.explain){ var ex = document.createElement('div'); ex.className = 'qotd-exp'; explainList(ex, q.explain, termCtx(q)); rc.appendChild(ex); }
       var sl = srcLine(q); if(sl) rc.appendChild(sl);
+      try{ mcqTools(q, rc, function(){ try{ renderGateway(); }catch(e){} }); }catch(e){}
       wrap.appendChild(rc);
       var trow = document.createElement('div'); trow.className = 'gw-time';
       var tlb = document.createElement('span'); tlb.className = 'lb'; tlb.textContent = 'Time for more?'; trow.appendChild(tlb);
@@ -8678,6 +8699,106 @@
     }
     host.appendChild(box);
   }
+  /* one place for the per-question tools, so every screen that shows an MCQ gets
+     the same Edit button and the same image attachments (1 question, 3 explanation) */
+  function mcqTools(q, host, refresh){
+    if(!q) return;
+    var row = document.createElement('div'); row.className = 'mcqtools';
+    var ed = document.createElement('button'); ed.type = 'button'; ed.className = 'btn sm'; ed.textContent = 'Edit';
+    ed.onclick = function(e){ e.stopPropagation(); openMcqEdit(q, refresh); };
+    row.appendChild(ed);
+    host.appendChild(row);
+    if(q.k && q.id){
+      try{ qimgBlock(q.k, q.id, 'q', 'Question image', host, refresh); }catch(e){}
+      try{ qimgBlock(q.k, q.id, 'e', 'Explanation images', host, refresh); }catch(e){}
+    }
+  }
+  /* ---- Edit a question, its answer and its explanation -------------------
+     Saved onto the deck's own card (same id, so no progress is ever lost) and
+     synced like everything else. */
+  function mcqEditEl(){
+    var m = $('mcqEdit'); if(m) return m;
+    m = document.createElement('div'); m.id = 'mcqEdit';
+    m.onclick = function(e){ if(e.target === m) closeMcqEdit(); };
+    document.body.appendChild(m);
+    return m;
+  }
+  function closeMcqEdit(){ var m = $('mcqEdit'); if(m) m.classList.remove('open'); try{ lockPage(false); }catch(e){} }
+  function applyMcqEdit(q, vals){
+    var d = null;
+    (decksData || []).forEach(function(x){ if(!d && x.deck_key === q.k) d = x; });
+    if(!d || !Array.isArray(d.cards)){ toast('That question could not be found.'); return false; }
+    var c = null;
+    d.cards.forEach(function(x){ if(!c && x && x.id === q.id) c = x; });
+    if(!c){ toast('That question could not be found.'); return false; }
+    c.q = vals.q; c.options = vals.options; c.answer = vals.answer; c.explain = vals.explain;
+    /* keep the on-screen copy in step, without touching its id */
+    q.q = vals.q; q.options = vals.options; q.answer = vals.answer; q.explain = vals.explain;
+    try{
+      if(session && session.user && session.user.id){
+        patch('/rest/v1/decks?deck_key=eq.' + encodeURIComponent(q.k) + '&user_id=eq.' + session.user.id,
+              { cards: d.cards, updated_at: new Date().toISOString() });
+      }
+    }catch(e){}
+    return true;
+  }
+  function openMcqEdit(q, refresh){
+    if(!q) return;
+    var m = mcqEditEl(); m.textContent = '';
+    var panel = document.createElement('div'); panel.className = 'termpanel';
+    var head = document.createElement('div'); head.className = 'termhead';
+    var b = document.createElement('b'); b.textContent = 'Edit this question'; head.appendChild(b);
+    var x = document.createElement('button'); x.type = 'button'; x.className = 'termx'; x.textContent = '\u2715';
+    x.setAttribute('aria-label', 'Close'); x.onclick = closeMcqEdit; head.appendChild(x);
+    panel.appendChild(head);
+    var note = document.createElement('div'); note.className = 'termnote';
+    note.textContent = 'Changes save to this question everywhere, on every device. Your review progress is kept.';
+    panel.appendChild(note);
+
+    var opts = (q.options || []).slice();
+    while(opts.length < 2) opts.push('');
+
+    var qh = document.createElement('div'); qh.className = 'edlab'; qh.textContent = 'Question'; panel.appendChild(qh);
+    var qta = document.createElement('textarea'); qta.className = 'edta'; qta.value = q.q || ''; panel.appendChild(qta);
+
+    var oh = document.createElement('div'); oh.className = 'edlab'; oh.textContent = 'Options \u2014 tap the circle on the correct one'; panel.appendChild(oh);
+    var olist = document.createElement('div'); olist.className = 'edopts';
+    var correct = (typeof q.answer === 'number') ? q.answer : 0;
+    var inputs = [], radios = [];
+    opts.forEach(function(o, i){
+      var row = document.createElement('label'); row.className = 'edopt';
+      var r = document.createElement('input'); r.type = 'radio'; r.name = 'edcorrect'; r.checked = (i === correct);
+      var t = document.createElement('input'); t.type = 'text'; t.className = 'edoin'; t.value = o; t.placeholder = 'Option ' + String.fromCharCode(65 + i);
+      radios.push(r); inputs.push(t);
+      row.appendChild(r); row.appendChild(t); olist.appendChild(row);
+    });
+    panel.appendChild(olist);
+
+    var eh = document.createElement('div'); eh.className = 'edlab'; eh.textContent = 'Explanation'; panel.appendChild(eh);
+    var eta = document.createElement('textarea'); eta.className = 'edta'; eta.value = q.explain || ''; panel.appendChild(eta);
+
+    var actions = document.createElement('div'); actions.className = 'edacts';
+    var save = document.createElement('button'); save.type = 'button'; save.className = 'btn primary'; save.textContent = 'Save';
+    var cancel = document.createElement('button'); cancel.type = 'button'; cancel.className = 'btn'; cancel.textContent = 'Cancel';
+    save.onclick = function(){
+      var vals = {
+        q: String(qta.value || '').trim(),
+        options: inputs.map(function(t){ return String(t.value || '').trim(); }),
+        answer: Math.max(0, radios.map(function(r){ return r.checked; }).indexOf(true)),
+        explain: String(eta.value || '').trim()
+      };
+      if(!vals.q){ toast('The question cannot be empty.'); return; }
+      if(vals.options.filter(function(o){ return o; }).length < 2){ toast('Keep at least two options.'); return; }
+      if(applyMcqEdit(q, vals)){ closeMcqEdit(); toast('Saved.'); try{ if(refresh) refresh(); }catch(e){} }
+    };
+    cancel.onclick = closeMcqEdit;
+    actions.appendChild(save); actions.appendChild(cancel);
+    panel.appendChild(actions);
+
+    m.appendChild(panel); m.classList.add('open');
+    try{ lockPage(true); }catch(e){}
+    setTimeout(function(){ try{ qta.focus(); }catch(e){} }, 80);
+  }
   function qimgRefreshResult(){ var y = 0; try{ y = window.scrollY || 0; }catch(e){} try{ renderTestResult(); }catch(e){} try{ window.scrollTo(0, y); }catch(e){} }
 
   /* ---------- past papers: keep the paper itself so it can be re-opened ---------- */
@@ -8750,7 +8871,7 @@
     var meta = document.createElement('div'); meta.className = 'tqmeta'; meta.textContent = [q.s, q.u, q.t].filter(Boolean).join(' \u00b7 '); qc.appendChild(meta);
     var qt = document.createElement('div'); qt.className = 'tqtext'; qt.textContent = q.q; qc.appendChild(qt);
     var qimgHost = document.createElement('div'); qc.appendChild(qimgHost);
-    qimgBlock(q.k, q.id, 'q', 'Question image', qimgHost, renderReview1);
+    try{ mcqTools(q, qc, renderReview1); }catch(e){}
     var opts = document.createElement('div'); opts.className = 'tqopts';
     var _qi3 = qImgEl(q.img); if(_qi3) qc.appendChild(_qi3);
     rvOptions(q, item.picked, opts);
@@ -8772,7 +8893,6 @@
       wrap.appendChild(verdict);
       if(q.explain){ var exd = document.createElement('div'); exd.className = 'rvexp'; explainList(exd, q.explain, termCtx(q)); wrap.appendChild(exd); }
       var eimgHost = document.createElement('div'); wrap.appendChild(eimgHost);
-      qimgBlock(q.k, q.id, 'e', 'Explanation images', eimgHost, renderReview1);
       errNoteRow(q.k, q.id, wrap);
     }
 
@@ -9138,12 +9258,9 @@
     var wrap = document.createElement('div'); wrap.className = 'twrap';
 
     var ex = examOf(res.exam);
-    var h = document.createElement('div'); h.className = 'tbig'; h.textContent = 'Result'; wrap.appendChild(h);
-    var exl = document.createElement('div'); exl.className = 'tsub small'; exl.textContent = ex.name + ' pattern · ' + ex.mark; wrap.appendChild(exl);
-    if(res.seed){ var sdl = document.createElement('div'); sdl.className = 'tsub small'; sdl.textContent = 'Paper seed ' + res.seed + ' — kept so this paper can be rebuilt exactly.'; wrap.appendChild(sdl); }
-
-    /* two sub-sections: the analysis, and the question-by-question review */
-    var _segrow = document.createElement('div'); _segrow.className = 'tchips'; _segrow.style.margin = '6px 0 10px';
+    /* the switcher sits at the very top; the bulky header is analysis-only, so the
+       review opens straight onto the questions instead of a wall of summary. */
+    var _segrow = document.createElement('div'); _segrow.className = 'tchips'; _segrow.style.margin = '0 0 8px';
     [['analysis', 'Analysis'], ['review', 'Review']].forEach(function(o){
       var b = document.createElement('button'); b.type = 'button';
       b.className = 'tchip' + (testResSeg === o[0] ? ' on' : ''); b.textContent = o[1];
@@ -9151,6 +9268,11 @@
       _segrow.appendChild(b);
     });
     wrap.appendChild(_segrow);
+    if(testResSeg === 'analysis'){
+      var h = document.createElement('div'); h.className = 'tbig'; h.textContent = 'Result'; wrap.appendChild(h);
+      var exl = document.createElement('div'); exl.className = 'tsub small'; exl.textContent = ex.name + ' pattern · ' + ex.mark; wrap.appendChild(exl);
+      if(res.seed){ var sdl = document.createElement('div'); sdl.className = 'tsub small'; sdl.textContent = 'Paper seed ' + res.seed + ' — kept so this paper can be rebuilt exactly.'; wrap.appendChild(sdl); }
+    }
 
     if(testResSeg !== 'review'){
     var _mix = paperMix((res.review || []).map(function(it){ return it.q; }));
@@ -9251,10 +9373,9 @@
     }
 
     if(testResSeg !== 'analysis' && res.review && res.review.length){
-      var rv = document.createElement('div'); rv.className = 'tcard';
-      var vl = document.createElement('div'); vl.className = 'tlabel'; vl.textContent = 'Review'; rv.appendChild(vl);
+      var rv = document.createElement('div'); rv.className = 'tcard tight';
       rv.appendChild(qLegend([['right','correct'],['wrong','wrong'],['skip','not attempted'],['mark','marked']]));
-      var _frow = document.createElement('div'); _frow.className = 'tchips'; _frow.style.margin = '4px 0 8px';
+      var _frow = document.createElement('div'); _frow.className = 'tchips'; _frow.style.margin = '2px 0 6px';
       [['all','All'],['wrong','Wrong'],['mark','Marked'],['skip','Skipped']].forEach(function(o){
         var b = document.createElement('button'); b.type = 'button'; b.className = 'tchip' + (testRevFilter === o[0] ? ' on' : ''); b.textContent = o[1];
         b.onclick = function(){ testRevFilter = o[0]; qimgRefreshResult(); };
@@ -9277,12 +9398,11 @@
         eb.appendChild(m);
         var qq = document.createElement('div'); qq.className = 'terr-q'; qq.textContent = q.q; eb.appendChild(qq);
         if(!testRevCompact){
-          qimgBlock(q.k, q.id, 'q', 'Question image', eb, qimgRefreshResult);
           var _qi2 = qImgEl(q.img); if(_qi2) eb.appendChild(_qi2);
           rvOptions(q, item.picked, eb);
           if(q.explain){ var ex = document.createElement('div'); ex.className = 'rvexp'; explainList(ex, q.explain, termCtx(q)); eb.appendChild(ex); }
-          qimgBlock(q.k, q.id, 'e', 'Explanation images', eb, qimgRefreshResult);
           var _sl1 = srcLine(q); if(_sl1) eb.appendChild(_sl1);
+          try{ mcqTools(q, eb, qimgRefreshResult); }catch(e){}
           if(!ok || item.mark){ errNoteRow(q.k, q.id, eb); }
         }
         rv.appendChild(eb);
@@ -9743,6 +9863,7 @@
           rvOptions(q, null, box);
           if(q.explain){ var ex = document.createElement('div'); ex.className = 'rvexp'; explainList(ex, q.explain, termCtx(q)); box.appendChild(ex); }
           var _sl2 = srcLine(q); if(_sl2) box.appendChild(_sl2);
+          try{ mcqTools(q, box, function(){ try{ renderErrors(); }catch(e){} }); }catch(e){}
         } else {
           var nq = document.createElement('div'); nq.className = 'muted small'; nq.textContent = e.k; box.appendChild(nq);
         }
