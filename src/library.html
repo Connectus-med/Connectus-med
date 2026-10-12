@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-22 02:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-22 04:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -1015,9 +1015,14 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-22 02:00';
-  var BUILD_NOTE = 'Fixed dark-mode text fields. The Find a question box had no background (its colour token was never defined) and used a text colour that never followed dark mode, so what you typed was invisible. The error-log note box had a broken CSS rule that dropped its own colours. Every text field now follows the theme, and a smoke test guards it.';
+  var APP_BUILD = '2026-10-22 04:00';
+  var BUILD_NOTE = 'Find a question searches again. The screen was searching an empty bank unless another screen had already pulled the questions in, so a fresh visit always said nothing matched. It now loads the questions itself, once, and then searches.';
   var CHANGELOG = [
+    { build:'2026-10-22 04:00', title:'Find a question works again', items:[
+      'The screen now loads your question bank itself before searching.',
+      'Before, a fresh visit searched an empty bank and always said nothing matched.',
+      'It also no longer caches an empty result, so the first search after loading finds everything.',
+    ]},
     { build:'2026-10-22 02:00', title:'Dark mode: text fields fixed', items:[
       'The Find a question box now has a real background and readable text in dark mode.',
       'Fixed a broken CSS rule that had dropped the error-log note box colours.',
@@ -7295,9 +7300,9 @@
     wrap.appendChild(card);
     pyqSwitch(wrap);
     box.appendChild(wrap);
-    var idx = null, hits = [], timer = null;
+    var idx = null, hits = [], timer = null, _triedHydrate = false;
     function buildIndex(){
-      if(idx) return idx;
+      if(idx && idx.length) return idx;
       idx = [];
       (decksData || []).forEach(function(d){
         if(!d || !d.deck_key) return;
@@ -7315,6 +7320,17 @@
       var q = (inp.value || '').trim().toLowerCase();
       res.textContent = ''; hits = []; act.disabled = true; act.textContent = 'Practise these';
       if(q.length < 2){ note('Type at least 2 letters.'); return; }
+      /* pull the cards in if this screen is opened before anything else has - it
+         used to search an empty bank and always answer "nothing matched". One
+         attempt per visit, so a failed fetch cannot loop. */
+      var _missing = (decksData || []).some(function(d){ return !(Array.isArray(d.cards) && d.cards.length); });
+      if(_missing && !_triedHydrate && typeof hydrateAll === 'function'){
+        _triedHydrate = true;
+        note('Loading your questions\u2026');
+        idx = null;
+        hydrateAll(function(){ try{ run(); }catch(e){} });
+        return;
+      }
       var all = buildIndex(), out = [];
       for(var i = 0; i < all.length && out.length < 80; i++){
         var it = all[i];
