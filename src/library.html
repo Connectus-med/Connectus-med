@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-21 08:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-21 10:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -995,9 +995,14 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-21 08:00';
-  var BUILD_NOTE = 'Smarter explanations: a label like Predisposing factors or Clinical features is now one point, and the items under it (Age, Hypertension, Marfan syndrome...) become its dashes instead of separate points.';
+  var APP_BUILD = '2026-10-21 10:00';
+  var BUILD_NOTE = 'Data discipline: the app now counts exactly how much data it uses today (shown in Settings), auto-sync defaults to every 10 minutes instead of pulling constantly, and unsent changes still push the moment you leave or close the app.';
   var CHANGELOG = [
+    { build:'2026-10-21 10:00', title:'How much data, and a calmer sync', items:[
+      'Settings now shows Data used today - counted from the real request sizes on this device.',
+      'Auto-sync defaults to every 10 minutes; pick 10 min, or any other pace, in Settings.',
+      'Your ratings and edits save locally at once and still push the moment the app is hidden or closed.',
+    ]},
     { build:'2026-10-21 08:00', title:'Smarter explanation points', items:[
       'A label ending in a colon is now the main point.',
       'The items listed under it become its dashes, not separate dots.',
@@ -2383,11 +2388,11 @@
   }
   function setLastSync(ts){ lastSyncAt = ts; renderLastSync(); }
   /* ---------- Sync: manual + auto (frequency presets / Always) ---------- */
-  var AUTO_OPTS = [['off','Off'], ['1','1 min'], ['5','5 min'], ['15','15 min'], ['60','1 hour'], ['always','Always']];
-  var AUTO_SYNC = ls('fd:autosync', 'always');
+  var AUTO_OPTS = [['off','Off'], ['1','1 min'], ['5','5 min'], ['10','10 min'], ['15','15 min'], ['60','1 hour'], ['always','Always']];
+  var AUTO_SYNC = ls('fd:autosync', '10');
   var autoSyncTimer = null;
   function autoLabel(v){ for(var i=0;i<AUTO_OPTS.length;i++){ if(AUTO_OPTS[i][0] === v) return AUTO_OPTS[i][1]; } return 'Always'; }
-  function autoMins(){ return AUTO_SYNC === 'always' ? 0 : (parseInt(AUTO_SYNC, 10) || 0); }
+  function autoMins(){ if(AUTO_SYNC === 'always') return 0; if(AUTO_SYNC === 'off') return -1; return (parseInt(AUTO_SYNC, 10) || 10); }
   function renderAutoSync(){
     var row = $('autoSyncRow'); if(!row) return;
     row.textContent = '';
@@ -2418,6 +2423,40 @@
     toast('Auto sync: ' + autoLabel(v));
   }
   function autoAllowed(){ return AUTO_SYNC !== 'off'; }
+
+  /* ---- how much data is this using? -------------------------------------
+     Every request to our own backend is counted (the on-the-wire size, i.e. the
+     compressed length when the server gzips). Today's total is kept locally and
+     shown in the profile menu, so the answer to "kitna data use hua" is exact
+     and on the device - not a guess. */
+  function netDay(){ var d = new Date(); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
+  function netAdd(n){
+    if(!n) return;
+    try{
+      var o = ls('fd:netbytes', null) || { d:netDay(), b:0 };
+      if(o.d !== netDay()) o = { d:netDay(), b:0 };
+      o.b += n; ss('fd:netbytes', o);
+    }catch(e){}
+  }
+  function netToday(){ try{ var o = ls('fd:netbytes', null); return (o && o.d === netDay()) ? (o.b || 0) : 0; }catch(e){ return 0; } }
+  function netFmt(n){ n = n || 0; return n >= 1048576 ? (Math.round(n / 104857.6) / 10) + ' MB' : (Math.round(n / 102.4) / 10) + ' KB'; }
+  (function(){
+    if(window.__fdNet) return; window.__fdNet = 1;
+    var of = window.fetch && window.fetch.bind(window); if(!of) return;
+    window.fetch = function(input, init){
+      var url = (typeof input === 'string') ? input : ((input && input.url) || '');
+      return of(input, init).then(function(res){
+        try{
+          if(url.indexOf('supabase.co') >= 0){
+            var cl = parseInt(res.headers.get('content-length') || '0', 10) || 0;
+            if(cl) netAdd(cl);
+            else if(res.clone){ res.clone().text().then(function(t){ netAdd(t.length); }).catch(function(){}); }
+          }
+        }catch(e){}
+        return res;
+      });
+    };
+  })();
 
   function withExpiry(d){ if(d && d.expires_in) d.expires_at = Math.floor(Date.now()/1000) + d.expires_in; return d; }
   function saveSession(s){ session = s; ss('fd:auth', s); }
@@ -9237,6 +9276,11 @@
     s.appendChild(sn);
     var ar = document.createElement('div'); ar.className = 'tchips'; ar.id = 'autoSyncRow'; ar.style.margin = '8px 0 2px'; s.appendChild(ar);
     var an = document.createElement('div'); an.className = 'muted small'; an.id = 'autoSyncNote'; an.style.margin = '0 0 4px'; s.appendChild(an);
+    /* exact, on-device answer to "kitna data use hua" - counted from the real
+       on-the-wire sizes of this device's requests to our backend */
+    var dn = document.createElement('div'); dn.className = 'muted small'; dn.style.margin = '2px 0 0';
+    dn.textContent = 'Data used today: ' + netFmt(netToday()) + '  \u00b7  this device only';
+    s.appendChild(dn);
     c.appendChild(s);
 
     /* Study & tests */
@@ -9778,10 +9822,24 @@
         if(st && st !== lastStamp){ lastStamp = st; load(); }
       }).catch(function(){});
   }
-  setInterval(function(){ if(session && !document.hidden){ try{ qFlush(); }catch(e){} pollChanged(); } }, 30000);
+  /* Data guard: the poll used to fire every 30 s for ever. It now follows the
+     Automatic-sync setting (default 10 min), and a change is only pulled in then.
+     Your own ratings/edits are still saved locally at once and pushed on the same
+     tick, on return to the app, or the moment the app is hidden or closed. */
+  setInterval(function(){
+    if(document.hidden) return;
+    if(autoAllowed()){
+      try{ qFlush(); }catch(e){}
+      if(session) pollChanged();
+    }
+  }, 60000);
   document.addEventListener('visibilitychange', function(){ if(!document.hidden){ selfUpdate(); if(session && autoAllowed() && (Date.now() - lastLoadAt > 30000)) pollChanged(); else { try{ renderLastSync(); }catch(e){} } } });
   window.addEventListener('online', function(){ if(session){ try{ qFlush(); }catch(e){} pollChanged(); } });
-  window.addEventListener('focus', function(){ selfUpdate(); if(session && autoAllowed() && (Date.now() - lastLoadAt > 30000)) pollChanged(); else { try{ renderLastSync(); }catch(e){} } });
+  window.addEventListener('focus', function(){ selfUpdate(); if(session && autoAllowed() && (Date.now() - lastLoadAt > 600000)) pollChanged(); else { try{ renderLastSync(); }catch(e){} } });
+  /* never sit on unsent work: push it when the app is backgrounded or closed */
+  function flushNow(){ if(!session) return; try{ qFlush(); }catch(e){} }
+  window.addEventListener('pagehide', flushNow);
+  document.addEventListener('visibilitychange', function(){ if(document.hidden) flushNow(); });
 
   try{ var _d = new Date(), _hh = _d.getHours(), _mm = ('0'+_d.getMinutes()).slice(-2); sessionStorage.setItem('fd:loaded', ('0'+_hh).slice(-2) + ':' + _mm); }catch(e){}
   applyBuild(); buildToast();
