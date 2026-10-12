@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-18 16:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-18 18:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -890,9 +890,15 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-18 16:00';
-  var BUILD_NOTE = 'App still-to-build: stamina drill + scheduled weekly grand test (test engine), and coverage drill-down, time studied and weakest-topics ranking (analytics).';
+  var APP_BUILD = '2026-10-18 18:00';
+  var BUILD_NOTE = 'Seed field tucked under Advanced options on the Real Exam setup; the one-tap retake is renamed Retake this exact paper.';
   var CHANGELOG = [
+    { build:'2026-10-18 18:00', title:'Seed under Advanced; one-tap retake', items:[
+      'The Real Exam setup no longer shows a raw Paper seed box - a student never needs to manage seeds.',
+      'It now sits under an Advanced options toggle, for anyone who wants a reproducible paper.',
+      'The result screen keeps the one-tap retake, now named Retake this exact paper.',
+      'The no-repeat note - questions from your last papers are avoided - stays visible on the setup.',
+    ]},
     { build:'2026-10-18 16:00', title:'Test engine + analytics: stamina, scheduling, drill-down', items:[
       'New Stamina drill - a long mixed timed set from every subject, built for exam endurance.',
       'New Weekly grand test - schedule a full paper on a fixed day; the app shows the next one and flags it as due on Home and on the Test screen.',
@@ -6845,6 +6851,7 @@
     wrap.appendChild(elb);
   }
 
+  var showSeed = false;
   function renderTestGrand(){
     testDeck = ''; testCustom = false; testPriority = null; pendingScope = null;
     var ex = examOf(testExam);
@@ -6888,24 +6895,34 @@
     var pnote = document.createElement('div'); pnote.className = 'tsub small';
     pnote.textContent = 'Real paper — ' + ex.q + ' questions · ' + (Math.round(ex.mins/6)/10) + ' h · ' + ex.sec + '. The paper is always the real size, with the real question numbering.';
     c2.appendChild(pnote);
+    var repN = document.createElement('div'); repN.className = 'tsub small'; repN.style.marginTop = '4px';
+    repN.textContent = 'Questions you saw in your last ' + TEST_SEEN_N + ' papers are avoided while fresh ones last.';
+    c2.appendChild(repN);
     wrap.appendChild(c2);
 
-    var c4 = document.createElement('div'); c4.className = 'tcard';
-    var l4 = document.createElement('div'); l4.className = 'tlabel'; l4.textContent = 'Paper seed'; c4.appendChild(l4);
-    var sRow = document.createElement('div'); sRow.className = 'tchips';
-    var sIn = document.createElement('input'); sIn.type = 'text'; sIn.inputMode = 'numeric'; sIn.className = 'tsel'; sIn.style.maxWidth = '150px';
-    sIn.value = String(testSeed || '');
-    sIn.onchange = function(){ var v = parseInt(String(sIn.value).replace(/[^0-9]/g, ''), 10); testSeed = (v > 0) ? v : 0; renderTest(); };
-    sRow.appendChild(sIn);
-    var sNew = document.createElement('button'); sNew.type = 'button'; sNew.className = 'tchip';
-    sNew.textContent = 'New seed';
-    sNew.onclick = function(){ testSeed = 0; renderTest(); };
-    sRow.appendChild(sNew);
-    c4.appendChild(sRow);
-    var sN = document.createElement('div'); sN.className = 'tsub small';
-    sN.textContent = 'Same seed = the same paper. Note the seed down, type it here, and you rebuild this exact paper. Questions used in your last ' + TEST_SEEN_N + ' papers are avoided while fresh ones last.';
-    c4.appendChild(sN);
-    wrap.appendChild(c4);
+    var advBtn = document.createElement('button'); advBtn.type = 'button'; advBtn.className = 'tstart ghost'; advBtn.style.marginTop = '10px';
+    advBtn.textContent = showSeed ? 'Hide advanced options' : 'Advanced options';
+    advBtn.onclick = function(){ showSeed = !showSeed; renderTest(); };
+    wrap.appendChild(advBtn);
+
+    if(showSeed){
+      var c4 = document.createElement('div'); c4.className = 'tcard';
+      var l4 = document.createElement('div'); l4.className = 'tlabel'; l4.textContent = 'Paper seed'; c4.appendChild(l4);
+      var sRow = document.createElement('div'); sRow.className = 'tchips';
+      var sIn = document.createElement('input'); sIn.type = 'text'; sIn.inputMode = 'numeric'; sIn.className = 'tsel'; sIn.style.maxWidth = '150px';
+      sIn.value = String(testSeed || '');
+      sIn.onchange = function(){ var v = parseInt(String(sIn.value).replace(/[^0-9]/g, ''), 10); testSeed = (v > 0) ? v : 0; renderTest(); };
+      sRow.appendChild(sIn);
+      var sNew = document.createElement('button'); sNew.type = 'button'; sNew.className = 'tchip';
+      sNew.textContent = 'New seed';
+      sNew.onclick = function(){ testSeed = 0; renderTest(); };
+      sRow.appendChild(sNew);
+      c4.appendChild(sRow);
+      var sN = document.createElement('div'); sN.className = 'tsub small';
+      sN.textContent = 'Same seed = the same paper \u2014 leave it blank for a fresh one.';
+      c4.appendChild(sN);
+      wrap.appendChild(c4);
+    }
 
     var pool = testPool(testScope);
     var unlockedDecks = 0;
@@ -8027,7 +8044,7 @@
     var ex = examOf(res.exam);
     var h = document.createElement('div'); h.className = 'tbig'; h.textContent = 'Result'; wrap.appendChild(h);
     var exl = document.createElement('div'); exl.className = 'tsub small'; exl.textContent = ex.name + ' pattern · ' + ex.mark; wrap.appendChild(exl);
-    if(res.seed){ var sdl = document.createElement('div'); sdl.className = 'tsub small'; sdl.textContent = 'Paper seed ' + res.seed + ' — type it on the Real Exam setup to rebuild this exact paper.'; wrap.appendChild(sdl); }
+    if(res.seed){ var sdl = document.createElement('div'); sdl.className = 'tsub small'; sdl.textContent = 'Paper seed ' + res.seed + ' — kept so this paper can be rebuilt exactly.'; wrap.appendChild(sdl); }
     var sc = document.createElement('div'); sc.className = 'tscore'; sc.textContent = (Math.round(res.score*100)/100) + ' / ' + (Math.round(res.max*100)/100); wrap.appendChild(sc);
     var al = document.createElement('div'); al.className = 'tsub';
     al.textContent = res.right + ' correct · ' + res.wrong + ' wrong' + (ex.neg ? ' (' + ex.neg + ' each)' : ' (no negative)') + ' · ' + res.skipped + ' not attempted · ' + fmtClock(res.secs);
@@ -8160,7 +8177,7 @@
     wrap.appendChild(rb);
 
     var rt = document.createElement('button'); rt.type = 'button'; rt.className = 'tstart ghost';
-    rt.textContent = 'Retake these questions';
+    rt.textContent = 'Retake this exact paper';
     rt.onclick = function(){ view.tResult = null; testStart(res.review.map(function(it){ return it.q; })); };
     wrap.appendChild(rt);
 
