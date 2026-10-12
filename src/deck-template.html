@@ -17,9 +17,8 @@
     --bg:#000000; --panel:#141210; --ink:#f6efe9; --muted:#a99a8d; --line:#2b2622;
   }
   *{box-sizing:border-box}
-  html,body{margin:0;padding:0;height:100%;overflow:hidden;overscroll-behavior:none}
+  html,body{margin:0;padding:0;height:100%;overflow:hidden}
   body{
-    position:fixed; inset:0; width:100%; height:100%; overscroll-behavior:none; touch-action:manipulation;
     background:var(--bg); color:var(--ink);
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     -webkit-font-smoothing:antialiased; display:flex; flex-direction:column;
@@ -29,58 +28,19 @@
   .hidden{display:none!important}
 
   /* ---- banner ---- */
-  .banner{padding:10px 14px 8px; background:var(--panel); border-bottom:1px solid var(--line);
-    position:relative; z-index:6; padding-top:calc(10px + env(safe-area-inset-top,0px))}
+  .banner{padding:12px 16px 10px; background:var(--panel); border-bottom:1px solid var(--line);
+    position:relative; z-index:6; padding-top:calc(12px + env(safe-area-inset-top,0px))}
   .head-top{display:flex; align-items:center; gap:10px}
   .topic{font-size:1.1rem; font-weight:750; letter-spacing:-.01em; line-height:1.2; flex:1; min-width:0}
   .capsule{border:1px solid var(--line); background:var(--panel); border-radius:var(--cap); padding:7px 13px; font-size:.82rem; font-weight:600}
-  .shuffle-row{display:flex; justify-content:center; gap:8px; margin-top:6px}
-  .tagbar{display:flex; gap:6px; justify-content:flex-start; flex-wrap:nowrap; overflow-x:auto; margin-top:6px; padding-bottom:2px; -webkit-overflow-scrolling:touch; scrollbar-width:none}
-  .tagbar::-webkit-scrollbar{display:none}
-  .tchip{border:1px solid var(--line); background:var(--panel); color:var(--muted); border-radius:var(--cap); padding:5px 11px; font-size:.72rem; font-weight:700; flex:0 0 auto; white-space:nowrap}
+  .shuffle-row{display:flex; justify-content:center; gap:8px; margin-top:8px}
+  .tagbar{display:flex; gap:6px; justify-content:center; flex-wrap:wrap; margin-top:8px}
+  .tchip{border:1px solid var(--line); background:var(--panel); color:var(--muted); border-radius:var(--cap); padding:5px 11px; font-size:.72rem; font-weight:700}
   .tchip.on{background:var(--accent-2); border-color:var(--accent-2); color:#fff}
-  .cardtag{font-size:.66rem; font-weight:800; letter-spacing:.02em; padding:4px 10px; border-radius:var(--cap); color:var(--accent-2); background:var(--accent-soft); line-height:1.15; white-space:nowrap}
+  .cardtag{position:absolute; top:14px; right:16px; font-size:.66rem; font-weight:800; letter-spacing:.02em; padding:4px 10px; border-radius:var(--cap); color:var(--accent-2); background:var(--accent-soft)}
   .back .cardtag{color:#fff; background:var(--accent-2)}
-  .toprow{position:absolute; top:14px; left:18px; right:16px; display:flex; align-items:center; justify-content:flex-start; gap:8px; flex-wrap:wrap; z-index:5}
-  .cidtop{font-size:.66rem; font-weight:800; letter-spacing:.02em; color:var(--muted); opacity:.85; white-space:nowrap}
-  .cidtop:empty{display:none}
-  .chipgroup{display:flex; align-items:center; justify-content:flex-end; gap:8px; flex-wrap:wrap; margin-left:auto}
-  .cardtag.tappable{cursor:pointer}
-  .card.notice{cursor:default}
-  .rate.locked button{opacity:.45; cursor:not-allowed; filter:grayscale(.35)}
-  .rate.locked button.on{opacity:.8; cursor:not-allowed}
-  .rate.locked button .lk{margin-left:5px; font-size:12px; vertical-align:middle}
-  .intervals.locked .btn{opacity:.6; cursor:not-allowed}
-  .intervals.locked .ivlabel{opacity:.7}
-  .card.notice .toprow{display:none}
-  .nothingdue{display:flex; flex-direction:column; align-items:center; gap:10px; text-align:center}
-  .nd-h{font-size:1.15rem; font-weight:800}
-  .nd-p{color:var(--muted); font-size:.9rem; max-width:32ch}
-  .cardimg{display:block; max-width:100%; max-height:30vh; margin:12px auto 0; border-radius:12px; border:1px solid var(--line)}
-  .edimgrow{display:flex; align-items:center; gap:10px; margin:6px 0 10px; flex-wrap:wrap}
-  .edimgrow img{max-height:60px; max-width:120px; border-radius:8px; border:1px solid var(--line); display:block}
-  .edimgprev{display:flex; flex-wrap:wrap; gap:10px; margin:4px 0 10px}
-  .edimgprev .thumb{position:relative}
-  .edimgprev img{max-height:66px; max-width:120px; border-radius:8px; border:1px solid var(--line); display:block}
-  .edimgprev .rm{position:absolute; top:-7px; right:-7px; width:22px; height:22px; border-radius:50%; border:0; background:#c81e1e; color:#fff; font-weight:800; font-size:.82rem; line-height:1; cursor:pointer; padding:0}
-  .clipick{position:fixed; inset:0; z-index:75; background:rgba(0,0,0,.55); display:flex; align-items:center; justify-content:center; padding:20px}
-  .clipick-box{background:var(--panel); color:var(--ink); border:1px solid var(--line); border-radius:18px; padding:16px; width:min(360px,92vw); display:flex; flex-direction:column; gap:10px; max-height:82vh; overflow:auto}
-  .clipick-h{font-size:.82rem; font-weight:800; color:var(--muted)}
-  .clipick-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(92px,1fr)); gap:10px}
-  .clipick-grid img{width:100%; border-radius:10px; border:1px solid var(--line); cursor:pointer; display:block}
-  /* (Cards-over overlay removed — the results now open on their own) */
-  .toast{position:fixed; left:50%; bottom:calc(84px + env(safe-area-inset-bottom,0px)); transform:translateX(-50%) translateY(10px); background:rgba(25,18,12,.94); color:#fff; padding:10px 16px; border-radius:999px; font-size:.85rem; font-weight:600; opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; z-index:90; max-width:88vw; text-align:center; box-shadow:0 10px 30px -10px rgba(0,0,0,.5)}
-  .toast.on{opacity:1; transform:translateX(-50%) translateY(0)}
-  .tagpick{position:fixed; inset:0; z-index:70; background:rgba(0,0,0,.45); display:flex; align-items:center; justify-content:center; padding:20px}
-  .tagpick-box{background:var(--panel,#fff); color:var(--ink,#20160f); border:1px solid var(--line,#ecdfd3); border-radius:18px; padding:16px; width:min(320px,92vw); display:flex; flex-direction:column; gap:8px}
-  .tagpick-h{font-size:.72rem; font-weight:800; text-transform:uppercase; letter-spacing:.08em; color:var(--muted,#7a6a5d); margin-bottom:2px}
   .icon-btn{width:38px; height:38px; border-radius:var(--cap); border:1px solid var(--line); background:var(--panel); font-size:1rem; display:flex; align-items:center; justify-content:center}
-  .cardicon{position:relative}
-  .cardicon .ci{position:absolute; top:50%; left:50%; width:11px; height:16px; border-radius:3px; box-shadow:0 0 0 1.5px var(--panel)}
-  .cardicon .ci1{background:#b45309; transform:translate(-50%,-50%) translateX(-6.5px) rotate(-22deg)}
-  .cardicon .ci2{background:#1d4ed8; transform:translate(-50%,-50%); z-index:2}
-  .cardicon .ci3{background:#0f766e; transform:translate(-50%,-50%) translateX(6.5px) rotate(22deg)}
-  .meta{color:var(--muted); font-size:.76rem; margin-top:4px; text-align:center}
+  .meta{color:var(--muted); font-size:.78rem; margin-top:6px; text-align:center}
   .meta .due{color:var(--accent-2); font-weight:700}
   .bar{height:4px; background:var(--line); border-radius:var(--cap); margin-top:8px; overflow:hidden}
   .bar>i{display:block; height:100%; width:0; background:linear-gradient(90deg,var(--accent),var(--accent-2)); transition:width .25s ease}
@@ -97,98 +57,42 @@
 
   .card{position:relative; width:100%; max-width:680px; height:100%; cursor:pointer}
   .face{position:absolute; inset:0; background:var(--panel); border:1px solid var(--line);
-    border-radius:var(--radius); padding:46px 18px 14px; display:flex; flex-direction:column; justify-content:center;
+    border-radius:var(--radius); padding:34px 24px 24px; display:flex; flex-direction:column; justify-content:center;
     box-shadow:0 22px 48px -20px rgba(120,60,10,.34), 0 6px 16px -8px rgba(120,60,10,.18);
     -webkit-backface-visibility:hidden; backface-visibility:hidden; overflow:hidden}
-  .inner{flex:0 1 auto; min-height:0; max-height:100%; overflow:auto; overscroll-behavior:contain; -webkit-overflow-scrolling:touch}
-  /* the answer takes the room; source / my note / improvements sit as one footer at the bottom */
-  .back .inner{flex:1 1 auto; display:flex; flex-direction:column; min-height:0; overflow:hidden}
-  #a{flex:1 1 auto; min-height:0; overflow:auto; overscroll-behavior:contain; -webkit-overflow-scrolling:touch; display:flex; flex-direction:column; justify-content:safe center}
+  .inner{max-height:100%; overflow:auto}
   .card:not(.flipped) .back{display:none}
   .card.flipped .front{display:none}
   .card.flipped .back{animation:flipin .34s ease}
   .card:not(.flipped) .front{animation:flipin .34s ease}
   @keyframes flipin{from{transform:rotateY(68deg); opacity:.3} to{transform:rotateY(0); opacity:1}}
-  .tag{font-size:.66rem; font-weight:700; letter-spacing:.1em;
-    text-transform:uppercase; padding:4px 11px; border-radius:var(--cap); line-height:1.15; white-space:nowrap}
+  .tag{position:absolute; top:14px; left:18px; font-size:.68rem; font-weight:700; letter-spacing:.1em;
+    text-transform:uppercase; padding:4px 11px; border-radius:var(--cap)}
   .front .tag{color:var(--accent-2); background:var(--accent-soft)}
   .back .tag{color:#fff; background:var(--accent-2)}
-  .vbadge{font-size:.66rem; font-weight:800; letter-spacing:.02em; padding:4px 10px; border-radius:var(--cap); background:var(--line); color:var(--muted); cursor:pointer; white-space:nowrap; user-select:none; line-height:1.15}
-  .vbadge.on{background:#16a34a; color:#fff}
-  /* the verify chip lives at the bottom, beside the controls - not in the card's
-     top row, where it crowded the Question/Answer tag */
-  .vrow{display:flex; justify-content:flex-start; align-items:center; margin-top:7px}
-  .vrow .vbadge{cursor:pointer}
-  .vrow:empty, .vrow.hidden{display:none}
   .lead{font-size:1.34rem; line-height:1.45; font-weight:700; letter-spacing:-.01em; margin:0}
   .back .lead{font-weight:600}
   .pts{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:11px}
-  .pts>li{padding-left:22px; text-indent:-22px; font-size:1.08rem; line-height:1.4; font-weight:550}
-  .pts>li::before{content:""; display:inline-block; vertical-align:middle; width:8px; height:8px; border-radius:50%; background:var(--accent-2); margin-right:14px}
+  .pts>li{position:relative; padding-left:24px; font-size:1.08rem; line-height:1.4; font-weight:550}
+  .pts>li::before{content:""; position:absolute; left:1px; top:.52em; width:8px; height:8px; border-radius:50%; background:var(--accent-2)}
   .pts .sub{list-style:none; margin:8px 0 0; padding:0; display:flex; flex-direction:column; gap:6px}
-  .pts .sub li{padding-left:16px; text-indent:-16px; font-size:.96rem; line-height:1.38; font-weight:450; color:var(--muted)}
-  .tblwrap{margin:8px 0; max-width:100%}
-  .tbl{border-collapse:separate; border-spacing:0; width:max-content; min-width:100%; font-size:.9rem; line-height:1.35}
-  .tbl th, .tbl td{border-bottom:1px solid var(--line); border-right:1px solid var(--line);
-    padding:7px 10px; text-align:left; vertical-align:top; background:var(--panel)}
-  .tbl th{border-top:1px solid var(--line)}
-  .tbl tr > *:first-child{border-left:1px solid var(--line)}
-  /* the header row stays put while a tall table scrolls */
-  .tbl thead th{position:sticky; top:0; z-index:2; background:var(--accent-soft); color:var(--accent-2); font-weight:800; white-space:nowrap}
-  /* the first column looks like the header, and stays put while a wide table scrolls sideways */
-  .tbl thead th:first-child, .tbl tbody td:first-child{
-    position:sticky; left:0; background:var(--accent-soft); color:var(--accent-2); font-weight:800; white-space:nowrap}
-  .tbl thead th:first-child{z-index:3}
-  .tbl tbody td:first-child{z-index:1}
-  .pts > li.tblrow{padding-left:0}
-  .pts > li.tblrow::before{display:none}
-  .pts .sub li::before{content:""; display:inline-block; vertical-align:middle; width:9px; height:2px; border-radius:2px; background:var(--muted); opacity:.6; margin-right:7px}
+  .pts .sub li{position:relative; padding-left:16px; font-size:.96rem; line-height:1.38; font-weight:450; color:var(--muted)}
+  .pts .sub li::before{content:""; position:absolute; left:1px; top:.72em; width:9px; height:2px; border-radius:2px; background:var(--muted); opacity:.6}
   .blank{display:inline-block; min-width:4ch; height:1.02em; vertical-align:-.13em;
     background:var(--accent-soft); border-bottom:2px solid var(--accent-2); border-radius:5px}
   .hl{background:var(--accent-soft); color:var(--accent-2); font-weight:800; border-radius:5px; padding:0 .26em}
-  /* MCQ cards */
-  .mcqopts{margin-top:12px; display:flex; flex-direction:column; gap:7px}
-  .mcqopt{display:flex; gap:9px; align-items:flex-start; padding:9px 11px; border:1px solid var(--line); border-radius:12px; background:var(--panel)}
-  .mcqlet{font-weight:800; color:var(--accent-2); min-width:15px}
-  .mcqtext{flex:1; line-height:1.4; font-weight:500}
-  .mcqopt.correct{border-color:var(--accent-2); background:var(--accent-soft)}
-  .mcqopt.correct .mcqtext{font-weight:700}
-  .mcqansline{margin-top:10px; font-weight:800; color:var(--accent-2); font-size:.92rem}
-  .mcqexp{margin-top:8px; padding:10px 12px; border-left:3px solid var(--accent-2); background:var(--accent-soft); border-radius:10px; font-size:.9rem; line-height:1.5; font-weight:500}
   .occwrap{display:flex; flex-direction:column; gap:12px; align-items:center}
   .occ{position:relative; display:inline-block; max-width:100%}
   .occ img{display:block; max-width:100%; height:auto; border-radius:14px; border:1px solid var(--line)}
   .occbox{position:absolute; border-radius:6px; background:var(--accent-2); color:#fff; font-size:.7rem;
     font-weight:700; display:flex; align-items:center; justify-content:center; padding:2px; overflow:hidden}
   .occbox.revealed{background:var(--accent-soft); color:var(--accent-2); border:1px solid var(--accent-2)}
-  .src{margin-top:6px; font-size:.72rem; color:var(--muted); font-weight:500; display:flex; align-items:center; gap:8px; justify-content:space-between; flex-wrap:nowrap}
-  .srctxt{flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
-  .src .vbadge{flex:none; font-size:.62rem; padding:3px 9px}
-  .cid{margin-top:3px; font-size:.7rem; font-weight:700; color:var(--muted); letter-spacing:.02em; opacity:.9}
-  .note{margin-top:4px; padding:8px 12px; border-left:3px solid var(--accent-2); background:var(--accent-soft);
-    border-radius:8px; font-size:.85rem; line-height:1.4; white-space:pre-wrap; overflow-wrap:anywhere}
+  .src{margin-top:16px; font-size:.75rem; color:var(--muted); font-weight:500}
+  /* owner-only fixed-id chip (the card's cid), shown beside the source line */
+  .idchip{display:inline-block; margin-left:8px; padding:1px 7px; border:1px solid var(--line); border-radius:999px; font-size:.66rem; font-weight:700; letter-spacing:.05em; color:var(--muted); font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; vertical-align:middle}
+  .note{margin-top:12px; padding:10px 12px; border-left:3px solid var(--accent-2); background:var(--accent-soft);
+    border-radius:8px; font-size:.85rem; line-height:1.4}
   .note b{color:var(--accent-2)}
-  .noterow{display:flex; align-items:center; gap:8px; margin-top:8px}
-  .noterow .nlbl{flex:1; font-size:.72rem; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--accent-2)}
-  .penbtn{flex:none; width:34px; height:34px; border:1px solid var(--line); background:var(--panel); color:var(--accent-2);
-    border-radius:999px; font-size:1rem; line-height:1; display:flex; align-items:center; justify-content:center; cursor:pointer}
-  .penbtn:active{transform:translateY(1px)}
-  .noteadd{display:block; width:100%; margin-top:12px; padding:9px 12px; border:1px dashed var(--line);
-    background:none; color:var(--muted); border-radius:10px; font:inherit; font-size:.82rem; font-weight:700; cursor:pointer}
-  .noteadd:active{transform:translateY(1px)}
-  .noteedit{margin-top:12px; border-left:3px solid var(--accent-2); background:var(--accent-soft); border-radius:8px; padding:10px 12px}
-  .noteedit textarea{width:100%; min-height:74px; resize:vertical; font:inherit; font-size:.88rem; line-height:1.45;
-    border:1px solid var(--line); border-radius:9px; padding:9px 10px; background:var(--panel); color:var(--ink)}
-  .noteedit .nerow{display:flex; gap:8px; justify-content:flex-end; margin-top:8px}
-  .improw{display:flex; align-items:center; gap:6px; margin-top:6px; flex-wrap:nowrap}
-  .improw .lbl{flex:1 1 auto; min-width:0; font-size:.72rem; font-weight:800; letter-spacing:.02em; color:var(--accent-2);
-    white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-  .improw .nm2{flex:0 0 auto; font-size:.72rem; font-weight:700; color:var(--muted)}
-  .improw .nm2.on{color:var(--ink)}
-  .improw .penbtn{width:28px; height:28px; font-size:.85rem}
-  .imprans{margin-top:6px; padding:10px 12px; border-left:3px solid var(--accent-2); background:var(--accent-soft);
-    border-radius:8px; font-size:.85rem; line-height:1.45}
-  .imprans b{display:block; color:var(--accent-2); font-size:.7rem; letter-spacing:.06em; text-transform:uppercase; margin-bottom:3px}
 
   /* buttons */
   .btn{border:1px solid var(--line); background:var(--panel); border-radius:var(--cap); padding:11px 18px; font-size:.9rem; font-weight:600; box-shadow:0 2px 6px -3px rgba(120,60,10,.3)}
@@ -207,67 +111,47 @@
   .ivlabel{font-size:.75rem; color:var(--muted); align-self:center; margin-right:2px}
 
   /* fixed edit */
-  #editBtn{position:static}
+  #editBtn{position:fixed; left:14px; bottom:calc(14px + env(safe-area-inset-bottom,0px)); z-index:8}
 
-  /* the menu drawer was removed — the deck no longer has a hamburger */
+  /* drawer */
+  .backdrop{position:fixed; inset:0; background:rgba(0,0,0,.5); opacity:0; pointer-events:none; transition:opacity .22s; z-index:30}
+  .backdrop.open{opacity:1; pointer-events:auto}
+  .drawer{position:fixed; top:0; right:0; height:100%; width:min(300px,84vw); background:var(--panel);
+    transform:translateX(105%); transition:transform .24s ease; z-index:31; display:flex; flex-direction:column;
+    padding:calc(16px + env(safe-area-inset-top,0px)) 16px calc(16px + env(safe-area-inset-bottom,0px)); gap:10px; overflow:auto;
+    border-left:1px solid var(--line)}
+  .drawer.open{transform:none}
+  .drawer-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:4px}
+  .drawer-head span{font-weight:750; font-size:1rem}
+  .drawer .btn{width:100%; text-align:left; padding:13px 16px}
 
   /* cards sheet */
   .sheet{position:fixed; inset:0; background:var(--bg); z-index:32; display:flex; flex-direction:column;
     padding-top:calc(12px + env(safe-area-inset-top,0px))}
   .sheet-head{display:flex; align-items:center; justify-content:space-between; padding:4px 16px 8px}
   .sheet-head span{font-weight:750}
-  .sheet .list{flex:1; overflow:auto; overscroll-behavior:contain; padding:4px 14px 96px; display:flex; flex-direction:column; gap:8px}
+  .sheet .list{flex:1; overflow:auto; padding:4px 14px 96px; display:flex; flex-direction:column; gap:8px}
   .cardrow{border:1px solid var(--line); background:var(--panel); border-radius:14px; padding:12px 14px;
-  .cardrow{content-visibility:auto; contain-intrinsic-size:auto 54px}
     text-align:left; font-size:.9rem; line-height:1.35; display:flex; gap:10px; align-items:flex-start}
   .cardrow .n{color:var(--muted); font-weight:700; min-width:1.6em}
-  .cardrow .tx{flex:1; min-width:0}
-  .navstats{display:flex; flex-wrap:wrap; align-items:baseline; gap:2px 7px; padding:2px 16px 10px; font-size:.72rem; color:var(--muted)}
-  .navstats .ns{display:inline-flex; align-items:baseline; gap:4px}
-  .navstats .ns i{font-style:normal}
-  .navstats .ns b{color:var(--ink); font-size:.88rem; font-weight:800}
-  .navstats .ns-sep{color:var(--line)}
-  .navlegend{display:flex; flex-wrap:wrap; gap:6px; align-items:center; padding:2px 16px 10px}
-  .navlegend .lg{font-size:.58rem; font-weight:800; letter-spacing:.07em; text-transform:uppercase; color:#fff; padding:3px 9px; border-radius:999px; line-height:1.4}
-  .cardrow .vbtn{flex:none; width:26px; height:26px; border-radius:50%; border:1px solid var(--line); background:transparent; color:#b9a99b; font-weight:900; font-size:.95rem; line-height:1; padding:0; cursor:pointer}
-  .cardrow .vbtn.on{background:#16a34a; border-color:#16a34a; color:#fff}
+  .cardrow .dotmark{width:9px; height:9px; border-radius:50%; margin-top:.45em; flex:none}
   .searchwrap{position:absolute; left:14px; right:14px; bottom:calc(14px + env(safe-area-inset-bottom,0px)); z-index:2}
   .search{width:100%; border-radius:var(--cap); border:1px solid var(--line); background:var(--panel);
     color:var(--ink); padding:13px 20px; font-size:.95rem; box-shadow:0 12px 30px -14px rgba(120,60,10,.4)}
 
   /* editor */
-  .flagpanel{position:fixed; inset:0; z-index:35; display:flex; align-items:flex-end; justify-content:center;
-    background:rgba(40,20,5,.42)}
-  .fp-box{width:100%; max-width:560px; background:var(--panel); border:1px solid var(--line);
-    border-radius:22px 22px 0 0; padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px)); box-shadow:var(--shadow)}
-  .fp-h{font-size:1.02rem; font-weight:800}
-  .fp-sub{font-size:.82rem; color:var(--muted); margin:3px 0 12px; font-weight:600}
-  .fp-chips{display:flex; flex-wrap:wrap; gap:8px}
-  .fp-chip{border:1px solid var(--line); background:var(--panel); color:var(--ink); border-radius:var(--cap);
-    padding:9px 15px; font:inherit; font-size:.88rem; font-weight:700; cursor:pointer}
-  .fp-chip.on{background:var(--accent-soft); border-color:var(--accent-2); color:var(--accent-2)}
-  .fp-row{margin-top:14px; display:flex; justify-content:flex-end}
-  .flagbtn-on{border-color:var(--accent-2); color:var(--accent-2)}
-  .editor{position:fixed; inset:0; background:var(--bg); z-index:33; overflow:auto; overscroll-behavior:contain;
+  .editor{position:fixed; inset:0; background:var(--bg); z-index:33; overflow:auto;
     padding:calc(14px + env(safe-area-inset-top,0px)) 16px calc(20px + env(safe-area-inset-bottom,0px))}
   .editor h3{margin:2px 0 10px; font-size:1rem}
-  .editor .edhead{display:flex; align-items:center; justify-content:space-between; gap:10px; margin:2px 0 10px}
-  .editor .edhead h3{margin:0}
-  .editor .edheadbtns{display:flex; gap:8px; flex:0 0 auto}
-  .editor .edheadbtns .btn{padding:7px 16px; font-size:.82rem}
   .editor label{display:block; font-size:.78rem; color:var(--muted); font-weight:600; margin:12px 0 5px}
   .editor textarea{width:100%; min-height:84px; border:1px solid var(--line); border-radius:14px; background:var(--panel);
     color:var(--ink); padding:12px; font:inherit; font-size:.92rem; resize:vertical}
   .editor .hint{font-size:.72rem; color:var(--muted); margin-top:4px}
   .editor .row{display:flex; gap:8px; flex-wrap:wrap; margin-top:16px}
   .editor .row .btn{flex:1; text-align:center}
-  .editor .row.toolrow{align-items:flex-start}
-  .editor .tool{flex:1; min-width:0; display:flex; flex-direction:column}
-  .editor .tool .btn{flex:0 0 auto; width:100%}
-  .editor .tool .cap{display:block; margin-top:6px; padding:0 2px; font-size:.7rem; line-height:1.35; color:var(--muted)}
 
   /* stats / results */
-  .panel{position:fixed; inset:0; z-index:34; overflow:auto; overscroll-behavior:contain; background:var(--bg);
+  .panel{position:fixed; inset:0; z-index:34; overflow:auto; background:var(--bg);
     padding:calc(16px + env(safe-area-inset-top,0px)) 16px calc(20px + env(safe-area-inset-bottom,0px))}
   .panel .wrap{max-width:520px; margin:0 auto}
   .rhead{font-size:1.05rem; font-weight:750; text-align:center}
@@ -311,45 +195,44 @@
     #next{grid-area:right; align-self:center}
     #flip{grid-area:flip; justify-self:center}
     .card{max-width:760px}
-  }
-  /* ---- tablet (portrait, wide): keep banner + controls in the same column as the card ---- */
-  @media (min-width:700px) and (orientation:portrait){
-    .banner > .head-top, .banner > .shuffle-row, .banner > .tagbar, .banner > .meta, .banner > .bar{
-      max-width:720px; margin-left:auto; margin-right:auto}
-    main > .controls, main > .rate, main > .intervals{max-width:720px; width:100%; margin-left:auto; margin-right:auto}
-    .card{max-width:720px}
+    #editBtn{top:calc(64px + env(safe-area-inset-top,0px)); bottom:auto; left:14px}
   }
   @media(max-width:520px){
     .lead{font-size:1.16rem}
     .pts>li{font-size:1rem}
-    .face{padding:52px 18px 20px}
+    .face{padding:30px 18px 20px}
   }
-  /* ---- Privacy: no copy, save, drag or print route for non-owners ---- */
-  body.nocopy .card{-webkit-user-select:none; user-select:none; -webkit-touch-callout:none}
-  body.nocopy .card input, body.nocopy .card textarea{-webkit-user-select:text; user-select:text; -webkit-touch-callout:default}
-  body.nocopy .card img{-webkit-user-drag:none; user-drag:none}
-  @media print{ body.nocopy .card{display:none !important} }
-  .back{padding-bottom:12px}
 </style>
 </head>
 <body>
 <header class="banner">
   <div class="head-top">
     <div class="topic">{{TOPIC}}</div>
-    <button id="menuBtn" class="icon-btn cardicon" aria-label="Cards"><span class="ci ci1"></span><span class="ci ci2"></span><span class="ci ci3"></span></button>
+    <button id="menuBtn" class="icon-btn" aria-label="Menu">&#9776;</button>
   </div>
-  <div class="shuffle-row"><button id="shuffle" class="capsule">Shuffle: off</button><button id="editBtn" class="capsule">Edit</button><button id="tagBtn" class="capsule">Tag: —</button><button id="flagBtn" class="capsule">Report</button></div>
+  <div class="shuffle-row"><button id="shuffle" class="capsule">Shuffle: off</button><button id="tagBtn" class="capsule">Tag: —</button></div>
   <div class="tagbar" id="tagbar"></div>
-  <div class="meta"><span class="due" id="due"></span><span id="rounds" style="font-weight:600"></span><span id="lastprac"></span><span id="cloud" style="color:var(--accent-2);font-weight:700"></span></div>
+  <div class="meta">{{DATE}} &middot; <span id="count">{{N}}</span> cards <span class="due" id="due"></span><span id="cloud" style="margin-left:8px;color:var(--accent-2);font-weight:700"></span></div>
   <div class="bar"><i id="prog"></i></div>
 </header>
 
+<div class="backdrop" id="backdrop"></div>
+<aside class="drawer" id="drawer" aria-hidden="true">
+  <div class="drawer-head"><span>Menu</span><button id="drawerClose" class="icon-btn" aria-label="Close">&#10005;</button></div>
+  <button id="cardsBtn" class="btn">&#9776; Cards</button>
+  <button id="statsBtn" class="btn">Stats</button>
+  <button id="themeBtn" class="btn">Theme: Light</button>
+  <button id="dueBtn" class="btn">Review due (0)</button>
+  <button id="submitBtn" class="btn">Submit &amp; see results</button>
+  <button id="againBtn" class="btn">Practice Again (0)</button>
+  <button id="syncBtn" class="btn">Cloud sync</button>
+</aside>
 
 <main>
   <div class="scene">
     <div class="card" id="card">
-      <div class="face front"><div class="toprow"><span class="tag">Question</span><span class="cidtop" id="idF"></span><span class="chipgroup"><span class="cardtag tappable" id="chipF"></span></span></div><div class="inner" id="q"></div></div>
-      <div class="face back"><div class="toprow"><span class="tag">Answer</span><span class="cidtop" id="idB"></span><span class="chipgroup"><span class="cardtag tappable" id="chipB"></span></span></div><div class="inner"><div id="a"></div><div id="note"></div><div class="src" id="src"><span class="srctxt" id="srcTxt"></span><span class="vbadge" id="vbadgeF"></span></div></div></div>
+      <div class="face front"><span class="tag">Question</span><span class="cardtag" id="chipF"></span><div class="inner" id="q"></div></div>
+      <div class="face back"><span class="tag">Answer</span><span class="cardtag" id="chipB"></span><div class="inner"><div id="a"></div><div id="note"></div><div class="src" id="src"></div></div></div>
     </div>
   </div>
   <div class="controls">
@@ -366,52 +249,40 @@
   <div class="intervals hidden" id="intervals"></div>
 </main>
 
+<button id="editBtn" class="btn">Edit</button>
 
 <div class="sheet hidden" id="cardsheet">
-  <div class="sheet-head"><span>Cards</span><button id="sheetClose" class="icon-btn">&#10005;</button></div>
-  <div class="navstats" id="navStats"></div>
-  <div class="navlegend" id="navLegend"></div>
+  <div class="sheet-head"><span>&#9776; Cards</span><button id="sheetClose" class="icon-btn">&#10005;</button></div>
   <div class="list" id="cardList"></div>
   <div class="searchwrap"><input id="cardSearch" class="search" type="text" placeholder="Search cards…" autocomplete="off"></div>
 </div>
 
-<div class="clipick hidden" id="clipick"><div class="clipick-box"><div class="clipick-h">Pick an image from your clipboard</div><div class="clipick-grid" id="clipickGrid"></div><button id="clipickClose" class="btn">Cancel</button></div></div>
-<div class="flagpanel hidden" id="flagpanel">
-  <div class="fp-box">
-    <div class="fp-h">Report this card</div>
-    <div class="fp-sub">Pick anything that applies. The owner sees this.</div>
-    <div class="fp-chips" id="flagChips"></div>
-    <div class="fp-row"><button id="flagDone" class="btn primary">Done</button></div>
-  </div>
-</div>
 <div class="editor hidden" id="editor">
-  <div class="edhead"><h3>Edit card</h3>
-    <div class="edheadbtns"><button id="edSave" class="btn primary">Save</button><button id="edClose" class="btn">Close</button></div></div>
-  <div id="edCardFields">
+  <h3>Edit card</h3>
   <label>Front</label>
   <textarea id="edFront"></textarea>
-  <div class="edimgrow"><button id="edImgF" class="btn">Add image (front)</button><button id="edPasteF" class="btn">Paste from clipboard</button></div><div class="edimgprev" id="edImgFPrev"></div>
-  <div id="edBackWrap"><label>Back</label><textarea id="edBack"></textarea>
-    <div class="edimgrow"><button id="edImgB" class="btn">Add image (back)</button><button id="edPasteB" class="btn">Paste from clipboard</button></div><div class="edimgprev" id="edImgBPrev"></div>
-  </div>
-  <input type="file" id="edImgFFile" accept="image/*" class="hidden">
-  <input type="file" id="edImgBFile" accept="image/*" class="hidden">
-  </div>
+  <div id="edBackWrap"><label>Back</label><textarea id="edBack"></textarea></div>
+  <label>My note</label>
+  <textarea id="edNote" placeholder="Your own note for this card…"></textarea>
   <div class="hint">Formatting: a line starting with &bull; is a main point; a line starting with - is a sub-point.</div>
-  <div id="edLockHint" class="muted small hidden" style="margin:2px 0 8px">You can write your own note on the answer side of the card. Only the owner and paid users can change the card itself.</div>
-  <div class="row toolrow">
-    <div class="tool"><button id="edReset" class="btn">Reset card</button><span class="cap">Clears your edits on this card. Review progress is kept.</span></div>
-    <div class="tool"><button id="edDelete" class="btn">Delete card</button><span class="cap">Hides this card from the deck.</span></div>
+  <div class="row">
+    <button id="edSave" class="btn primary">Save</button>
+    <button id="edClose" class="btn">Close</button>
   </div>
-  <div class="row toolrow">
-    <div class="tool"><button id="edBackup" class="btn">Backup notes</button><span class="cap">Downloads your edits and notes for this deck as a file.</span></div>
-    <div class="tool"><button id="edRestore" class="btn">Restore notes</button><span class="cap">Loads a backup file back in.</span></div>
+  <div class="row">
+    <button id="edReset" class="btn">Reset card</button>
+    <button id="edDelete" class="btn">Delete card</button>
   </div>
-  <div class="row toolrow">
-    <div class="tool"><button id="edUndelete" class="btn">Restore deleted (0)</button><span class="cap">Brings back the cards you deleted.</span></div>
+  <div class="row">
+    <button id="edBackup" class="btn">Backup notes</button>
+    <button id="edRestore" class="btn">Restore notes</button>
+  </div>
+  <div class="row">
+    <button id="edUndelete" class="btn">Restore deleted (0)</button>
   </div>
 </div>
 
+<div class="panel hidden" id="stats"></div>
 <div class="panel hidden" id="results"></div>
 <div class="confirm hidden" id="confirm"></div>
 
@@ -433,15 +304,14 @@ const SETNAME = (SET === 1 ? 'Basics & Fundamentals' : SET === 2 ? 'Main Concept
   function ss(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
   var review = ls(RK, {}), edits = ls(EK, {}), deleted = ls(DK, []), theme = ls(TK, 'light');
   var UK = 'fd:cardu:' + TOPIC, cardU = ls(UK, {});
-  var LP = 'fd:lastprac:' + TOPIC;
 
   var IV = {1:[[1,'Tomorrow'],[2,'2 days after'],[3,'3 days after']],
             2:[[7,'7 days after'],[10,'10 days after'],[15,'15 days after']],
             3:[[21,'21 days after'],[30,'30 days after'],[60,'60 days after'],[90,'90 days after']]};
+  var RLABEL = ['Again','Hard','Good','Easy'];
   var TAGS = ['Basics&Fundamentals', 'MainConcepts', 'Integrated&Complex'];
   function tagOf(id){ var e = edits[id]; if(e && e.tag != null) return e.tag; var c = deckCard(id); return (c && c.tag) || ''; }
   function setTag(id, t){
-    if(!IS_OWNER) return;
     var e = edits[id] || {};
     if(t) e.tag = t; else delete e.tag;
     edits[id] = e; cardU[id] = Date.now(); ss(EK, edits); ss(UK, cardU);
@@ -451,48 +321,13 @@ const SETNAME = (SET === 1 ? 'Basics & Fundamentals' : SET === 2 ? 'Main Concept
   function cid(i){ var c = deck[i] || {}; return c.id || ('c'+i); }
   function isDel(id){ return deleted.indexOf(id) >= 0; }
   function activeIndices(){ var a=[]; for(var i=0;i<deck.length;i++){ if(!isDel(cid(i))) a.push(i); } return a; }
-  var order = [], idx = 0;
-  var LK = 'fd:last:' + TOPIC;
-  function pendingFirst(){
-    var fresh=[], again=[], now=Date.now();
-    activeIndices().forEach(function(i){ var st=review[cid(i)];
-      if(!st || typeof st.r !== 'number') fresh.push(i);
-      else if(st.r === 0) again.push(i);
-    });
-    if(fresh.length || again.length) return fresh.concat(again);
-    return activeIndices().filter(function(i){ var st=review[cid(i)]; return !st || !st.due || st.due <= now; });
-  }
-  function buildOrder(keepPos){
-    order = pendingFirst().filter(function(i){ return !tagFilter || tagOf(cid(i)) === tagFilter; });
-    if(shuffled) shuffleOrder();
-    idx = keepPos ? Math.min(idx, Math.max(0, order.length-1)) : 0;
-  }
-  function restoreLast(){
-    var last = ls(LK, null); if(!last) return;
-    for(var q=0;q<order.length;q++){ if(cid(order[q]) === last){ idx = q; return; } }
-  }
-  buildOrder(false); restoreLast();
+  var order = activeIndices(), idx = 0;
   var tagFilter = '';
   function shuffleOrder(){ for(var i=order.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=order[i]; order[i]=order[j]; order[j]=t; } }
-  function reapplyOrder(){ buildOrder(true); }
-  function openTagPick(){
-    if(!IS_OWNER) return;
-    var id = curId();
-    var ov = document.createElement('div'); ov.className = 'tagpick';
-    var box = document.createElement('div'); box.className = 'tagpick-box';
-    var h = document.createElement('div'); h.className = 'tagpick-h'; h.textContent = 'Change tag for this card'; box.appendChild(h);
-    TAGS.forEach(function(x){
-      var b = document.createElement('button'); b.className = 'btn' + (tagOf(id) === x ? ' primary' : ''); b.textContent = '#' + x;
-      b.onclick = function(ev){ ev.stopPropagation(); setTag(id, x); if(ov.parentNode) ov.parentNode.removeChild(ov); };
-      box.appendChild(b);
-    });
-    var c = document.createElement('button'); c.className = 'btn'; c.textContent = 'Cancel';
-    c.onclick = function(ev){ ev.stopPropagation(); if(ov.parentNode) ov.parentNode.removeChild(ov); };
-    box.appendChild(c);
-    ov.appendChild(box);
-    ov.onclick = function(){ if(ov.parentNode) ov.parentNode.removeChild(ov); };
-    box.onclick = function(ev){ ev.stopPropagation(); };
-    document.body.appendChild(ov);
+  function reapplyOrder(){
+    order = activeIndices().filter(function(i){ return !tagFilter || tagOf(cid(i)) === tagFilter; });
+    if(shuffled) shuffleOrder();
+    idx = Math.min(idx, Math.max(0, order.length - 1));
   }
   function renderTagUI(){
     var t = tagOf(curId());
@@ -517,77 +352,28 @@ const SETNAME = (SET === 1 ? 'Basics & Fundamentals' : SET === 2 ? 'Main Concept
     });
   }
 
-  var card = $('card'), qEl = $('q'), aEl = $('a'), srcEl = $('srcTxt'), noteEl = $('note');
-  var rateBox = $('rate'), ivBox = $('intervals'), resultsBox = $('results');
-  var sheet = $('cardsheet'), editor = $('editor'), confirmBox = $('confirm');
+  var card = $('card'), qEl = $('q'), aEl = $('a'), srcEl = $('src'), noteEl = $('note');
+  var rateBox = $('rate'), ivBox = $('intervals'), statsBox = $('stats'), resultsBox = $('results');
+  var drawer = $('drawer'), backdrop = $('backdrop'), sheet = $('cardsheet'), editor = $('editor'), confirmBox = $('confirm');
 
-  function applyTheme(){ document.body.classList.toggle('dark', theme==='dark'); }
+  function applyTheme(){ document.body.classList.toggle('dark', theme==='dark'); $('themeBtn').textContent = 'Theme: ' + (theme==='dark'?'Dark':'Light'); }
+  function cur(){ return deck[order[idx]] || {}; }
   function curId(){ return cid(order[idx]); }
 
   /* ---------- content rendering ---------- */
-  /* The sources use ASCII shorthands. Show the real glyphs so a card can never be
-     misread: <= becomes \u2264, >= becomes \u2265, -> becomes \u2192, <- becomes \u2190.
-     A bare < or > IS the less-than / greater-than sign, so it is left alone. */
-  function sym(x){
-    if(x == null) return '';
-    return String(x)
-      .replace(/-->/g, '\u2192')
-      .replace(/->/g,  '\u2192')
-      .replace(/<-/g,  '\u2190')
-      .replace(/<=/g,  '\u2264')
-      .replace(/>=/g,  '\u2265')
-      .replace(/\+\/-/g, '\u00b1');
-  }
-  /* A comparison can be written as a simple pipe table:
-       | Feature | X | Y |
-       | Onset   | sudden | gradual |
-     It renders as a real table. Plain text around it stays plain text. */
-  function isTblRow(l){ return /^\s*\|.*\|\s*$/.test(String(l)); }
-  function tblCells(l){ return String(l).trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map(function(c){ return c.trim(); }); }
-  function isTblSep(cells){ return cells.length > 0 && cells.every(function(c){ return /^:?-{2,}:?$/.test(c); }); }
-  function tableEl(rows){
-    var wrap = document.createElement('div'); wrap.className = 'tblwrap';
-    var t = document.createElement('table'); t.className = 'tbl';
-    if(rows && rows.length){
-      var thead = document.createElement('thead'), tr = document.createElement('tr');
-      rows[0].forEach(function(c){ var th = document.createElement('th'); th.textContent = sym(c); tr.appendChild(th); });
-      thead.appendChild(tr); t.appendChild(thead);
-      if(rows.length > 1){
-        var tb = document.createElement('tbody');
-        rows.slice(1).forEach(function(r){
-          var tr2 = document.createElement('tr');
-          r.forEach(function(c){ var td = document.createElement('td'); td.textContent = sym(c); tr2.appendChild(td); });
-          tb.appendChild(tr2);
-        });
-        t.appendChild(tb);
-      }
-    }
-    wrap.appendChild(t); return wrap;
-  }
-  function tableText(rows){
-    return (rows || []).map(function(r){
-      return '| ' + r.map(function(c){ return String(c == null ? '' : c); }).join(' | ') + ' |';
-    }).join('\n');
-  }
   function makeList(items){
     var ul=document.createElement('ul'); ul.className='pts';
     items.forEach(function(item){
       var li=document.createElement('li');
-      if(item && typeof item==='object' && !Array.isArray(item) && item.table){
-        li.className = 'tblrow';
-        li.appendChild(tableEl(item.table));
-        ul.appendChild(li);
-        return;
-      }
       if(item && typeof item==='object' && !Array.isArray(item)){
-        li.textContent = sym(item.t || '');
+        li.textContent = item.t || '';
         if(Array.isArray(item.sub) && item.sub.length){
           var sub=document.createElement('ul'); sub.className='sub';
-          item.sub.forEach(function(s){ var sli=document.createElement('li'); sli.textContent=sym(s); sub.appendChild(sli); });
+          item.sub.forEach(function(s){ var sli=document.createElement('li'); sli.textContent=s; sub.appendChild(sli); });
           li.appendChild(sub);
         }
-      } else if(Array.isArray(item)){ li.textContent = sym(item.join(' ')); }
-      else { li.textContent = sym(item); }
+      } else if(Array.isArray(item)){ li.textContent = item.join(' '); }
+      else { li.textContent = item; }
       ul.appendChild(li);
     });
     return ul;
@@ -595,36 +381,12 @@ const SETNAME = (SET === 1 ? 'Basics & Fundamentals' : SET === 2 ? 'Main Concept
   function renderContent(el, content){
     el.textContent='';
     if(content && typeof content==='object' && !Array.isArray(content) && content.lead){
-      var p=document.createElement('div'); p.className='lead'; p.textContent=sym(content.lead); el.appendChild(p);
+      var p=document.createElement('div'); p.className='lead'; p.textContent=content.lead; el.appendChild(p);
       if(content.items && content.items.length) el.appendChild(makeList(content.items));
       return;
     }
     if(Array.isArray(content)){ if(content.length) el.appendChild(makeList(content)); return; }
-    var str = String(content == null ? '' : content);
-    if(str.indexOf('|') < 0){
-      var d=document.createElement('div'); d.className='lead'; d.textContent = sym(str); el.appendChild(d);
-      return;
-    }
-    var lines = str.split('\n'), buf = [];
-    function flushTxt(){
-      if(!buf.length) return;
-      var dt = document.createElement('div'); dt.className = 'lead'; dt.textContent = sym(buf.join('\n'));
-      el.appendChild(dt); buf = [];
-    }
-    for(var i = 0; i < lines.length; i++){
-      if(isTblRow(lines[i])){
-        var rows = [];
-        while(i < lines.length && isTblRow(lines[i])){
-          var cells = tblCells(lines[i]);
-          if(!isTblSep(cells)) rows.push(cells);
-          i++;
-        }
-        i--;
-        flushTxt();
-        if(rows.length) el.appendChild(tableEl(rows));
-      } else buf.push(lines[i]);
-    }
-    flushTxt();
+    var d=document.createElement('div'); d.className='lead'; d.textContent = content||''; el.appendChild(d);
   }
   function clozeRender(el, text, reveal){
     el.textContent='';
@@ -632,170 +394,43 @@ const SETNAME = (SET === 1 ? 'Basics & Fundamentals' : SET === 2 ? 'Main Concept
     String(text||'').split(/(\{\{[^}]*\}\})/g).forEach(function(p){
       if(!p) return;
       var m=p.match(/^\{\{([\s\S]*)\}\}$/);
-      if(m){ var s=document.createElement('span'); if(reveal){ s.className='hl'; s.textContent=sym(m[1]); } else { s.className='blank'; } line.appendChild(s); }
-      else { line.appendChild(document.createTextNode(sym(p))); }
+      if(m){ var s=document.createElement('span'); if(reveal){ s.className='hl'; s.textContent=m[1]; } else { s.className='blank'; } line.appendChild(s); }
+      else { line.appendChild(document.createTextNode(p)); }
     });
     el.appendChild(line);
   }
   function occlusionRender(el, c, reveal, promptOverride){
     el.textContent='';
     var wrap=document.createElement('div'); wrap.className='occwrap';
-    var p=document.createElement('div'); p.className='lead'; p.textContent = sym(promptOverride || c.q || 'Identify the hidden labels.'); wrap.appendChild(p);
+    var p=document.createElement('div'); p.className='lead'; p.textContent = promptOverride || c.q || 'Identify the hidden labels.'; wrap.appendChild(p);
     var dia=document.createElement('div'); dia.className='occ';
     var img=document.createElement('img'); img.src=c.img; img.alt=''; dia.appendChild(img);
     (c.zones||[]).forEach(function(z){
       var b=document.createElement('div'); b.className='occbox';
       b.style.left=z.x+'%'; b.style.top=z.y+'%'; b.style.width=z.w+'%'; b.style.height=z.h+'%';
-      if(reveal){ b.classList.add('revealed'); b.textContent=sym(z.label||''); }
+      if(reveal){ b.classList.add('revealed'); b.textContent=z.label||''; }
       dia.appendChild(b);
     });
     wrap.appendChild(dia); el.appendChild(wrap);
   }
-  function mcqRender(el, c, reveal, e, frontImgs){
-    el.textContent='';
-    var stem=document.createElement('div'); stem.className='lead';
-    stem.textContent=sym(String((e && e.q!=null) ? e.q : (c.q||'')));
-    el.appendChild(stem);
-    if(frontImgs && frontImgs.length){ frontImgs.forEach(function(src){ var fi=document.createElement('img'); fi.className='cardimg'; fi.src=src; el.appendChild(fi); }); }
-    var opts=(c.options||[]), ans=(typeof c.answer==='number')? c.answer : 0;
-    var list=document.createElement('div'); list.className='mcqopts';
-    opts.forEach(function(o,k){
-      var row=document.createElement('div'); row.className='mcqopt';
-      var L=document.createElement('span'); L.className='mcqlet'; L.textContent=String.fromCharCode(65+k);
-      var T=document.createElement('span'); T.className='mcqtext'; T.textContent=sym(String(o));
-      row.appendChild(L); row.appendChild(T);
-      if(reveal && k===ans) row.classList.add('correct');
-      list.appendChild(row);
-    });
-    el.appendChild(list);
-    if(reveal){
-      var line=document.createElement('div'); line.className='mcqansline';
-      line.textContent='Correct: '+String.fromCharCode(65+ans)+') '+sym(String(opts[ans]!=null?opts[ans]:''));
-      el.appendChild(line);
-      var ex=(e && e.explain!=null) ? e.explain : (c.explain||'');
-      if(ex){ var d=document.createElement('div'); d.className='mcqexp'; renderExplainPts(d, String(ex)); el.appendChild(d); }
-    }
-  }
-  /* One explanation style everywhere: a leading main point (orange dot) and the
-     remaining sentences as sub-points (dash, indented, lighter). */
-  function renderExplainPts(el, text){
-    el.textContent='';
-    var items=explainPts(String(text==null?'':text));
-    var ul=document.createElement('ul'); ul.className='pts';
-    items.forEach(function(it){
-      var li=document.createElement('li'); li.textContent=sym(it.t);
-      if(it.sub && it.sub.length){
-        var sub=document.createElement('ul'); sub.className='sub';
-        it.sub.forEach(function(x){ var sl=document.createElement('li'); sl.textContent=sym(x); sub.appendChild(sl); });
-        li.appendChild(sub);
-      }
-      ul.appendChild(li);
-    });
-    el.appendChild(ul);
-    return el;
-  }
-  function explainPts(t){
-    t=String(t||'').replace(/\r/g,'').trim();
-    if(!t) return [];
-    var lines=t.split('\n').map(function(x){return x.trim();}).filter(function(x){return x;});
-    var marked=lines.some(function(l){ return l.charAt(0)==='\u2022' || l.charAt(0)==='-'; });
-    if(marked){
-      var out=[];
-      lines.forEach(function(l){
-        if(l.charAt(0)==='\u2022') out.push({t:l.slice(1).trim(), sub:[]});
-        else if(l.charAt(0)==='-'){ if(out.length) out[out.length-1].sub.push(l.slice(1).trim()); else out.push({t:l.slice(1).trim(), sub:[]}); }
-        else if(out.length && out[out.length-1].sub.length) out[out.length-1].sub.push(l);
-        else out.push({t:l, sub:[]});
-      });
-      return out;
-    }
-    var norm = String(t).replace(/^Back to Question[^.]*?p\.?\s*\d+\s*/i, '').replace(/\r/g, '').replace(/\s*\u2022\s*/g, '\n');
-    var segs = [];
-    norm.split('\n').map(function(x){ return x.trim(); }).filter(function(x){ return x; }).forEach(function(line){
-      var re = /(^|[.\s])([A-Z][A-Za-z0-9()\-\u2013\u2019\/]*(?:\s+[A-Za-z0-9()\-\u2013\u2019\/]+){0,3}):(?=\s|$)/g, last = 0, m;
-      while((m = re.exec(line))){
-        var st = m.index + m[1].length;
-        if(st > last) segs.push(line.slice(last, st).trim());
-        segs.push(m[2].trim() + ':');
-        last = m.index + m[0].length;
-      }
-      if(last < line.length) segs.push(line.slice(last).trim());
-    });
-    segs = segs.filter(function(x){ return x; });
-    if(!segs.length) return [{t:flat, sub:[]}];
-    var out = [], inLabel = false;
-    segs.forEach(function(seg){
-      if(/^[A-Z][^.:\u2022\n]{2,60}?:$/.test(seg)){ out.push({t:seg, sub:[]}); inLabel = true; return; }
-      var sents = splitSents(seg.replace(/^[-\u2013\u2014]\s*/, ''));
-      sents.forEach(function(sn){
-        var sub = false;
-        if(out.length){
-          if(inLabel) sub = true;
-          else if(EXPLAIN_SUB_START.test(sn)) sub = true;
-          else { var w = explainSubject(sn); if(w && w === explainSubject(out[out.length-1].t)) sub = true; }
-        }
-        if(sub) out[out.length-1].sub.push(sn);
-        else { out.push({t:sn, sub:[]}); inLabel = false; }
-      });
-    });
-    return out.length ? out : [{t:flat, sub:[]}];
-  }
-  var EXPLAIN_SUB_START = /^(it|its|this|these|that|those|they|their|them|he|she|his|her|such|here|there|thus|hence|therefore|however|but|and|also|moreover|furthermore|additionally|besides|so|yet|still|meanwhile|similarly|likewise|conversely|instead|otherwise|overall)\b/i;
-  var EXPLAIN_STOP = {the:1,a:1,an:1,in:1,of:1,on:1,for:1,to:1,with:1,by:1,at:1,as:1,from:1,is:1,are:1,was:1,were:1,and:1,or:1,but:1,no:1,not:1,most:1,all:1};
-  function explainSubject(sn){
-    var ws = String(sn || '').replace(/^[^A-Za-z0-9]+/, '').split(/\s+/);
-    for(var i = 0; i < ws.length && i < 4; i++){
-      var w = ws[i].replace(/[^A-Za-z0-9\-\/()]/g, '').toLowerCase();
-      if(w && !EXPLAIN_STOP[w]) return w;
-    }
-    return '';
-  }
-  function splitSents(t){
-    var out=[], cur='';
-    var abbr=/(?:^|\s)(?:p|pp|e\.g|i\.e|no|vs|Dr|Mr|Mrs|Ms|approx|Fig|etc|cf|Prof|St|vol|ed)\.$/i;
-    for(var i=0;i<t.length;i++){
-      var ch=t[i]; cur+=ch;
-      if(ch==='.'||ch===';'||ch==='!'||ch==='?'){
-        if(ch==='.' && abbr.test(cur.trim())) continue;
-        var nx=t[i+1];
-        if(nx===undefined||nx===' '){ out.push(cur.trim()); cur=''; }
-      }
-    }
-    if(cur.trim()) out.push(cur.trim());
-    return out.filter(function(x){ return x.length>1; });
-  }
-  function contentToText(c){ return sym(contentToTextRaw(c)); }
   function parseText(str){
     var lines=String(str||'').split('\n').map(function(s){return s.trim();}).filter(Boolean);
     if(lines.length<=1) return lines[0]||'';
     var lead=null, items=[];
-    for(var i=0;i<lines.length;i++){
-      var l=lines[i];
-      if(isTblRow(l)){
-        var rows=[];
-        while(i<lines.length && isTblRow(lines[i])){
-          var cells=tblCells(lines[i]);
-          if(!isTblSep(cells)) rows.push(cells);
-          i++;
-        }
-        i--;
-        if(rows.length) items.push({table:rows});
-        continue;
-      }
+    lines.forEach(function(l){
       if(l.charAt(0)==='\u2022'){ items.push({t:l.slice(1).trim(), sub:[]}); }
       else if(l.charAt(0)==='-'){ if(items.length) items[items.length-1].sub.push(l.slice(1).trim()); else items.push({t:l.slice(1).trim(), sub:[]}); }
       else { if(items.length===0 && lead===null) lead=l; else if(lead!==null) lead+=' '+l; else items.push({t:l, sub:[]}); }
-    }
+    });
     if(lead!==null && items.length) return {lead:lead, items:items};
     if(items.length) return items;
     return lead||'';
   }
-  function contentToTextRaw(content){
+  function contentToText(content){
     if(content==null) return '';
     if(typeof content==='string') return content;
     if(Array.isArray(content)){
       return content.map(function(it){
-        if(it && typeof it==='object' && !Array.isArray(it) && it.table) return tableText(it.table);
         if(it && typeof it==='object' && !Array.isArray(it)){
           var s='\u2022 '+ (it.t||'');
           (it.sub||[]).forEach(function(x){ s+='\n- '+x; });
@@ -809,187 +444,27 @@ const SETNAME = (SET === 1 ? 'Basics & Fundamentals' : SET === 2 ? 'Main Concept
   }
 
   /* ---------- rendering a card ---------- */
-  function showNothingDue(empty){
-    var act=activeIndices(), now=Date.now(), nextDue=null;
-    act.forEach(function(i){ var st=review[cid(i)]; if(st && st.due && st.due>now && (!nextDue || st.due<nextDue)) nextDue=st.due; });
-    qEl.textContent=''; aEl.textContent=''; srcEl.textContent=''; noteEl.textContent='';
-    var box=document.createElement('div'); box.className='nothingdue';
-    var h=document.createElement('div'); h.className='nd-h'; h.textContent = empty ? 'No cards in this deck yet' : 'Nothing due right now'; box.appendChild(h);
-    var p=document.createElement('div'); p.className='nd-p';
-    p.textContent = empty ? 'Add cards to this deck to start.' : (nextDue ? ('Next card due ' + new Date(nextDue).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})) : 'Come back later to keep your reviews on schedule.');
-    box.appendChild(p);
-    if(!empty){ var pb=document.createElement('button'); pb.className='btn primary'; pb.textContent='Practise anyway'; pb.onclick=function(e){ e.stopPropagation(); practiceOnly=true; order=activeIndices(); idx=0; render(); toast('Practice only \u2014 your review schedule is unchanged'); }; box.appendChild(pb); }
-    qEl.appendChild(box);
-    card.classList.add('notice');
-    card.classList.remove('flipped');
-    ['vbadgeF','vbadgeB','chipF','chipB'].forEach(function(x){ var el=$(x); if(el){ el.textContent=''; el.classList.remove('on'); } });
-    rateBox.classList.add('hidden'); ivBox.classList.add('hidden'); ivBox.textContent='';
-    try{ $('prev').disabled=true; $('next').disabled=true; }catch(e){}
-    updateProgress();
-  }
-  function renderNote(id, e){
-    noteEl.textContent = '';
-    var row = document.createElement('div'); row.className = 'noterow';
-    var lbl = document.createElement('span'); lbl.className = 'nlbl'; lbl.textContent = 'My note'; row.appendChild(lbl);
-    var pen = document.createElement('button'); pen.type = 'button'; pen.className = 'penbtn'; pen.textContent = '\u270E';
-    pen.title = (e && e.note) ? 'Edit my note' : 'Add my note';
-    pen.setAttribute('aria-label', pen.title);
-    pen.onclick = function(ev){ ev.stopPropagation(); openNoteEditor(id, (e && e.note) || ''); };
-    row.appendChild(pen);
-    noteEl.appendChild(row);
-    if(e && e.note){
-      var t = document.createElement('div'); t.className = 'note'; t.textContent = e.note;
-      noteEl.appendChild(t);
-    }
-  }
-  function openNoteEditor(id, val){
-    noteEl.textContent = '';
-    var box = document.createElement('div'); box.className = 'noteedit';
-    box.onclick = function(ev){ ev.stopPropagation(); };
-    var ta = document.createElement('textarea');
-    ta.value = val || ''; ta.placeholder = 'Your own note for this card\u2026';
-    box.appendChild(ta);
-    var row = document.createElement('div'); row.className = 'nerow';
-    var save = document.createElement('button'); save.type = 'button'; save.className = 'btn primary'; save.textContent = 'Save';
-    var cancel = document.createElement('button'); cancel.type = 'button'; cancel.className = 'btn'; cancel.textContent = 'Cancel';
-    save.onclick = function(ev){
-      ev.stopPropagation();
-      var e = edits[id] || {};
-      var v = String(ta.value || '').trim();
-      if(v) e.note = v; else delete e.note;
-      cardU[id] = Date.now(); edits[id] = e; ss(EK, edits);
-      render(); syncPush(id);
-    };
-    cancel.onclick = function(ev){ ev.stopPropagation(); render(); };
-    row.appendChild(save); row.appendChild(cancel); box.appendChild(row);
-    noteEl.appendChild(box);
-    try{ ta.focus(); }catch(_e){}
-  }
-  function imprIconBtn(glyph, title, fn){
-    var b = document.createElement('button'); b.type = 'button'; b.className = 'penbtn';
-    b.textContent = glyph; b.title = title; b.setAttribute('aria-label', title);
-    b.onclick = function(ev){ ev.stopPropagation(); fn(); };
-    return b;
-  }
-  /* what has been done, in a small popup — the card itself stays clean */
-  function openImprInfo(id){
-    var rec = impr[id] || {};
-    var ov = document.createElement('div'); ov.className = 'tagpick';
-    var box = document.createElement('div'); box.className = 'tagpick-box';
-    var h = document.createElement('div'); h.className = 'tagpick-h'; h.textContent = 'Improvements'; box.appendChild(h);
-    if(rec.ask){
-      var a1 = document.createElement('div'); a1.className = 'imprans';
-      var t1 = document.createElement('b'); t1.textContent = 'Your request'; a1.appendChild(t1);
-      a1.appendChild(document.createTextNode(rec.ask)); box.appendChild(a1);
-    }
-    if(rec.ans){
-      var a2 = document.createElement('div'); a2.className = 'imprans';
-      var t2 = document.createElement('b'); t2.textContent = 'Done by the agent'; a2.appendChild(t2);
-      a2.appendChild(document.createTextNode(rec.ans)); box.appendChild(a2);
-    }
-    var c = document.createElement('button'); c.type = 'button'; c.className = 'btn'; c.textContent = 'Close';
-    c.onclick = function(ev){ ev.stopPropagation(); if(ov.parentNode) ov.parentNode.removeChild(ov); };
-    box.appendChild(c);
-    ov.appendChild(box);
-    ov.onclick = function(){ if(ov.parentNode) ov.parentNode.removeChild(ov); };
-    box.onclick = function(ev){ ev.stopPropagation(); };
-    document.body.appendChild(ov);
-  }
-  function renderImpr(id){
-    if(!IS_OWNER || !noteEl) return;
-    var wrap = document.createElement('div');
-    var rec = impr[id] || {};
-    if(rec.ask || rec.ans){
-      var row = document.createElement('div'); row.className = 'improw';
-      var lbl = document.createElement('span'); lbl.className = 'lbl'; lbl.textContent = 'Improvements needed'; row.appendChild(lbl);
-      var nm = document.createElement('span'); nm.className = 'nm2' + (rec.ask ? ' on' : ''); nm.textContent = rec.ans ? 'done' : (rec.ask ? 'requested' : '\u2014'); row.appendChild(nm);
-      row.appendChild(imprIconBtn('\u270E', 'Write a new improvement', function(){ openImpr(id); }));
-      if(rec.ans) row.appendChild(imprIconBtn('\u24D8', 'What was done', function(){ openImprInfo(id); }));
-      wrap.appendChild(row);
-    } else {
-      var add2 = document.createElement('button'); add2.type='button'; add2.className='noteadd';
-      add2.textContent = '+ Improvements needed (owner)';
-      add2.onclick = function(ev){ ev.stopPropagation(); openImpr(id); };
-      wrap.appendChild(add2);
-    }
-    noteEl.appendChild(wrap);
-  }
-  function openImpr(id){
-    noteEl.textContent = '';
-    var rec = impr[id] || {};
-    var box = document.createElement('div'); box.className = 'noteedit';
-    box.onclick = function(ev){ ev.stopPropagation(); };
-    var ta = document.createElement('textarea');
-    ta.value = rec.ask || ''; ta.placeholder = 'What should be added or corrected on this card?';
-    box.appendChild(ta);
-    var row = document.createElement('div'); row.className = 'nerow';
-    var save = document.createElement('button'); save.type='button'; save.className='btn primary'; save.textContent='Save';
-    var cancel = document.createElement('button'); cancel.type='button'; cancel.className='btn'; cancel.textContent='Cancel';
-    save.onclick = function(ev){
-      ev.stopPropagation();
-      var v = String(ta.value || '').trim();
-      var r2 = impr[id] || {};
-      if(v) r2.ask = v; else delete r2.ask;
-      if(!r2.ask && !r2.ans) delete impr[id]; else impr[id] = r2;
-      saveImpr(); render();
-    };
-    cancel.onclick = function(ev){ ev.stopPropagation(); render(); };
-    row.appendChild(save); row.appendChild(cancel); box.appendChild(row);
-    noteEl.appendChild(box);
-    try{ ta.focus(); }catch(_e){}
-  }
   function render(){
-    card.classList.remove('notice');
-    navStatsRender();
-    if(!order.length){
-      var _act=activeIndices();
-      var _now=Date.now();
-      var _due=_act.filter(function(i){ var st=review[cid(i)]; return !st || !st.due || st.due<=_now; });
-      if(!_act.length || !_due.length){ showNothingDue(!_act.length); return; }
-      order=_act; idx=0;
-    }
+    if(!order.length){ order=activeIndices(); idx=0; }
     var i=order[idx], c=deck[i]||{}, id=cid(i), e=edits[id]||{}, type=c.type||'qa';
     qEl.textContent=''; aEl.textContent=''; srcEl.textContent=''; noteEl.textContent='';
     if(type==='cloze'){ var t=(e.text!=null? e.text : c.text); clozeRender(qEl,t,false); clozeRender(aEl,t,true); }
     else if(type==='occlusion'){ occlusionRender(qEl,c,false,e.q); occlusionRender(aEl,c,true,e.q); }
-    else if(type==='mcq'){ mcqRender(qEl,c,false,e,imgList(id,'f')); mcqRender(aEl,c,true,e,imgList(id,'f')); }
     else { renderContent(qEl, e.q!=null? parseText(e.q) : c.q); renderContent(aEl, e.a!=null? parseText(e.a) : c.a); }
-    (function(){ if(type!=='mcq'){ imgList(id,'f').forEach(function(src){ var im=document.createElement('img'); im.className='cardimg'; im.src=src; qEl.appendChild(im); }); } imgList(id,'b').forEach(function(src){ var im2=document.createElement('img'); im2.className='cardimg'; im2.src=src; aEl.appendChild(im2); }); })();
-    renderNote(id, e);
-    renderImpr(id);
-    if(c.src){ var b=document.createElement('b'); b.textContent='Source: '; srcEl.appendChild(b); srcEl.appendChild(document.createTextNode(c.src)); srcEl.title='Source: '+c.src; }
-    ['idF','idB'].forEach(function(x){ var el=$(x); if(el) el.textContent = c.id ? ('ID: ' + c.id) : ''; });
+    if(c.src){ var b=document.createElement('b'); b.textContent='Source: '; srcEl.appendChild(b); srcEl.appendChild(document.createTextNode(c.src)); }
+    /* owner-only: the card's fixed cid, shown beside its source wherever the card appears */
+    if(isOwner()){ var idc=document.createElement('span'); idc.className='idchip'; idc.textContent=id; srcEl.appendChild(idc); }
+    if(e.note){ var nb=document.createElement('div'); nb.className='note'; var bt=document.createElement('b'); bt.textContent='My note: '; nb.appendChild(bt); nb.appendChild(document.createTextNode(e.note)); noteEl.appendChild(nb); }
     card.classList.remove('flipped');
     renderRating(id);
-    renderBadge(id);
     updateProgress();
     renderTagUI();
-    paintFlagBtn(id);
-    ss(LK, id);
   }
-  function ivLabel(i){ for(var r=1;r<4;r++){ if(IV[r]) for(var k=0;k<IV[r].length;k++){ if(IV[r][k][0]===i) return IV[r][k][1]; } } return (i||0)+' days'; }
-  function dueText(ts){ var d=new Date(ts), days=Math.round((ts-Date.now())/86400000); var rel = days<=0?'today':(days===1?'tomorrow':'in '+days+' days'); return rel+' \u00b7 '+d.toLocaleDateString('en-IN',{day:'numeric',month:'short'}); }
-  function isLocked(id){ var st=review[id]; return !!(st && typeof st.due==='number' && st.due>Date.now()); }
   function renderRating(id){
     var st=review[id];
-    var locked = isLocked(id);
     rateBox.classList.toggle('hidden', !(card.classList.contains('flipped') || st));
-    rateBox.classList.toggle('locked', locked);
-    Array.prototype.forEach.call(rateBox.querySelectorAll('button'), function(b){
-      b.classList.toggle('on', !!(st && st.r===parseInt(b.dataset.r,10)));
-      b.disabled = locked;
-      var lk=b.querySelector('.lk');
-      if(locked){ if(!lk){ lk=document.createElement('span'); lk.className='lk'; lk.textContent='\uD83D\uDD12'; b.appendChild(lk); } }
-      else if(lk){ lk.remove(); }
-    });
-    ivBox.textContent=''; ivBox.classList.add('hidden'); ivBox.classList.remove('locked');
-    if(locked){
-      ivBox.classList.remove('hidden'); ivBox.classList.add('locked');
-      var ll=document.createElement('span'); ll.className='ivlabel'; ll.textContent='\uD83D\uDD12 Next review:'; ivBox.appendChild(ll);
-      var lc=document.createElement('button'); lc.className='btn on'; lc.disabled=true; lc.textContent=ivLabel(st.i)+' ('+dueText(st.due)+')';
-      ivBox.appendChild(lc);
-      return;
-    }
+    Array.prototype.forEach.call(rateBox.querySelectorAll('button'), function(b){ b.classList.toggle('on', !!(st && st.r===parseInt(b.dataset.r,10))); });
+    ivBox.textContent=''; ivBox.classList.add('hidden');
     if(st && typeof st.r==='number' && st.r>=1 && IV[st.r]){
       ivBox.classList.remove('hidden');
       var lab=document.createElement('span'); lab.className='ivlabel'; lab.textContent='Next review:'; ivBox.appendChild(lab);
@@ -1005,120 +480,42 @@ const SETNAME = (SET === 1 ? 'Basics & Fundamentals' : SET === 2 ? 'Main Concept
     $('prog').style.width = (n? ((idx+1)/n*100):0)+'%';
     $('prev').disabled = (idx===0);
     $('next').disabled = (idx===n-1);
-    var act = activeIndices();
-    var total = act.length;
-    var now=Date.now(), due=act.filter(function(i){ var s=review[cid(i)]; return !s || !s.due || s.due<=now; }).length;
-    var ag=act.filter(function(i){ var s=review[cid(i)]; return s && s.r===0; }).length;
-    $('due').textContent = due + ' due out of ' + total;
-    var rd=$('rounds'); if(rd){ rd.textContent = ' \u00b7 ' + rounds + ' cycle completed'; }
-    var lp=$('lastprac'); if(lp){ var lpv=ls(LP,null); lp.textContent = lpv ? (' \u00b7 last practised ' + new Date(lpv).toLocaleString('en-IN', {day:'numeric', month:'short', year:'numeric', hour:'numeric', minute:'2-digit'})) : ''; }
+    $('count').textContent = n;
+    var now=Date.now(), due=activeIndices().filter(function(i){ var s=review[cid(i)]; return !s || !s.due || s.due<=now; }).length;
+    var ag=activeIndices().filter(function(i){ var s=review[cid(i)]; return s && s.r===0; }).length;
+    $('due').textContent = due ? ('\u00b7 '+due+' due') : '';
+    $('dueBtn').textContent='Review due ('+due+')';
+    $('againBtn').textContent='Practice Again ('+ag+')';
   }
 
-  function flip(){ if(card.classList.contains('notice')) return; card.classList.toggle('flipped'); renderRating(curId()); }
+  function flip(){ card.classList.toggle('flipped'); renderRating(curId()); }
 
   /* ---------- rating + intervals ---------- */
-  function notifyPractised(){ try{ if(window.parent && window.parent!==window) window.parent.postMessage({fd:'practised', key: DECKKEY, topic: TOPIC}, '*'); }catch(e){} }
-  var practiceOnly = false;
   function rate(r){
-    if(practiceOnly || isLocked(curId())) return;
-    notifyPractised();
-    var id=curId(); notePass(id);
-    var st=review[id]||{}; st.r=r;
+    var id=curId(); var st=review[id]||{}; st.r=r;
     if(r===0){ st.i=0; st.due=Date.now(); }
-    else {
-      /* Auto-book the FIRST interval for this rating, so the card already has a
-         next-due the moment it is rated. The chooser below still appears with
-         this option highlighted, so it can be changed — but nothing is forced,
-         and the cycle can now complete without picking one every time. */
-      var _d = (IV[r] && IV[r][0]) ? IV[r][0][0] : 1;
-      st.i = _d; st.due = Date.now() + _d*86400000;
-    }
-    cardU[id]=Date.now(); review[id]=st; ss(RK,review); ss(LP, Date.now());
+    else { st.i=null; st.due=null; }
+    cardU[id]=Date.now(); review[id]=st; ss(RK,review);
     renderRating(id); syncPush(id);
-    buildOrder(true);
-    if(r===0){ render(); maybeShowResults(); }
-    else { updateProgress(); maybeShowResults(); }
-  }
-  function cycleComplete(){
-    var act = activeIndices(); if(!act.length) return false;
-    for(var i=0;i<act.length;i++){ var st=review[cid(act[i])]; if(!st || typeof st.r!=='number' || (st.r>=1 && (st.i===null || st.i===undefined))) return false; }
-    return true;
-  }
-  function maybeShowResults(){
-    if(cycleComplete()){ if(!window.__fdOverShown){ window.__fdOverShown = true; resultsBox.classList.remove('hidden'); resultsRender(); } }
-    else { window.__fdOverShown = false; }
-  }
-  function verifyThenAdvance(id, next){
-    /* The pause here is what keeps the interval chooser usable after a rating, so it
-       stays. Only the OWNER may actually change the verify state; for everyone else the
-       answer is ignored (they cannot verify or unverify a card). */
-    if(verified[id]){ next(); return; }
-    ask('You just finished this card. Have you cross-checked it with the source?', function(yes){
-      if(IS_OWNER){
-        if(yes) verified[id]=1; else delete verified[id];
-        ss(VK,verified); renderBadge(id); pushVerified();
-      }
-      next();
-    });
   }
   function setIntervalDays(r, d){
-    if(practiceOnly || isLocked(curId())) return;
-    notifyPractised();
-    var id=curId(); notePass(id);
-    var st=review[id]||{}; st.r=r; st.i=d; st.due=Date.now()+d*86400000;
-    cardU[id]=Date.now(); review[id]=st; ss(RK,review); ss(LP, Date.now()); renderRating(id); updateProgress(); syncPush(id);
-    verifyThenAdvance(id, function(){ buildOrder(true); render(); maybeShowResults(); });
+    var id=curId(); var st=review[id]||{}; st.r=r; st.i=d; st.due=Date.now()+d*86400000;
+    cardU[id]=Date.now(); review[id]=st; ss(RK,review); renderRating(id); updateProgress(); syncPush(id);
   }
 
   /* ---------- navigation ---------- */
-  function toast(t){ var el=document.getElementById('fdtoast'); if(!el){ el=document.createElement('div'); el.id='fdtoast'; el.className='toast'; document.body.appendChild(el); } el.textContent=t; el.classList.add('on'); try{ clearTimeout(el._t); }catch(e){} el._t=setTimeout(function(){ el.classList.remove('on'); }, 2400); }
-  function needsInterval(){ var id=curId(); var st=review[id]; return !!(st && typeof st.r==='number' && st.r>=1 && (st.i===null || st.i===undefined)); }
-  function go(delta){
-    if(delta>0 && needsInterval()){ toast('First choose the review time for this card'); return; }
-    var n=order.length; var nx=Math.min(n-1, Math.max(0, idx+delta)); if(nx===idx) return; idx=nx; render();
-  }
+  function go(delta){ var n=order.length; var nx=Math.min(n-1, Math.max(0, idx+delta)); if(nx===idx) return; idx=nx; render(); }
   function jumpToDeckIndex(i){ var pos=order.indexOf(i); if(pos<0){ order=activeIndices(); pos=order.indexOf(i); } idx=Math.max(0,pos); render(); }
 
-  /* ---------- cards sheet + overlays ---------- */
-
-
-  /* ---------- focus management: Esc closes the top panel; Tab stays inside it ---------- */
-  var OVORDER = ['cardsheet','editor','results','confirm','clipick','tagpick'];
-  function overlayIsOpen(id){
-    var el = $(id); if(!el) return false;
-    return !el.classList.contains('hidden');
-  }
-  function openOverlays(){ return OVORDER.filter(overlayIsOpen); }
-  function closeTopOverlay(id){
-    try{
-      if(id === 'cardsheet') return closeSheet();
-      if(id === 'editor') return closeEditor();
-      if(id === 'clipick') return closeClipPick();
-      var el = $(id); if(!el) return;
-      var cb = el.querySelector('.closebar .btn') || el.querySelector('.closebar button');
-      if(cb){ cb.click(); return; }
-      var bs = el.querySelectorAll('.btn'); if(bs.length){ bs[bs.length-1].click(); return; }
-      el.classList.add('hidden');
-    }catch(e){}
-  }
-  document.addEventListener('keydown', function(e){
-    var open = openOverlays(); if(!open.length) return;
-    var top = open[open.length-1], el = $(top);
-    if(e.key === 'Escape'){ e.preventDefault(); closeTopOverlay(top); return; }
-    if(e.key === 'Tab' && el){
-      var f = el.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select,textarea,[tabindex]:not([tabindex="-1"])');
-      if(!f.length) return;
-      var first = f[0], last = f[f.length-1];
-      if(e.shiftKey && (document.activeElement === first || !el.contains(document.activeElement))){ e.preventDefault(); last.focus(); }
-      else if(!e.shiftKey && (document.activeElement === last || !el.contains(document.activeElement))){ e.preventDefault(); first.focus(); }
-    }
-  });
-  $('menuBtn').onclick=function(e){ e.stopPropagation(); openSheet(); };
-  window.addEventListener('message', function(e){ if(e && e.data && e.data.fd==='theme'){ try{ theme = theme==='dark'?'light':'dark'; ss(TK,theme); applyTheme(); }catch(_){} } });
+  /* ---------- menu / drawer ---------- */
+  function openDrawer(){ drawer.classList.add('open'); backdrop.classList.add('open'); drawer.setAttribute('aria-hidden','false'); }
+  function closeDrawer(){ drawer.classList.remove('open'); backdrop.classList.remove('open'); drawer.setAttribute('aria-hidden','true'); }
+  $('menuBtn').onclick=function(e){ e.stopPropagation(); openDrawer(); };
+  $('drawerClose').onclick=function(e){ e.stopPropagation(); closeDrawer(); };
+  backdrop.onclick=function(){ closeDrawer(); };
 
   /* ---------- cards sheet (navigator) ---------- */
   function statusColor(id){ var st=review[id]; if(!st||typeof st.r!=='number') return '#c9b8a8'; return ['#c81e1e','#b45309','#1d4ed8','#0f766e'][st.r]; }
-  function statusRGB(id){ var st=review[id]; if(!st||typeof st.r!=='number') return null; return ['200,30,30','180,83,9','29,78,216','15,118,110'][st.r]; }
   function renderCardList(filter){
     var list=$('cardList'); list.textContent=''; var f=(filter||'').toLowerCase();
     for(var i=0;i<deck.length;i++){
@@ -1126,67 +523,56 @@ const SETNAME = (SET === 1 ? 'Basics & Fundamentals' : SET === 2 ? 'Main Concept
       var c=deck[i], id=cid(i), type=c.type||'qa', e=edits[id]||{};
       var text;
       if(type==='cloze'){ text=String(e.text!=null?e.text:c.text||'').replace(/\{\{([\s\S]*?)\}\}/g,'____'); }
-      else if(type==='mcq'){ text=String(e.q!=null?e.q:(c.q||'')).replace(/\n/g,' '); }
       else { text = contentToText(e.q!=null? parseText(e.q): c.q) || c.q || ''; text=String(text).replace(/\n/g,' '); }
       if(f && text.toLowerCase().indexOf(f)<0) continue;
       var row=document.createElement('button'); row.className='cardrow';
-      var _rgb=statusRGB(id);
-      if(_rgb){ row.style.background='rgba('+_rgb+',0.18)'; row.style.borderColor='rgba('+_rgb+',0.55)'; row.style.boxShadow='inset 5px 0 0 0 rgb('+_rgb+')'; }
-      else { row.style.borderColor=statusColor(id); }
+      var dot=document.createElement('span'); dot.className='dotmark'; dot.style.background=statusColor(id); row.appendChild(dot);
       var n=document.createElement('span'); n.className='n'; n.textContent=(i+1); row.appendChild(n);
-      var tx=document.createElement('span'); tx.className='tx'; tx.textContent=sym(text); row.appendChild(tx);
-      var vb=document.createElement('button'); vb.className='vbtn'+(verified[id]?' on':''); vb.textContent='\u2713'; vb.title = verified[id] ? 'Verified (tap to change)' : 'Tap to verify';
-      if(IS_OWNER){
-        (function(theId){ vb.onclick=function(ev){ ev.stopPropagation();
-          if(verified[theId]) delete verified[theId]; else verified[theId]=1;
-          ss(VK,verified); renderBadge(theId); pushVerified(); renderCardList($('cardSearch').value);
-        }; })(id);
-      } else {
-        vb.onclick = null; vb.style.pointerEvents = 'none'; vb.title = '';
-        if(!verified[id]) vb.classList.add('hidden');
-      }
-      row.appendChild(vb);
+      var tx=document.createElement('span'); tx.textContent=text; row.appendChild(tx);
       (function(di){ row.onclick=function(){ closeSheet(); jumpToDeckIndex(di); }; })(i);
       list.appendChild(row);
     }
   }
-  function openSheet(){ sheet.classList.remove('hidden'); $('cardSearch').value=''; navStatsRender(); renderCardList(''); }
+  function openSheet(){ closeDrawer(); sheet.classList.remove('hidden'); $('cardSearch').value=''; renderCardList(''); }
   function closeSheet(){ sheet.classList.add('hidden'); }
-  var _cb=$('cardsBtn'); if(_cb) _cb.onclick=function(e){ e.stopPropagation(); openSheet(); };
-  ['chipF','chipB'].forEach(function(x){ var el=$(x); if(el) el.onclick=function(e){ e.stopPropagation(); openTagPick(); }; });
-  var _tb=$('tagBtn'); if(_tb) _tb.onclick=function(e){ e.stopPropagation(); openTagPick(); };
+  $('cardsBtn').onclick=function(e){ e.stopPropagation(); openSheet(); };
   $('sheetClose').onclick=function(e){ e.stopPropagation(); closeSheet(); };
   $('cardSearch').addEventListener('input', function(){ renderCardList(this.value); });
 
   /* ---------- theme ---------- */
+  $('themeBtn').onclick=function(e){ e.stopPropagation(); theme = theme==='dark'?'light':'dark'; ss(TK,theme); applyTheme(); };
 
+  /* ---------- sessions ---------- */
+  $('dueBtn').onclick=function(e){ e.stopPropagation(); closeDrawer();
+    var now=Date.now(); var list=activeIndices().filter(function(i){ var s=review[cid(i)]; return !s || !s.due || s.due<=now; });
+    if(!list.length){ return; } order=list; idx=0; render(); };
+  $('againBtn').onclick=function(e){ e.stopPropagation(); closeDrawer();
+    var list=activeIndices().filter(function(i){ var s=review[cid(i)]; return s && s.r===0; });
+    if(!list.length){ return; } order=list; idx=0; render(); };
 
   /* ---------- stats ---------- */
-  function navStatsRender(){
-    var strip = $('navStats'); if(!strip) return;
-    var now = Date.now();
-    var idx = activeIndices();
-    var due = idx.filter(function(i){ var st=review[cid(i)]; return !st || !st.due || st.due<=now; }).length;
+  function statsRender(){
+    var now=Date.now();
+    var due=activeIndices().filter(function(i){ var s=review[cid(i)]; return !s||!s.due||s.due<=now; }).length;
     var cnt=[0,0,0,0], rated=0;
-    idx.forEach(function(i){ var st=review[cid(i)]; if(st && typeof st.r==='number'){ cnt[st.r]++; rated++; } });
+    activeIndices().forEach(function(i){ var s=review[cid(i)]; if(s&&typeof s.r==='number'){ cnt[s.r]++; rated++; } });
     var good=cnt[2]+cnt[3];
-    strip.textContent='';
-    [['Cards',idx.length],['Rated',rated],['Due now',due],['Recall', rated? Math.round(good/rated*100)+'%' : '\u2014']].forEach(function(r,ix){
-      if(ix){ var sep=document.createElement('span'); sep.className='ns-sep'; sep.textContent='\u00B7'; strip.appendChild(sep); }
-      var w=document.createElement('span'); w.className='ns';
-      var k2=document.createElement('i'); k2.textContent=r[0];
-      var v2=document.createElement('b'); v2.textContent=r[1];
-      w.appendChild(k2); w.appendChild(v2); strip.appendChild(w);
-    });
-    var lg=$('navLegend');
-    if(lg){
-      var LBL=['Again','Hard','Good','Easy','Unattempted'], COL=['#c81e1e','#b45309','#1d4ed8','#0f766e','#9c8d7e'];
-      var VAL=[cnt[0],cnt[1],cnt[2],cnt[3], idx.length-rated];
-      lg.textContent='';
-      LBL.forEach(function(t,n){ var sp=document.createElement('span'); sp.className='lg'; sp.style.background=COL[n];
-        sp.textContent = t+' '+VAL[n]; lg.appendChild(sp); });
-    }
+    var rows=[['Cards', activeIndices().length],['Rated', rated],['Due now', due],
+      ['Again', cnt[0]],['Hard', cnt[1]],['Good', cnt[2]],['Easy', cnt[3]],
+      ['Recall (Good+Easy)', rated? Math.round(good/rated*100)+'%' : '\u2014']];
+    statsBox.textContent='';
+    var wrap=document.createElement('div'); wrap.className='wrap';
+    var h=document.createElement('div'); h.className='rhead'; h.textContent='Stats'; wrap.appendChild(h);
+    var sub=document.createElement('div'); sub.className='rsub'; sub.textContent=TOPIC; wrap.appendChild(sub);
+    var rw=document.createElement('div'); rw.className='rrows';
+    rows.forEach(function(r){ var d=document.createElement('div'); d.className='rrow'; var k=document.createElement('span'); k.textContent=r[0]; var v=document.createElement('b'); v.textContent=r[1]; d.appendChild(k); d.appendChild(v); rw.appendChild(d); });
+    wrap.appendChild(rw);
+    var cb=document.createElement('div'); cb.className='closebar'; var b=document.createElement('button'); b.className='btn'; b.textContent='Close'; b.onclick=function(){ statsBox.classList.add('hidden'); }; cb.appendChild(b); wrap.appendChild(cb);
+    statsBox.appendChild(wrap);
   }
+  $('statsBtn').onclick=function(e){ e.stopPropagation(); closeDrawer(); statsBox.classList.remove('hidden'); statsRender(); };
+
+  /* ---------- results ---------- */
   function resultsRender(){
     var n=activeIndices().length, now=Date.now();
     var due=activeIndices().filter(function(i){ var s=review[cid(i)]; return !s||!s.due||s.due<=now; }).length;
@@ -1222,93 +608,33 @@ const SETNAME = (SET === 1 ? 'Basics & Fundamentals' : SET === 2 ? 'Main Concept
     var cb=document.createElement('div'); cb.className='closebar'; var b=document.createElement('button'); b.className='btn'; b.textContent='Close'; b.onclick=function(){ resultsBox.classList.add('hidden'); }; cb.appendChild(b); wrap.appendChild(cb);
     resultsBox.appendChild(wrap);
   }
-
+  $('submitBtn').onclick=function(e){ e.stopPropagation(); closeDrawer(); resultsBox.classList.remove('hidden'); resultsRender(); };
 
   /* ---------- edit ---------- */
   var editIndex=-1;
   function openEditor(){
     editIndex=order[idx]; var c=deck[editIndex], id=cid(editIndex), e=edits[id]||{}, type=c.type||'qa';
-    try{
-      var _locked = !CAN_EDIT;
-      var _cf = $('edCardFields'); if(_cf) _cf.classList.toggle('hidden', _locked);
-      var _hint = $('edLockHint'); if(_hint) _hint.classList.toggle('hidden', !_locked);
-      OWNER_ONLY_TOOLS.forEach(function(x){ var b=$(x); if(b){ var w=b.closest('.tool')||b; w.classList.toggle('hidden', !IS_OWNER); } });
-    }catch(_e){}
     if(type==='cloze'){ $('edFront').value=(e.text!=null?e.text:c.text||''); $('edBackWrap').classList.add('hidden'); }
     else if(type==='occlusion'){ $('edFront').value=(e.q!=null?e.q:c.q||''); $('edBackWrap').classList.add('hidden'); }
-    else if(type==='mcq'){ $('edFront').value=(e.q!=null?e.q:c.q||''); $('edBack').value=(e.explain!=null?e.explain:(c.explain||'')); $('edBackWrap').classList.remove('hidden'); }
     else { $('edFront').value=(e.q!=null?e.q:contentToText(c.q)); $('edBack').value=(e.a!=null?e.a:contentToText(c.a)); $('edBackWrap').classList.remove('hidden'); }
-    edImgRender();
+    $('edNote').value=e.note||'';
     $('edUndelete').textContent='Restore deleted ('+deleted.length+')';
-    editor.classList.remove('hidden');
+    closeDrawer(); editor.classList.remove('hidden');
   }
   function closeEditor(){ editor.classList.add('hidden'); }
-  function edImgRender(){
-    var id=cid(editIndex);
-    [['f','edImgFPrev','edImgF','edPasteF'],['b','edImgBPrev','edImgB','edPasteB']].forEach(function(cfg){
-      var side=cfg[0], wrap=$(cfg[1]), add=$(cfg[2]), pst=$(cfg[3]);
-      var arr=imgList(id, side), lim=imgLimit(side);
-      wrap.textContent='';
-      arr.forEach(function(src, idx){
-        var t=document.createElement('span'); t.className='thumb';
-        var im=document.createElement('img'); im.src=src; t.appendChild(im);
-        var rm=document.createElement('button'); rm.className='rm'; rm.textContent='\u00d7'; rm.title='Remove';
-        rm.onclick=function(e){ e.stopPropagation(); delImg(id, side, idx); edImgRender(); };
-        t.appendChild(rm); wrap.appendChild(t);
-      });
-      var full = arr.length>=lim;
-      if(add) add.classList.toggle('hidden', full);
-      if(pst) pst.classList.toggle('hidden', full);
-    });
-  }
-  $('edImgF').onclick=function(e){ e.stopPropagation(); $('edImgFFile').click(); };
-  $('edImgB').onclick=function(e){ e.stopPropagation(); $('edImgBFile').click(); };
-  $('edImgFFile').onchange=function(){ var id=cid(editIndex); if(this.files&&this.files[0]) shrinkImage(this.files[0], function(d){ if(d){ addImg(id,'f',d); edImgRender(); } }); this.value=''; };
-  $('edImgBFile').onchange=function(){ var id=cid(editIndex); if(this.files&&this.files[0]) shrinkImage(this.files[0], function(d){ if(d){ addImg(id,'b',d); edImgRender(); } }); this.value=''; };
-  function pasteClipboard(side){
-    if(!(navigator.clipboard && navigator.clipboard.read)){ alert('This browser cannot read clipboard images here. Save the image and use Add image instead.'); return; }
-    navigator.clipboard.read().then(function(items){
-      var jobs=[];
-      (items||[]).forEach(function(it){ (it.types||[]).forEach(function(t){ if(t.indexOf('image')===0){ jobs.push(it.getType(t).catch(function(){ return null; })); } }); });
-      return Promise.all(jobs);
-    }).then(function(blobs){
-      blobs=(blobs||[]).filter(Boolean);
-      if(!blobs.length){ alert('No image found on the clipboard. Copy an image first, then tap Paste from clipboard.'); return; }
-      openClipPick(blobs, side);
-    }).catch(function(){ alert('Could not read the clipboard. Please allow clipboard access, or use Add image.'); });
-  }
-  function openClipPick(blobs, side){
-    var g=$('clipickGrid'); g.textContent='';
-    blobs.forEach(function(b){
-      var im=document.createElement('img'); im.src=URL.createObjectURL(b); im.title='Tap to attach';
-      im.onclick=function(){ shrinkImage(b, function(d){ if(d){ addImg(cid(editIndex), side, d); edImgRender(); } try{ URL.revokeObjectURL(im.src); }catch(e){} closeClipPick(); }); };
-      g.appendChild(im);
-    });
-    $('clipick').classList.remove('hidden');
-  }
-  function closeClipPick(){ $('clipick').classList.add('hidden'); $('clipickGrid').textContent=''; }
-  $('edPasteF').onclick=function(e){ e.stopPropagation(); pasteClipboard('f'); };
-  $('edPasteB').onclick=function(e){ e.stopPropagation(); pasteClipboard('b'); };
-  $('clipickClose').onclick=function(e){ e.stopPropagation(); closeClipPick(); };
   $('editBtn').onclick=function(e){ e.stopPropagation(); openEditor(); };
   $('edClose').onclick=function(e){ e.stopPropagation(); closeEditor(); };
   $('edSave').onclick=function(e){ e.stopPropagation();
     var id=cid(editIndex), c=deck[editIndex], type=c.type||'qa', e=edits[id]||{};
     if(type==='cloze') e.text=$('edFront').value;
     else if(type==='occlusion') e.q=$('edFront').value;
-    else if(type==='mcq'){ e.q=$('edFront').value; e.explain=$('edBack').value; }
     else { e.q=$('edFront').value; e.a=$('edBack').value; }
+    e.note=$('edNote').value;
     cardU[id]=Date.now(); edits[id]=e; ss(EK,edits); closeEditor(); render(); syncPush(id);
   };
   $('edDelete').onclick=function(e){ e.stopPropagation();
-    ask('Delete this card? (1 of 3)', function(d1){ if(!d1) return;
-      ask('Delete this card? (2 of 3)', function(d2){ if(!d2) return;
-        ask('Delete this card? (3 of 3)', function(d3){ if(!d3) return;
-          var id=cid(editIndex); if(deleted.indexOf(id)<0) deleted.push(id); cardU[id]=Date.now(); ss(DK,deleted); syncPush(id);
-          closeEditor(); buildOrder(true); render();
-        });
-      });
-    });
+    var id=cid(editIndex); if(deleted.indexOf(id)<0) deleted.push(id); cardU[id]=Date.now(); ss(DK,deleted); syncPush(id);
+    closeEditor(); order=activeIndices(); idx=Math.min(idx, Math.max(0,order.length-1)); render();
   };
   $('edUndelete').onclick=function(e){ e.stopPropagation(); deleted=[]; ss(DK,deleted); order=activeIndices(); idx=0; $('edUndelete').textContent='Restore deleted (0)'; closeEditor(); render(); syncPushAll(); };
   function ask(msg, cb){
@@ -1323,149 +649,6 @@ const SETNAME = (SET === 1 ? 'Basics & Fundamentals' : SET === 2 ? 'Main Concept
     row.appendChild(yes); row.appendChild(no); box.appendChild(row); confirmBox.appendChild(box);
     confirmBox.classList.remove('hidden');
   }
-  var DECKKEY = (function(){
-    if(window.__FD_DECKKEY__) return String(window.__FD_DECKKEY__);
-    try{ var p=(location.pathname||'').split('/').pop()||''; var l=p.toLowerCase();
-      if(l.slice(-5)==='.html') p=p.slice(0,-5); else if(l.slice(-4)==='.htm') p=p.slice(0,-4);
-      if(p && p!=='srcdoc') return p; }catch(e){}
-    return TOPIC;
-  })();
-  var VK='fd:verified:'+DECKKEY;
-  function pushVerified(){ if(!session||!uid) return; try{ qPost('/rest/v1/settings?on_conflict=user_id,key', { method:'POST', headers:{ 'Prefer':'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify({ user_id: uid, key: 'verified:'+DECKKEY, value: JSON.stringify(verified), updated_at: new Date().toISOString() }) }).catch(function(){}); }catch(e){} }
-  function pullVerified(){ if(!session||!uid) return Promise.resolve(); try{ return sb('/rest/v1/settings?select=value&key=eq.'+encodeURIComponent('verified:'+DECKKEY)+'&user_id=eq.'+uid).then(function(rows){ if(Array.isArray(rows)&&rows.length&&rows[0].value){ var v=JSON.parse(rows[0].value); Object.keys(v).forEach(function(k){ if(v[k]) verified[k]=1; }); ss(VK,verified); if(order.length) renderBadge(cid(order[idx])); } }).catch(function(){}); }catch(e){ return Promise.resolve(); } }
-  var verified=ls(VK,{});
-  /* ---------- card images (front / back) ---------- */
-  /* ---- card reports (feedback for the owner) ---- */
-  /* ---- improvements needed (owner writes the ask, the agent fills the answer) ---- */
-  var IMPRKEY='fd:impr:'+DECKKEY;
-  var impr = {}, imprDirty = false, imprCurId = '';
-  try{ impr = JSON.parse(localStorage.getItem(IMPRKEY) || '{}') || {}; }catch(e){ impr = {}; }
-  function saveImpr(){ try{ localStorage.setItem(IMPRKEY, JSON.stringify(impr)); }catch(e){} imprDirty = true; pushImpr(); }
-  function pushImpr(){
-    if(!session||!uid) return;
-    try{ qPost('/rest/v1/settings?on_conflict=user_id,key', { method:'POST', headers:{ 'Prefer':'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify({ user_id: uid, key: 'impr:'+DECKKEY, value: JSON.stringify(impr), updated_at: new Date().toISOString() }) }).catch(function(){}); }catch(e){}
-  }
-  function pullImpr(){
-    if(!session||!uid) return Promise.resolve();
-    try{ return sb('/rest/v1/settings?select=value&key=eq.'+encodeURIComponent('impr:'+DECKKEY)+'&user_id=eq.'+uid).then(function(rows){
-      if(Array.isArray(rows)&&rows.length&&rows[0].value){ try{ impr = JSON.parse(rows[0].value)||{}; localStorage.setItem(IMPRKEY, JSON.stringify(impr)); }catch(e){} }
-    }).catch(function(){}); }catch(e){ return Promise.resolve(); }
-  }
-  var FLAGKEY='fd:flags:'+DECKKEY;
-  var flagsDirty = false, flagCurId = '';
-  var IS_OWNER = (typeof window !== 'undefined' && window.__FD_OWNER__ === false) ? false : true;
-  var IS_PAID = (typeof window !== 'undefined' && window.__FD_PAID__ === true);
-  var CAN_EDIT = IS_OWNER || IS_PAID;   /* owner and paying customers edit the card; free users keep their note */
-  /* ---- Privacy guard: only the OWNER may copy, save or share card content ----
-     A non-owner gets no route out: no text selection, no long-press menu, no image
-     drag, no Ctrl/Cmd+S or view-source, no printing, and no file download. The one
-     download in the app (Backup notes) and its Restore are owner-only, below. */
-  var OWNER_ONLY_TOOLS = ['edBackup','edRestore'];
-  function applyPrivacy(){
-    if(IS_OWNER) return;
-    try{ document.body.classList.add('nocopy'); }catch(_e){}
-    var _tb = $('tagBtn'); if(_tb) _tb.classList.add('hidden');
-    document.addEventListener('contextmenu', function(ev){
-      var t=ev.target; if(t && t.closest && t.closest('.card')){ ev.preventDefault(); }
-    }, true);
-    document.addEventListener('dragstart', function(ev){
-      var t=ev.target; if(t && t.tagName==='IMG'){ ev.preventDefault(); }
-    }, true);
-    document.addEventListener('keydown', function(ev){
-      if((ev.ctrlKey||ev.metaKey) && /^(s|u|p)$/i.test(ev.key)){ ev.preventDefault(); }
-    }, true);
-  }
-  applyPrivacy();
-  var flags = {};
-  try{ flags = JSON.parse(localStorage.getItem(FLAGKEY) || '{}') || {}; }catch(e){ flags = {}; }
-  var FLAGOPTS = [['wrong','Wrong details'],['old','Old data']];
-  function saveFlags(){ try{ localStorage.setItem(FLAGKEY, JSON.stringify(flags)); }catch(e){} flagsDirty = true; pushFlags(); }
-  function pushFlags(){
-    if(!session||!uid) return;
-    try{ qPost('/rest/v1/settings?on_conflict=user_id,key', { method:'POST', headers:{ 'Prefer':'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify({ user_id: uid, key: 'flags:'+DECKKEY, value: JSON.stringify(flags), updated_at: new Date().toISOString() }) }).catch(function(){}); }catch(e){}
-  }
-  function pullFlags(){
-    if(!session||!uid) return Promise.resolve();
-    try{ return sb('/rest/v1/settings?select=value&key=eq.'+encodeURIComponent('flags:'+DECKKEY)+'&user_id=eq.'+uid).then(function(rows){
-      if(Array.isArray(rows)&&rows.length&&rows[0].value){ try{ flags = JSON.parse(rows[0].value)||{}; localStorage.setItem(FLAGKEY, JSON.stringify(flags)); }catch(e){} }
-    }).catch(function(){}); }catch(e){ return Promise.resolve(); }
-  }
-  function cardFlags(id){ return flags[id] || {}; }
-  function flagCount(id){ var f = cardFlags(id); return (f.wrong?1:0) + (f.old?1:0); }
-  function paintFlagBtn(id){
-    var b = $('flagBtn'); if(!b) return;
-    if(id !== undefined) flagCurId = id || '';
-    var n = id ? flagCount(id) : 0;
-    b.textContent = n ? ('Report \u00b7 ' + n) : 'Report';
-    b.classList.toggle('flagbtn-on', !!n);
-  }
-  function openFlagPanel(){
-    var box = $('flagChips'); box.textContent = '';
-    var f = flagCurId ? cardFlags(flagCurId) : {};
-    FLAGOPTS.forEach(function(o){
-      var b = document.createElement('button'); b.type='button'; b.className='fp-chip' + (f[o[0]] ? ' on' : '');
-      b.textContent = o[1];
-      b.onclick = function(){
-        if(!flagCurId) return;
-        var g = flags[flagCurId] || (flags[flagCurId] = {});
-        if(g[o[0]]) delete g[o[0]]; else g[o[0]] = true;
-        if(!Object.keys(g).length) delete flags[flagCurId];
-        b.classList.toggle('on', !!(flags[flagCurId] && flags[flagCurId][o[0]]));
-        saveFlags(); paintFlagBtn(flagCurId);
-      };
-      box.appendChild(b);
-    });
-    $('flagpanel').classList.remove('hidden');
-  }
-  function closeFlagPanel(){ $('flagpanel').classList.add('hidden'); }
-  var IMGKEY='fd:imgs:'+DECKKEY;
-  var imgs=ls(IMGKEY,{});
-  function saveImgs(){ ss(IMGKEY, imgs); }
-  function imgList(id,side){ var o=imgs[id]; if(!o) return []; var v=o[side]; if(!v) return []; return Array.isArray(v)? v : [v]; }
-  function setImgList(id,side,arr){ var o=imgs[id]||(imgs[id]={}); if(arr && arr.length){ o[side]=arr; } else { delete o[side]; } o._u=Date.now(); if(!o.f && !o.b) delete imgs[id]; saveImgs(); imgsDirty = true; pushImgs(); if(order.length) render(); }
-  function imgLimit(side){ return side==='f' ? 1 : 3; }
-  function addImg(id,side,data){ if(!data) return false; var arr=imgList(id,side).slice(); if(arr.length>=imgLimit(side)) return false; arr.push(data); setImgList(id,side,arr); return true; }
-  function delImg(id,side,idx){ var arr=imgList(id,side).slice(); arr.splice(idx,1); setImgList(id,side,arr); }
-  var imgsDirty = Object.keys(imgs).length > 0;
-  function pushImgs(force){ if(!session||!uid) return; if(!imgsDirty && !force) return; try{ qPost('/rest/v1/settings?on_conflict=user_id,key', { method:'POST', headers:{ 'Prefer':'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify({ user_id: uid, key: 'imgs:'+DECKKEY, value: JSON.stringify(imgs), updated_at: new Date().toISOString() }) }).then(function(){ imgsDirty = false; }).catch(function(){}); }catch(e){} }
-  function pullImgs(){ if(!session||!uid) return Promise.resolve(); try{ return sb('/rest/v1/settings?select=value&key=eq.'+encodeURIComponent('imgs:'+DECKKEY)+'&user_id=eq.'+uid).then(function(rows){ if(Array.isArray(rows)&&rows.length&&rows[0].value){ var v=JSON.parse(rows[0].value), ch=false; Object.keys(v).forEach(function(k){ var a=imgs[k], b=v[k]; if(b && (!a || (b._u||0) >= (a._u||0))){ if(JSON.stringify(a)!==JSON.stringify(b)){ imgs[k]=b; ch=true; } } }); if(ch){ saveImgs(); } } }).catch(function(){}); }catch(e){ return Promise.resolve(); } }
-  function shrinkImage(file, cb){ var r=new FileReader(); r.onload=function(){ var im=new Image(); im.onload=function(){ var mx=1000, w=im.width, h=im.height; if(w>mx||h>mx){ var sc=Math.min(mx/w,mx/h); w=Math.round(w*sc); h=Math.round(h*sc); } var cv=document.createElement('canvas'); cv.width=w; cv.height=h; cv.getContext('2d').drawImage(im,0,0,w,h); try{ cb(cv.toDataURL('image/jpeg',0.72)); }catch(e){ cb(null); } }; im.onerror=function(){ cb(null); }; im.src=r.result; }; r.onerror=function(){ cb(null); }; r.readAsDataURL(file); }
-  function renderBadge(id){
-    var v=!!verified[id];
-    ['vbadgeF','vbadgeB'].forEach(function(x){
-      var el=document.getElementById(x); if(!el) return;
-      el.className = 'vbadge' + (v ? ' on' : '');
-      if(!IS_OWNER){
-        /* a non-owner is never shown the unverified state, and cannot change it */
-        el.onclick = null;
-        if(!v){ el.textContent = ''; el.classList.add('hidden'); return; }
-        el.classList.remove('hidden');
-        el.textContent = '\u2713 Verified';
-        return;
-      }
-      el.classList.remove('hidden');
-      el.textContent = v ? '\u2713 Verified' : 'Unverified';
-      el.onclick = function(ev){
-        ev.stopPropagation();
-        if(verified[id]) delete verified[id]; else verified[id] = 1;
-        ss(VK, verified); renderBadge(id); pushVerified();
-      };
-    });
-  }
-
-  /* ---------- rounds completed (full passes over the deck) ---------- */
-  var RDK='fd:rounds:'+DECKKEY, PSK='fd:passset:'+DECKKEY;
-  var rounds=parseInt(ls(RDK,0),10)||0, passSet=ls(PSK,{});
-  var roundsPushed = -1;
-  function pushRounds(){ if(!session||!uid) return; if(rounds === roundsPushed) return; var _r = rounds; try{ qPost('/rest/v1/settings?on_conflict=user_id,key', { method:'POST', headers:{ 'Prefer':'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify({ user_id: uid, key: 'rounds:'+DECKKEY, value: String(_r), updated_at: new Date().toISOString() }) }).then(function(){ roundsPushed = _r; }).catch(function(){}); }catch(e){} }
-  function pullRounds(){ if(!session||!uid) return Promise.resolve(); try{ return sb('/rest/v1/settings?select=value&key=eq.'+encodeURIComponent('rounds:'+DECKKEY)+'&user_id=eq.'+uid).then(function(rows){ if(Array.isArray(rows)&&rows.length&&rows[0].value){ var n=parseInt(rows[0].value,10)||0; if(n>rounds){ rounds=n; ss(RDK,rounds); } } }).catch(function(){}); }catch(e){ return Promise.resolve(); } }
-  function notePass(id){
-    var act=activeIndices(); if(!act.length) return;
-    passSet[id]=1;
-    var all=true; for(var i=0;i<act.length;i++){ if(!passSet[cid(act[i])]){ all=false; break; } }
-    if(all){ rounds++; passSet={}; ss(RDK,rounds); pushRounds(); }
-    ss(PSK,passSet);
-  }
   $('edReset').onclick=function(e){ e.stopPropagation();
     ask('Are you sure to Reset? (1 of 3)', function(a1){ if(!a1) return;
       ask('Are you sure to Reset? (2 of 3)', function(a2){ if(!a2) return;
@@ -1477,15 +660,12 @@ const SETNAME = (SET === 1 ? 'Basics & Fundamentals' : SET === 2 ? 'Main Concept
       });
     });
   };
-  $('flagBtn').onclick=function(e){ e.stopPropagation(); openFlagPanel(); };
-  $('flagDone').onclick=function(e){ e.stopPropagation(); closeFlagPanel(); };
-  $('flagpanel').onclick=function(e){ if(e.target === $('flagpanel')) closeFlagPanel(); };
-  $('edBackup').onclick=function(e){ e.stopPropagation(); if(!IS_OWNER) return;
+  $('edBackup').onclick=function(e){ e.stopPropagation();
     var blob=new Blob([JSON.stringify(edits)], {type:'application/json'});
     var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='flashcard-notes-'+TOPIC.replace(/\s+/g,'_')+'.json';
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
   };
-  $('edRestore').onclick=function(e){ e.stopPropagation(); if(!IS_OWNER) return;
+  $('edRestore').onclick=function(e){ e.stopPropagation();
     var inp=document.createElement('input'); inp.type='file'; inp.accept='application/json,.json';
     inp.onchange=function(){ var f=inp.files&&inp.files[0]; if(!f) return; var r=new FileReader();
       r.onload=function(){ try{ var data=JSON.parse(r.result); if(data&&typeof data==='object'){ edits=data; ss(EK,edits); render(); } }catch(err){} };
@@ -1507,11 +687,7 @@ const SETNAME = (SET === 1 ? 'Basics & Fundamentals' : SET === 2 ? 'Main Concept
   };
   card.onclick=flip;
   document.addEventListener('keydown', function(e){
-    /* Never act on a shortcut while the user is typing: the inline note editor,
-       the card editor, the navigator search and any other field keep their keys. */
-    var _t = e.target;
-    if(_t && (_t.tagName === 'INPUT' || _t.tagName === 'TEXTAREA' || _t.tagName === 'SELECT' || _t.isContentEditable)) return;
-    if(!resultsBox.classList.contains('hidden') || !editor.classList.contains('hidden') || !sheet.classList.contains('hidden')) return;
+    if(!resultsBox.classList.contains('hidden') || !statsBox.classList.contains('hidden') || !editor.classList.contains('hidden') || !sheet.classList.contains('hidden')) return;
     if(e.key===' '||e.key==='ArrowRight'){ e.preventDefault(); go(1); }
     else if(e.key==='ArrowLeft'){ go(-1); }
     else if(e.key==='Enter'){ flip(); }
@@ -1521,7 +697,16 @@ const SETNAME = (SET === 1 ? 'Basics & Fundamentals' : SET === 2 ? 'Main Concept
   /* ================= cloud sync (Supabase) ================= */
   var SB_URL = "https://vcsfjzlelpwditxdbaea.supabase.co";
   var SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZjc2ZqemxlbHB3ZGl0eGRiYWVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE0NTg2NTEsImV4cCI6MjEwNzAzNDY1MX0.Sx9wB-78a4DEfdA67kSZpAA2qIIkxPBSH84chU_0RPc";
+  var OWNER_EMAIL = "life.rknain@gmail.com";   /* owner-only UI (the fixed-id chip) shows only to this account */
+  var DECKKEY = (function(){
+    if(window.__FD_DECKKEY__) return String(window.__FD_DECKKEY__);
+    try{ var p=(location.pathname||'').split('/').pop()||''; var l=p.toLowerCase();
+      if(l.slice(-5)==='.html') p=p.slice(0,-5); else if(l.slice(-4)==='.htm') p=p.slice(0,-4);
+      if(p && p!=='srcdoc') return p; }catch(e){}
+    return TOPIC;
+  })();
   var session = ls('fd:auth', null);
+  function isOwner(){ return !!(session && session.user && String(session.user.email || '').toLowerCase() === OWNER_EMAIL); }
   var uid = (session && session.user) ? session.user.id : null;
   var syncPanel = null;
 
@@ -1560,7 +745,7 @@ const SETNAME = (SET === 1 ? 'Basics & Fundamentals' : SET === 2 ? 'Main Concept
       .then(function(d){ saveSession(d); });
   }
   function setCloud(t){
-    var c = $('cloud'); if(c) c.textContent = t ? (' \u00b7 ' + t) : '';
+    var c = $('cloud'); if(c) c.textContent = t ? ('\u00b7 ' + t) : '';
     var b = $('syncBtn'); if(b) b.textContent = session ? 'Cloud sync (on)' : 'Cloud sync';
   }
   function rowFor(id){
@@ -1569,7 +754,7 @@ const SETNAME = (SET === 1 ? 'Basics & Fundamentals' : SET === 2 ? 'Main Concept
     if(!has) return null;
     var u = cardU[id] || Date.now(); cardU[id] = u;
     var front = (e.q != null) ? e.q : (e.text != null ? e.text : null);
-    return { user_id: uid, deck_key: cardDeck(id), card_id: cardRealId(id),
+    return { user_id: uid, deck_key: DECKKEY, card_id: id,
       rating: (typeof st.r === 'number' ? st.r : null),
       interval_days: (st.i != null ? st.i : null),
       due_at: (st.due != null ? st.due : null),
@@ -1577,55 +762,27 @@ const SETNAME = (SET === 1 ? 'Basics & Fundamentals' : SET === 2 ? 'Main Concept
       tag: (e.tag != null ? e.tag : null),
       deleted: del, updated_ms: u };
   }
-  var pushedU = {};
-  function markPushed(rows){ (rows||[]).forEach(function(r){ if(r && r.card_id) pushedU[cardRealId(r.card_id)] = r.updated_ms || Date.now(); }); }
-  /* ---------- durable write queue: a write is retried until it lands ---------- */
-  var QK = 'fd:q:' + DECKKEY;
-  function qLoad(){ try{ var q=JSON.parse(localStorage.getItem(QK)||'[]'); return Array.isArray(q)?q:[]; }catch(e){ return []; } }
-  function qSave(q){ try{ localStorage.setItem(QK, JSON.stringify(q)); }catch(e){} }
-  function qAdd(path, opts){ var q=qLoad(); q.push({ path:path, opts:opts, t:Date.now() }); if(q.length>300) q=q.slice(-300); qSave(q); }
-  function qPost(path, opts){
-    return ensureAuth().then(function(){ return sb(path, opts); })
-      .catch(function(e){ qAdd(path, opts); throw e; });
-  }
-  function qFlush(){
-    if(!session) return Promise.resolve();
-    var q = qLoad(); if(!q.length) return Promise.resolve();
-    qSave([]);
-    var failed = [];
-    return q.reduce(function(chain, e){
-      return chain.then(function(){
-        return ensureAuth().then(function(){ return sb(e.path, e.opts); })
-          .then(function(){}, function(){ failed.push(e); });
-      });
-    }, Promise.resolve()).then(function(){
-      if(failed.length){ qSave(failed.concat(qLoad())); setCloud('sync error'); }
-      else { setCloud('synced'); }
-    });
-  }
   function syncPush(id){
     if(!session) return;
     var row = rowFor(id); ss(UK, cardU);
     if(!row) return;
     ensureAuth().then(function(){
-      return qPost('/rest/v1/deck_state?on_conflict=user_id,deck_key,card_id', { method:'POST', headers:{ 'Prefer':'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify(row) });
-    }).then(function(){ markPushed([row]); setCloud('synced'); }).catch(function(){ setCloud('sync error'); });
+      return sb('/rest/v1/deck_state?on_conflict=user_id,deck_key,card_id', { method:'POST', headers:{ 'Prefer':'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify(row) });
+    }).then(function(){ setCloud('synced'); }).catch(function(){ setCloud('sync error'); });
   }
   function syncPushAll(){
     if(!session) return;
     var rows = [];
-    for(var i=0;i<deck.length;i++){ var id=cid(i); var u=cardU[id]||0; if(!u || u<=(pushedU[id]||0)) continue; var r=rowFor(id); if(r) rows.push(r); }
+    for(var i=0;i<deck.length;i++){ var r = rowFor(cid(i)); if(r) rows.push(r); }
     ss(UK, cardU);
     if(!rows.length) return;
     ensureAuth().then(function(){
-      return qPost('/rest/v1/deck_state?on_conflict=user_id,deck_key,card_id', { method:'POST', headers:{ 'Prefer':'resolution=merge-duplicates,return:minimal' }, body: JSON.stringify(rows) });
-    }).then(function(){ markPushed(rows); setCloud('synced'); }).catch(function(){ setCloud('sync error'); });
+      return sb('/rest/v1/deck_state?on_conflict=user_id,deck_key,card_id', { method:'POST', headers:{ 'Prefer':'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify(rows) });
+    }).then(function(){ setCloud('synced'); }).catch(function(){ setCloud('sync error'); });
   }
   function deckCard(id){ for(var i=0;i<deck.length;i++){ if(cid(i) === id) return deck[i]; } return null; }
-  function cardDeck(id){ var c = deckCard(id); return (c && c.dk) ? String(c.dk) : DECKKEY; }
-  function cardRealId(id){ var c = deckCard(id); return (c && c.rid) ? String(c.rid) : id; }
-  function applyRowTo(id, r){
-    var u = r.updated_ms || 0;
+  function applyRow(r){
+    var id = r.card_id, u = r.updated_ms || 0;
     if(!(u > (cardU[id] || 0))) return;
     if(r.rating != null || r.interval_days != null || r.due_at != null){
       var st = review[id] || {};
@@ -1645,26 +802,18 @@ const SETNAME = (SET === 1 ? 'Basics & Fundamentals' : SET === 2 ? 'Main Concept
     else { var k = deleted.indexOf(id); if(k >= 0) deleted.splice(k,1); }
     cardU[id] = u;
   }
-  function syncPull(silent){
-    if(!session) return Promise.resolve();
-    if(!silent) setCloud('syncing');
-    var keys = {}; for(var i=0;i<deck.length;i++){ keys[cardDeck(cid(i))] = 1; }
-    var list = Object.keys(keys);
-    return ensureAuth().then(function(){
-      return Promise.all(list.map(function(k){ return sb('/rest/v1/deck_state?select=*&deck_key=eq.' + encodeURIComponent(k) + '&user_id=eq.' + uid); }));
-    }).then(function(groups){
-      var map = {};
-      for(var i=0;i<deck.length;i++){ var id = cid(i); map[cardDeck(id) + '\u0000' + cardRealId(id)] = id; }
-      (groups || []).forEach(function(rows){ if(Array.isArray(rows)) rows.forEach(function(r){ var id = map[(r.deck_key || '') + '\u0000' + r.card_id]; if(id) applyRowTo(id, r); }); });
-      ss(RK,review); ss(EK,edits); ss(DK,deleted); ss(UK,cardU);
-      if(silent){ updateProgress(); var ci=curId(); if(ci!=null){ renderRating(ci); renderBadge(ci); } }
-      else { buildOrder(true); render(); }
+  function syncPull(){
+    if(!session) return;
+    setCloud('syncing');
+    ensureAuth().then(function(){
+      return sb('/rest/v1/deck_state?select=*&deck_key=eq.' + encodeURIComponent(DECKKEY) + '&user_id=eq.' + uid);
+    }).then(function(rows){
+      if(Array.isArray(rows)){ rows.forEach(applyRow); ss(RK,review); ss(EK,edits); ss(DK,deleted); ss(UK,cardU); order = activeIndices(); idx = Math.min(idx, Math.max(0, order.length-1)); render(); }
       setCloud('synced'); syncPushAll();
-    }).catch(function(){ if(!silent) setCloud('offline'); });
+    }).catch(function(){ setCloud('offline'); });
   }
   function syncContent(){
     if(!session) return;
-    for(var _mi=0;_mi<deck.length;_mi++){ if(deck[_mi] && deck[_mi].dk){ return; } }
     ensureAuth().then(function(){
       return sb('/rest/v1/decks?select=deck_key,html,filed&deck_key=eq.' + encodeURIComponent(DECKKEY) + '&user_id=eq.' + uid);
     }).then(function(rows){
@@ -1740,17 +889,9 @@ const SETNAME = (SET === 1 ? 'Basics & Fundamentals' : SET === 2 ? 'Main Concept
     }).then(function(){ window.alert('Password changed. Use the new one next time you sign in.'); })
       .catch(function(){ window.alert('Could not change the password. Please try again.'); });
   }
-  var _sb=$('syncBtn'); if(_sb) _sb.onclick = function(e){ e.stopPropagation(); openSync(); };
+  $('syncBtn').onclick = function(e){ e.stopPropagation(); closeDrawer(); openSync(); };
   setCloud(session ? 'synced' : '');
-  if(session){ syncPull(); pullVerified(); pullImgs(); pullRounds(); pullFlags(); pullImpr(); syncContent(); }
-
-  /* ---------- background cloud sync (always on) ---------- */
-  function bgSync(){ if(!session) return; try{ qFlush(); }catch(e){} try{ syncPushAll(); }catch(e){} try{ pushImgs(); }catch(e){} try{ if(flagsDirty){ pushFlags(); flagsDirty=false; } }catch(e){} try{ if(imprDirty){ pushImpr(); imprDirty=false; } }catch(e){} try{ pushRounds(); }catch(e){} try{ syncPull(true); }catch(e){} try{ pullImgs(); }catch(e){} try{ pullFlags(); }catch(e){} try{ pullImpr(); }catch(e){} try{ pullRounds(); }catch(e){} }
-  setInterval(function(){ if(!document.hidden) bgSync(); }, 25000);
-  document.addEventListener('visibilitychange', function(){ if(!document.hidden) bgSync(); });
-  window.addEventListener('online', function(){ bgSync(); });
-  window.addEventListener('focus', function(){ bgSync(); });
-  window.addEventListener('pagehide', function(){ try{ qFlush(); }catch(e){} try{ syncPushAll(); }catch(e){} });
+  if(session){ syncPull(); syncContent(); }
 
   if(window.__FD_TAG__ && TAGS.indexOf(window.__FD_TAG__) >= 0){ tagFilter = window.__FD_TAG__; reapplyOrder(); idx = 0; }
 
