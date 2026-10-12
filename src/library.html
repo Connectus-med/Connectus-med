@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-19 08:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-19 09:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -903,9 +903,14 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-19 08:00';
-  var BUILD_NOTE = 'Fixed Question of the day: it read a question pool that stays empty until every deck has loaded, so it wrongly said no questions. It now fetches the cards on demand, exactly like the tests do.';
+  var APP_BUILD = '2026-10-19 09:00';
+  var BUILD_NOTE = 'Hotfix: the previous build could make the app unresponsive (an endless reload loop while the bank was still empty). Reverted that, and the question drill now tries once then stops.';
   var CHANGELOG = [
+    { build:'2026-10-19 09:00', title:'Hotfix: app could hang', items:[
+      'The previous build could hang the tab - a check that decided whether the bank had loaded could re-run itself endlessly.',
+      'Reverted to the safe behaviour; the question drill now tries once and then stops instead of looping.',
+      'Verified with cards, with an empty bank, and on the Test screen - all responsive, no loop.',
+    ]},
     { build:'2026-10-19 08:00', title:'Question of the day: pool fixed', items:[
       'The drill used a pool that stays empty until every deck has been loaded, so it wrongly said no MCQ questions.',
       'It now pulls the cards on demand - the same path the tests use - so a question always appears.',
@@ -2504,11 +2509,10 @@
   try{ var _tp = ls('fd:testpyq', null); if(_tp === true || _tp === false) testWithPyq = _tp; }catch(e){}
   var _allHydrated = false;
   function ensureCards(done){
-    var ds = decksData || [];
-    if(_allHydrated || (ds.length && ds.every(function(d){ return Array.isArray(d.cards) && d.cards.length; }))){
+    if(_allHydrated || (decksData || []).every(function(d){ return Array.isArray(d.cards) && d.cards.length; })){
       _allHydrated = true; if(done) done(); return;
     }
-    hydrateAll(function(){ if((decksData || []).length) _allHydrated = true; if(done) done(); });
+    hydrateAll(function(){ _allHydrated = true; if(done) done(); });
   }
   function hydrateAll(done){
     var keys = (decksData || []).filter(function(d){ return !(Array.isArray(d.cards) && d.cards.length); }).map(function(d){ return d.deck_key; });
@@ -2758,11 +2762,11 @@
       cb(best);
     }).catch(function(){ restore(); cb(null); });
   }
-  function openQotd(){ view = { t:'qotd', qotd:{ q:null, picked:null, exclude:{}, loading:false } }; render(); window.scrollTo(0,0); }
+  function openQotd(){ view = { t:'qotd', qotd:{ q:null, picked:null, exclude:{}, loading:false, tried:false } }; render(); window.scrollTo(0,0); }
   function qotdNext(){
     var st = view.qotd || (view.qotd = { q:null, picked:null, exclude:{}, loading:false });
     if(st.q) st.exclude[st.q.k + '|' + st.q.id] = 1;
-    st.q = null; st.picked = null; st.loading = false;
+    st.q = null; st.picked = null; st.loading = false; st.tried = false;
     renderQotd(); window.scrollTo(0,0);
   }
   function renderQotd(){
@@ -2777,17 +2781,19 @@
     wrap.appendChild(sub);
     var q = st.q;
     if(!q){
-      wrap.appendChild(skeleton());
-      c.appendChild(wrap);
-      if(!st.loading){
+      if(st.loading){ wrap.appendChild(skeleton()); c.appendChild(wrap); return; }
+      if(!st.tried){
         st.loading = true;
+        wrap.appendChild(skeleton()); c.appendChild(wrap);
         qotdPick({}, function(best){
-          st.loading = false;
+          st.loading = false; st.tried = true;
           if(!st.q) st.q = best;
           renderQotd();
         });
+        return;
       }
-      return;
+      wrap.appendChild(emptyState('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v18M3 12h18"/></svg>', 'No MCQ questions yet', 'This drill uses multiple-choice questions. Add MCQ decks and a question of the day will appear here.'));
+      c.appendChild(wrap); return;
     }
     var card = document.createElement('div'); card.className = 'tcard';
     var meta = document.createElement('div'); meta.className = 'tlabel'; meta.textContent = (q.s || 'Question') + (q.t ? (' \u00b7 ' + q.t) : ''); card.appendChild(meta);
