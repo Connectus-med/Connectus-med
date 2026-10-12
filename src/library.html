@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-22 00:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-22 02:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -23,7 +23,6 @@
     --bg:#f7f4f1; --panel:#ffffff; --ink:#20160f; --muted:#6a5a4d; --line:#ecdfd3;
     --cap:999px; --shadow:0 10px 30px -18px rgba(120,60,10,.55);
     /* ---- design tokens: one source of truth ---- */
-    --fg:var(--ink);                       /* was referenced but never defined */
     --ok:#0f766e; --ok-strong:#16a34a;
     --bad:#c81e1e; --bad-strong:#dc2626;
     --warn:#d97706; --warn-soft:#ffe9a8;
@@ -51,6 +50,9 @@
     --el-1:0 1px 2px rgba(0,0,0,.5), 0 8px 24px -20px rgba(0,0,0,.85);
   }
   *{box-sizing:border-box}
+  /* every text field follows the theme, whatever its own rule says (or forgets) */
+  input, textarea, select{color:var(--ink)}
+  input::placeholder, textarea::placeholder{color:var(--muted); opacity:.7}
   html,body{margin:0;height:100%}
   body{background:var(--bg); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; -webkit-font-smoothing:antialiased}
   .hidden{display:none!important}
@@ -400,12 +402,11 @@
   /* error log */
   .errbox{border-top:1px solid var(--line); padding:12px 0}
   .errbox:first-of-type{border-top:0}
-  .errnote{width:100%; margin-top:8px; min-height:44px; resize:vertical; font:inherit; font-size:.84rem; line-height:1.4;
+  .errnote{width:100%; margin-top:8px; min-height:46px; resize:vertical; font:inherit; font-size:.84rem; line-height:1.45;
+    border:1px solid var(--line); border-radius:10px; padding:9px 10px; background:var(--bg); color:var(--ink)}
   .errn{margin-top:6px}
   .errn .btn{margin:6px 8px 0 0}
   .errnotetxt{font-weight:800; font-size:1rem; line-height:1.45; margin:5px 0 9px; padding:2px 0 2px 10px; border-left:4px solid var(--accent-2); color:var(--ink)}
-  .errnote{min-height:46px; line-height:1.45; resize:vertical}
-    border:1px solid var(--line); border-radius:10px; padding:9px 10px; background:var(--bg); color:var(--ink)}
   .errrm{margin-top:8px; border:0; background:none; color:var(--bad); font:inherit; font-size:.8rem; font-weight:750; cursor:pointer; padding:0}
   /* grand test */
   .twrap{display:flex; flex-direction:column; gap:12px; padding-bottom:120px}
@@ -440,12 +441,12 @@
   .tspark .ar{fill:var(--mark-soft)}
   .tspark .dt{fill:var(--accent-2)}
   .ttrend-txt{flex:1; min-width:0; font-size:.82rem; color:var(--muted)}
-  .ttrend-txt b{color:var(--fg); font-weight:800}
+  .ttrend-txt b{color:var(--ink); font-weight:800}
   .ttrend-up{color:var(--ok); font-weight:800}
   .ttrend-dn{color:var(--bad); font-weight:800}
   .ttrend-fl{color:var(--muted); font-weight:700}
-  .tfind{width:100%; box-sizing:border-box; border:1px solid var(--line); background:var(--card);
-         color:var(--fg); font:inherit; font-size:.95rem; border-radius:14px; padding:12px 14px; margin:2px 0 10px}
+  .tfind{width:100%; box-sizing:border-box; border:1px solid var(--line); background:var(--panel-2);
+         color:var(--ink); font:inherit; font-size:.95rem; border-radius:14px; padding:12px 14px; margin:2px 0 10px}
   .tfind:focus{outline:none; border-color:var(--accent-2); box-shadow:0 0 0 3px var(--mark-soft)}
   .tfindres{display:flex; flex-direction:column; gap:7px; max-height:52vh; overflow:auto}
   .tfindrow{border:1px solid var(--line); border-radius:12px; padding:9px 11px; cursor:pointer}
@@ -1014,9 +1015,14 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-22 00:00';
-  var BUILD_NOTE = 'The result screen now has two clear sub-sections: Analysis and Review. Analysis holds the score, the paper mix, by-subject, where your marks went, the cut-off and the slowest questions; Review holds the question-by-question list. A fresh paper always opens on Analysis.';
+  var APP_BUILD = '2026-10-22 02:00';
+  var BUILD_NOTE = 'Fixed dark-mode text fields. The Find a question box had no background (its colour token was never defined) and used a text colour that never followed dark mode, so what you typed was invisible. The error-log note box had a broken CSS rule that dropped its own colours. Every text field now follows the theme, and a smoke test guards it.';
   var CHANGELOG = [
+    { build:'2026-10-22 02:00', title:'Dark mode: text fields fixed', items:[
+      'The Find a question box now has a real background and readable text in dark mode.',
+      'Fixed a broken CSS rule that had dropped the error-log note box colours.',
+      'Every text field now follows the theme, and a test guards it.',
+    ]},
     { build:'2026-10-22 00:00', title:'Result: Analysis and Review apart', items:[
       'Two chips at the top of the result: Analysis and Review.',
       'Analysis: score, paper mix, by subject, where marks went, cut-off, slowest questions.',
