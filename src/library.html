@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-18 20:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-18 22:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -890,9 +890,15 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-18 20:00';
-  var BUILD_NOTE = 'Adaptive question engine: every paper remembers how you did on each question and draws fresh first, then what you got wrong, then tough and bookmarked ones, with a composition readout.';
+  var APP_BUILD = '2026-10-18 22:00';
+  var BUILD_NOTE = 'Question engine v2: it now also learns from flashcard practice, the tough threshold is tunable in Settings, and Home shows freshness by subject.';
   var CHANGELOG = [
+    { build:'2026-10-18 22:00', title:'Question engine v2', items:[
+      'The paper engine now also learns from flashcard practice - a card you rated Again or Hard comes back sooner in tests.',
+      'Settings has a Question pace control (45s/60s/70s/90s) that sets when a question counts as tough.',
+      'Home shows Fresh questions by subject - how much of each subject is still never tested.',
+      'Fresh now means never seen in any mode - test or practice.',
+    ]},
     { build:'2026-10-18 20:00', title:'Adaptive question engine', items:[
       'Every test paper now remembers, per question, whether you got it right, how long it took, and whether you bookmarked it.',
       'The draw is weighted: never-tested questions first, then ones you got wrong, then ones that were slow for you, then bookmarked ones; ones you always get right are eased off.',
@@ -3766,6 +3772,7 @@
     c.appendChild(masteryInfographic());
     c.appendChild(studyStatsCard());
     c.appendChild(weakestTopicsCard());
+    c.appendChild(freshnessCard());
     c.appendChild(coverageCard());
     c.appendChild(sectHead('Exam'));
     c.appendChild(examCard());
@@ -5552,47 +5559,97 @@
     return out;
   }
   /* questions not used in a recent paper come first */
-  var SLOW_MS = 70000;   /* the exam pace; slower than this reads as "tough for you" */
-  function qSelWeight(x, recent, hist){
+  function slowMs(){ var v = ls('fd:slowms', 70000); return (typeof v === 'number' && v >= 20000) ? v : 70000; }
+  /* how you rated this card in flashcard practice (Again/Hard = shaky) */
+  function practiceRatingMap(){
+    var m = {};
+    Object.keys(deckStates || {}).forEach(function(dk){
+      (deckStates[dk] || []).forEach(function(r){ if(r && !r.deleted && typeof r.rating === 'number') m[dk + '|' + r.card_id] = r.rating; });
+    });
+    return m;
+  }
+  function qSelWeight(x, recent, hist, pr){
     var key = (x.k || '') + '|' + (x.id || '');
     var st = hist ? hist[x.id] : null;
-    if(!st) return (recent && recent[key]) ? 5 : 10;      /* never tested: the top of the list */
-    var a = st.a || 0, wr = st.w || 0, avg = st.mt ? (st.ms / st.mt) : 0;
+    var prat = pr ? pr[key] : null;
+    if(!st && typeof prat !== 'number') return (recent && recent[key]) ? 5 : 10;   /* never tested: the top */
+    var a = st ? (st.a || 0) : 0, wr = st ? (st.w || 0) : 0, avg = (st && st.mt) ? (st.ms / st.mt) : 0;
     var w = 1;
-    if(wr > 0) w += 6 * (wr / Math.max(1, a));            /* you got it wrong */
-    if(avg >= SLOW_MS) w += 3;                            /* it was slow for you - tough */
-    if((st.b || 0) > 0) w += 2;                           /* you bookmarked it */
+    if(wr > 0) w += 6 * (wr / Math.max(1, a));            /* you got it wrong in a test */
+    if(typeof prat === 'number'){ if(prat <= 1) w += 5; else w -= 1; }   /* shaky in flashcard practice */
+    if(avg >= slowMs()) w += 3;                           /* it was slow for you - tough */
+    if(st && (st.b || 0) > 0) w += 2;                     /* you bookmarked it */
     if(a > 0 && wr === 0) w *= (a >= 2 ? 0.25 : 0.6);     /* always right: ease it off */
     if(recent && recent[key]) w *= 0.5;                   /* shown in a recent paper */
     return Math.max(0.2, w);
   }
-  function weightedOrder(arr, recent, rnd, hist){
+  function weightedOrder(arr, recent, rnd, hist, pr){
     return arr.map(function(x){
-      var w = qSelWeight(x, recent, hist), u = rnd() || 1e-9;
+      var w = qSelWeight(x, recent, hist, pr), u = rnd() || 1e-9;
       return { x:x, k: Math.pow(u, 1 / w) };
     }).sort(function(p, q){ return q.k - p.k; }).map(function(o){ return o.x; });
   }
   function paperMix(qs){
-    var hist = normQStats(), recent = testRecentMap(0);
+    var hist = normQStats(), recent = testRecentMap(0), pr = practiceRatingMap();
     var m = { total:0, fresh:0, wrong:0, book:0, tough:0 };
     (qs || []).forEach(function(x){
       m.total++;
-      var key = (x.k || '') + '|' + (x.id || ''), st = hist[x.id];
-      if(!st && !recent[key]) m.fresh++;
-      if(st && (st.w || 0) > 0) m.wrong++;
+      var key = (x.k || '') + '|' + (x.id || ''), st = hist[x.id], prat = pr[key];
+      if(!st && !recent[key] && typeof prat !== 'number') m.fresh++;
+      if((st && (st.w || 0) > 0) || (typeof prat === 'number' && prat <= 1)) m.wrong++;
       if(st && (st.b || 0) > 0) m.book++;
-      if(st && st.mt && (st.ms / st.mt) >= SLOW_MS) m.tough++;
+      if(st && st.mt && (st.ms / st.mt) >= slowMs()) m.tough++;
     });
     return m;
   }
+  /* freshness per subject - how much of each subject you have still never seen */
+  function freshnessBySubject(){
+    var hist = normQStats(), recent = testRecentMap(0), pr = practiceRatingMap(), bySub = {};
+    (decksData || []).forEach(function(d){
+      if(!d || !d.deck_key) return;
+      if(!IS_OWNER && !UNLOCKED && lockedKeys[d.deck_key]) return;
+      var loc = deckLoc[d.deck_key] || {}, s = loc.s || 'Other';
+      var b = bySub[s] || (bySub[s] = { s:s, tot:0, fresh:0 });
+      (Array.isArray(d.cards) ? d.cards : []).forEach(function(c){
+        if(!c || c.id == null) return;
+        b.tot++;
+        if(!hist[c.id] && !recent[d.deck_key + '|' + c.id] && typeof pr[d.deck_key + '|' + c.id] !== 'number') b.fresh++;
+      });
+    });
+    var out = [];
+    Object.keys(bySub).forEach(function(s){
+      var b = bySub[s]; if(!b.tot) return;
+      var yr = ''; (tax || []).forEach(function(r){ if(r.name === s) yr = r.year; });
+      out.push({ s:s, y:yr, tot:b.tot, fresh:b.fresh, pct: Math.round(b.fresh / b.tot * 100) });
+    });
+    return out.sort(function(a, b){ return a.pct - b.pct; });
+  }
+  function freshnessCard(){
+    var rows = freshnessBySubject();
+    var dc = document.createElement('div'); dc.className = 'card3';
+    var h = document.createElement('div'); h.className = 'chead'; h.textContent = 'Fresh questions by subject'; dc.appendChild(h);
+    if(!rows.length){
+      dc.appendChild(emptyState('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v18M3 12h18"/></svg>', 'No questions yet', 'Add decks and freshness will show per subject here.'));
+      return dc;
+    }
+    var sub = document.createElement('div'); sub.className = 'muted small'; sub.style.margin = '0 0 4px';
+    sub.textContent = 'Fresh = never tested in any mode. Lowest first \u2014 these subjects still have the most new questions.'; dc.appendChild(sub);
+    rows.slice(0, 6).forEach(function(r){
+      var b = document.createElement('div'); b.className = 'focusrow'; b.style.cursor = 'default';
+      var n = document.createElement('span'); n.className = 'n'; n.textContent = r.s + ' \u00b7 ' + r.y; b.appendChild(n);
+      var c = document.createElement('span'); c.className = 'c'; c.textContent = r.pct + '% fresh'; b.appendChild(c);
+      dc.appendChild(b);
+    });
+    return dc;
+  }
   function bankFreshPct(){
-    var hist = normQStats(), recent = testRecentMap(0), tot = 0, fresh = 0;
+    var hist = normQStats(), recent = testRecentMap(0), pr = practiceRatingMap(), tot = 0, fresh = 0;
     (decksData || []).forEach(function(d){
       if(!IS_OWNER && !UNLOCKED && lockedKeys[d.deck_key]) return;
       (Array.isArray(d.cards) ? d.cards : []).forEach(function(c){
         if(!c || c.id == null) return;
         tot++;
-        if(!hist[c.id] && !recent[d.deck_key + '|' + c.id]) fresh++;
+        if(!hist[c.id] && !recent[d.deck_key + '|' + c.id] && typeof pr[d.deck_key + '|' + c.id] !== 'number') fresh++;
       });
     });
     return { tot:tot, fresh:fresh, pct: tot ? Math.round(fresh / tot * 100) : 0 };
@@ -5635,7 +5692,7 @@
     while(used < n && rem.length){ out[rem[i % rem.length].g]++; used++; i++; }
     return out;
   }
-  function spreadTake(arr, want, recent, rnd, targets, needOn, hist){
+  function spreadTake(arr, want, recent, rnd, targets, needOn, hist, pr){
     var byDeck = {};
     arr.forEach(function(x){ var k = x.k || '?'; (byDeck[k] = byDeck[k] || []).push(x); });
     var decks = Object.keys(byDeck), tot = arr.length || 1, used = 0, rem = [], take = {};
@@ -5658,7 +5715,7 @@
       var a2 = byDeck[k].slice();
       if(needOn){
         a2 = a2.map(function(x){
-          var fr = qSelWeight(x, recent, hist);
+          var fr = qSelWeight(x, recent, hist, pr);
           return { x:x, fr:fr, s: needScore(x, targets) + rnd() * 0.05 };
         }).sort(function(a,b){ if(a.fr !== b.fr) return b.fr - a.fr; return b.s - a.s; }).map(function(o){ return o.x; });
         /* a scarce bucket must not be swallowed in the first few decks: cap this
@@ -5686,7 +5743,7 @@
         for(var z3=0; z3<spare.length && kept.length < take[k]; z3++) kept.push(spare[z3]);
         a2 = kept;
       } else {
-        a2 = weightedOrder(a2, recent, rnd, hist);
+        a2 = weightedOrder(a2, recent, rnd, hist, pr);
         a2 = a2.slice(0, take[k]);
       }
       a2.forEach(needBump);
@@ -5697,7 +5754,7 @@
   function pickByBlueprint(pool, len, W, mix, opts){
     opts = opts || {};
     var rnd = opts.rnd || Math.random, recent = opts.recent || null;
-    var targets = opts.targets || null, needOn = !!opts.needOn, hist = opts.hist || null;
+    var targets = opts.targets || null, needOn = !!opts.needOn, hist = opts.hist || null, pr = opts.pr || null;
     needInit(len);
     var plan = blueprintPlan(len, pool, W);
     var bySub = {};
@@ -5711,11 +5768,11 @@
         var need = split[g] || 0; if(!need) return;
         var poolG = arr.filter(function(x){ return (x.tag || '') === g; });
         if(!poolG.length) return;
-        spreadTake(poolG, Math.min(need, poolG.length), recent, rnd, targets, needOn, hist).forEach(function(x){ seen[x.k + '|' + x.id] = 1; got.push(x); });
+        spreadTake(poolG, Math.min(need, poolG.length), recent, rnd, targets, needOn, hist, pr).forEach(function(x){ seen[x.k + '|' + x.id] = 1; got.push(x); });
       });
       if(got.length < want){
         var rest = arr.filter(function(x){ return !seen[x.k + '|' + x.id]; });
-        got = got.concat(spreadTake(rest, Math.min(want - got.length, rest.length), recent, rnd, targets, needOn, hist));
+        got = got.concat(spreadTake(rest, Math.min(want - got.length, rest.length), recent, rnd, targets, needOn, hist, pr));
       }
       out = out.concat(got.slice(0, want));
     });
@@ -7086,7 +7143,7 @@
       var qs;
       if(onlyErrors && onlyErrors.length){ qs = pool.slice(); shuffleSeed(qs, rnd); }
       else if(testCustom || (testScope && testScope !== 'all')){ shuffleSeed(pool, rnd); qs = pool.slice(0, want); }
-      else { qs = pickByBlueprint(pool, want, ex.w, ex.mix, { rnd:rnd, recent:recent, targets:targets, needOn:needOn, hist:normQStats() }).qs; }
+      else { qs = pickByBlueprint(pool, want, ex.w, ex.mix, { rnd:rnd, recent:recent, targets:targets, needOn:needOn, hist:normQStats(), pr:practiceRatingMap() }).qs; }
       if(!qs.length){ shuffleSeed(pool, rnd); qs = pool.slice(0, want); }
       if(testPriority && testPriority.length && !(onlyErrors && onlyErrors.length)){
         var _pset = {}; testPriority.forEach(function(x){ _pset[x] = 1; });
@@ -8323,6 +8380,17 @@
     var stn = document.createElement('div'); stn.className = 'muted small';
     stn.textContent = 'Whether past-year (PYQ) papers are counted as questions when a paper is built.';
     st.appendChild(stn);
+    var pl = document.createElement('div'); pl.className = 'tlabel'; pl.style.marginTop = '14px'; pl.textContent = 'Question pace'; st.appendChild(pl);
+    var prr = document.createElement('div'); prr.className = 'tchips'; prr.style.margin = '6px 0 2px';
+    [[45,'45s'],[60,'60s'],[70,'70s'],[90,'90s']].forEach(function(o){
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'tchip' + (slowMs() === o[0] * 1000 ? ' on' : ''); b.textContent = o[1];
+      b.onclick = function(){ try{ ss('fd:slowms', o[0] * 1000); }catch(e){} renderSettings(); };
+      prr.appendChild(b);
+    });
+    st.appendChild(prr);
+    var pn = document.createElement('div'); pn.className = 'muted small';
+    pn.textContent = 'A question that takes you longer than this counts as tough, so it comes back sooner in new papers.';
+    st.appendChild(pn);
     c.appendChild(st);
 
     /* About */
