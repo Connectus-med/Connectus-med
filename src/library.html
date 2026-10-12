@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-20 14:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-20 16:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -581,17 +581,38 @@
     box-shadow:0 12px 26px -12px rgba(255,106,0,.6); -webkit-tap-highlight-color:transparent}
   .instaFab svg{width:26px; height:26px; display:block; position:relative; z-index:1}
   /* the quick-start hammer: one swing per cycle, on repeat */
-  .instaFab svg.hm{transform-origin:50% 88%; animation:fabSwing 2.2s cubic-bezier(.34,.86,.3,1) infinite; will-change:transform}
+  .instaFab svg.hm{transform-origin:50% 90%; filter:drop-shadow(0 3px 4px rgba(90,45,0,.35)); will-change:transform;
+    animation:fabSwing 2.2s cubic-bezier(.34,.86,.3,1) infinite}
   @keyframes fabSwing{
-    0%{transform:rotate(0deg)} 8%{transform:rotate(-40deg)} 18%{transform:rotate(14deg)}
-    26%{transform:rotate(-9deg)} 34%{transform:rotate(5deg)} 44%{transform:rotate(0deg)}
-    100%{transform:rotate(0deg)}
+    0%{transform:rotate(0deg)} 10%{transform:rotate(-44deg)} 20%{transform:rotate(17deg)}
+    25%{transform:rotate(11deg)} 32%{transform:rotate(-7deg)} 40%{transform:rotate(4deg)}
+    48%{transform:rotate(0deg)} 100%{transform:rotate(0deg)}
   }
   .instaFab::after{content:""; position:absolute; inset:-6px; border-radius:999px; pointer-events:none;
     background:radial-gradient(closest-side, rgba(255,214,140,.85), rgba(255,214,140,0) 72%); opacity:0; animation:fabHit 2.2s ease-out infinite}
   @keyframes fabHit{0%,15%{opacity:0; transform:scale(.5)} 19%{opacity:.9; transform:scale(1)} 32%{opacity:0; transform:scale(1.35)} 100%{opacity:0}}
   .instaFab:active{transform:translateY(1px)}
   body.deckopen .instaFab{display:none}
+  /* the shockwave: a crisp ring of constant thickness that grows out over the screen.
+     Size (not scale) is animated, so the ring edge stays sharp at every radius. */
+  #fabWave{position:fixed; right:calc(16px + 28px); bottom:calc(84px + 28px + env(safe-area-inset-bottom,0px));
+    width:0; height:0; pointer-events:none; z-index:27}
+  #fabWave::before{content:""; position:absolute; left:0; top:0; transform:translate(-50%,-50%);
+    width:56px; height:56px; border-radius:50%; opacity:0; will-change:width,height,opacity;
+    background:radial-gradient(closest-side,
+      rgba(255,150,40,0) calc(100% - 36px),
+      rgba(255,186,92,.58) calc(100% - 20px),
+      rgba(255,214,160,1) calc(100% - 6px),
+      rgba(255,178,84,.4) calc(100% - 1px),
+      rgba(255,170,70,0) 100%);
+    animation:fabWave 2.2s cubic-bezier(.22,.68,.3,1) infinite}
+  body.deckopen #fabWave, body.testrun #fabWave{display:none}
+  @keyframes fabWave{
+    0%,13%{opacity:0; width:70px; height:70px} 17%{opacity:1; width:190px; height:190px}
+    33%{opacity:.95; width:410px; height:410px} 50%{opacity:.8; width:630px; height:630px}
+    68%{opacity:.55; width:830px; height:830px} 84%{opacity:.3; width:960px; height:960px}
+    100%{opacity:0; width:1080px; height:1080px}
+  }
   body.testrun .instaFab{display:none}
   body.testrun .collapseFab{display:none}
   body.testrun #tabbar{display:none}
@@ -838,9 +859,24 @@
 <main>
   <div id="content"></div>
   <button id="collapseFab" class="fab hidden" aria-label="Collapse all">▴ Collapse all</button>
+  <span id="fabWave" aria-hidden="true"></span>
   <button id="instaFab" class="instaFab" aria-label="Quick start" title="Quick start">
     <span class="zring"></span>
-    <svg class="hm" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="3.4" y="3.6" width="17.2" height="5.4" rx="1.9"/><rect x="10.6" y="8.6" width="2.8" height="12.4" rx="1.4"/></svg>
+    <svg class="hm" viewBox="0 0 24 24" aria-hidden="true">
+      <defs>
+        <linearGradient id="cxfHead" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".38" stop-color="#eef2f7"/><stop offset=".72" stop-color="#c3ccd8"/><stop offset="1" stop-color="#8e99a8"/></linearGradient>
+        <linearGradient id="cxfNeck" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7f8896"/><stop offset=".5" stop-color="#c8d0da"/><stop offset="1" stop-color="#6f7886"/></linearGradient>
+        <linearGradient id="cxfGrip" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#6b4a2a"/><stop offset=".35" stop-color="#c89158"/><stop offset=".62" stop-color="#e0b27c"/><stop offset="1" stop-color="#6b4a2a"/></linearGradient>
+      </defs>
+      <rect x="2.6" y="3" width="18.8" height="6.2" rx="2.1" fill="url(#cxfHead)"/>
+      <rect x="2.6" y="3" width="18.8" height="2.3" rx="1.15" fill="#ffffff" opacity=".6"/>
+      <rect x="2.6" y="7.5" width="18.8" height="1.4" rx=".7" fill="#6f7886" opacity=".35"/>
+      <rect x="10.3" y="8.6" width="3.4" height="3.2" rx="1" fill="url(#cxfNeck)"/>
+      <rect x="10.5" y="10.9" width="3" height="10.4" rx="1.5" fill="url(#cxfGrip)"/>
+      <rect x="10.5" y="14.3" width="3" height=".85" fill="#000000" opacity=".22"/>
+      <rect x="10.5" y="16.5" width="3" height=".85" fill="#000000" opacity=".22"/>
+      <rect x="10.5" y="18.7" width="3" height=".85" fill="#000000" opacity=".22"/>
+    </svg>
   </button>
 </main>
 
@@ -948,9 +984,14 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-20 14:00';
-  var BUILD_NOTE = 'The quick-start button is now a hammer that swings down once every cycle and repeats, with a soft impact glow - a small motion cue that keeps inviting you back.';
+  var APP_BUILD = '2026-10-20 16:00';
+  var BUILD_NOTE = 'A realistic hammer now swings on the quick-start button - gradient steel head, wooden grip, shadow - and each strike sends a crisp orange shockwave rippling out across the screen.';
   var CHANGELOG = [
+    { build:'2026-10-20 16:00', title:'Quick start: a real hammer and a shockwave', items:[
+      'The hammer now looks real: metallic head, wooden grip, and a soft shadow.',
+      'Every strike sends a crisp ring of orange light sweeping out across the screen.',
+      'Everything still respects reduced-motion, so it stays calm if you prefer no animation.',
+    ]},
     { build:'2026-10-20 14:00', title:'Quick start: a hammer that swings', items:[
       'The lightning bolt is now a hammer.',
       'It winds up and strikes once every couple of seconds, on repeat - a live, inviting cue.',
