@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-20 18:00' -->
+<!-- compat-shim: older builds must not overwrite this newer cloud page; APP_BUILD = '2026-10-20 20:00' -->
 
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -599,14 +599,17 @@
     width:0; height:0; pointer-events:none; z-index:27}
   #fabWave::before{content:""; position:absolute; left:0; top:0; transform:translate(-50%,-50%);
     width:56px; height:56px; border-radius:50%; opacity:0; will-change:width,height,opacity;
-    background:radial-gradient(closest-side,
-      rgba(255,150,40,0) calc(100% - 34px),
-      rgba(255,186,92,.34) calc(100% - 19px),
-      rgba(255,214,160,.72) calc(100% - 6px),
-      rgba(255,178,84,.24) calc(100% - 1px),
-      rgba(255,170,70,0) 100%);
+    background:
+      radial-gradient(closest-side,
+        rgba(255,150,40,0) calc(100% - 30px), rgba(255,196,110,.20) calc(100% - 17px),
+        rgba(255,208,140,.42) calc(100% - 8px), rgba(255,196,110,.18) calc(100% - 2px),
+        rgba(255,170,70,0) 100%),
+      radial-gradient(closest-side,
+        rgba(255,150,40,0) calc(100% - 74px), rgba(255,188,98,.06) calc(100% - 62px),
+        rgba(255,200,124,.16) calc(100% - 53px), rgba(255,188,98,.06) calc(100% - 46px),
+        rgba(255,170,70,0) calc(100% - 36px));
     animation:fabWave 2.2s cubic-bezier(.22,.68,.3,1) infinite}
-  body.deckopen #fabWave, body.testrun #fabWave{display:none}
+  body.deckopen #fabWave, body.testrun #fabWave, body.gwopen #fabWave{display:none}
   @keyframes fabWave{
     0%,13%{opacity:0; width:60px; height:60px} 17%{opacity:.6; width:110px; height:110px}
     33%{opacity:.55; width:225px; height:225px} 50%{opacity:.46; width:335px; height:335px}
@@ -614,6 +617,7 @@
     100%{opacity:0; width:560px; height:560px}
   }
   body.testrun .instaFab{display:none}
+  body.gwopen .instaFab{display:none}
   body.testrun .collapseFab{display:none}
   body.testrun #tabbar{display:none}
   .instaFab .zring{position:absolute; inset:0; border-radius:999px; pointer-events:none; opacity:0}
@@ -984,9 +988,14 @@
   var TAX = {};   /* the universal content tree (settings.taxonomy) */
   var LAUNCH_OWNER_ONLY = true;   /* PRE-LAUNCH: only the owner gets in. Set to false to open the app to everyone. */
   var LAUNCH_CLOSED = false;      /* true while a non-owner is held at the "not open yet" screen */
-  var APP_BUILD = '2026-10-20 18:00';
-  var BUILD_NOTE = 'The shockwave is now a gentle ripple: half the spread (it reaches about the middle of the screen) and a much softer tint, so the hammer invites without distracting.';
+  var APP_BUILD = '2026-10-20 20:00';
+  var BUILD_NOTE = 'The ripple is now a soft sound-wave - smooth gradient rings with a faint trailing ring, not a solid band. And it stops the moment you tap the hammer: open quick start and the wave and button step aside.';
   var CHANGELOG = [
+    { build:'2026-10-20 20:00', title:'Quick start: a sound-wave ripple', items:[
+      'The ripple now reads like a sound wave - soft gradient rings, with a fainter ring trailing behind.',
+      'No more solid orange band.',
+      'Tap the hammer and the wave stops at once - while you are practising, the button and the wave are gone.',
+    ]},
     { build:'2026-10-20 18:00', title:'Quick start: a gentler shockwave', items:[
       'The wave now reaches only about halfway across the screen.',
       'It is much softer - a hint of orange, not a flash.',
@@ -2883,6 +2892,7 @@
     try{ var _pv = view; if(_pv && (_pv.tResult || _pv.qotd)) _pv = Object.assign({}, _pv, { tResult: null, qotd: null }); ss('fd:view', _pv); }catch(e){}
     try{ pushNav(view); }catch(e){}
     try{ clearQPal(); }catch(e){}
+    try{ document.body.classList.remove('gwopen'); }catch(e){}
     document.body.classList.toggle('launch-closed', !!(LAUNCH_CLOSED && !IS_OWNER));
     if(LAUNCH_CLOSED && !IS_OWNER){ showClosed(); updateFab(); paintTabs(); return; }
     if(view.t === 'subject') renderSubject(view.y, view.s);
@@ -3224,6 +3234,7 @@
   function renderGateway(){
     var c = $('content'); c.textContent = '';
     try{ document.body.classList.remove('testrun'); }catch(e){}
+    try{ document.body.classList.add('gwopen'); }catch(e){}
     var st = gatewayState();
     var wrap = document.createElement('div'); wrap.className = 'twrap';
     var head = document.createElement('div'); head.className = 'gw-head';
